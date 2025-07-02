@@ -1,9 +1,13 @@
 # 🚀 کانفیگ های اتصال
+ Clash Meta 
 
-### 🔗 لینک کلش   
-`https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config-jo.yaml`  
+```
+https://chromego-sub.netlify.app/sub/merged_proxies_new.yaml](https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config-jo.yaml
+```
 
----
+Hiddify URL
 
-### 🌐 لینک V2rayN & Hiddify  
-`https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config_jo.txt`  
+```
+https://chromego-sub.netlify.app/sub/base64.txt](https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config_jo.txt
+```
+
