@@ -1,7 +1,7 @@
 ## دریافت کانفیگ‌های V2Ray
 
 ```url
-https://raw.githubusercontent.com/R3ZARAHIMI/7/main/v2ray_configs.txt
+https://raw.githubusercontent.com/R3ZARAHIMI/7/refs/heads/main/%F0%9F%94%B0Configs%F0%9F%94%B0.yaml
 ```
 
-[💾 دانلود فایل](https://raw.githubusercontent.com/R3ZARAHIMI/7/main/v2ray_configs.txt)
+[💾 دانلود فایل کلش](https://raw.githubusercontent.com/R3ZARAHIMI/7/refs/heads/main/%F0%9F%94%B0Configs%F0%9F%94%B0.yaml)
