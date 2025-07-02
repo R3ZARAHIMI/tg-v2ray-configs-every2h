@@ -1,6 +1,6 @@
 # 🚀 کانفیگ های اتصال
 
-### 🔗 لینک کلش رویال  
+### 🔗 لینک کلش   
 `https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config-jo.yaml`  
 
 ---
