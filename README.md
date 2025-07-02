@@ -1,7 +1,9 @@
 # 🚀 کانفیگ های اتصال
 
-### 🔗 لینک کلش  
-📎 `https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config-jo.yaml`
+### 🔗 لینک کلش   
+[📋 Copy Link](https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config-jo.yaml)  
+`https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config-jo.yaml`
 
 ### 🌐 لینک V2rayN & Hiddify  
-📎 `https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config_jo.txt`
+[📋 Copy Link](https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config_jo.txt)  
+`https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config_jo.txt`
