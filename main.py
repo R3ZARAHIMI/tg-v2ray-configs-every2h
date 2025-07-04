@@ -405,7 +405,7 @@ class V2RayExtractor:
             SESSION_NAME,
             api_id=API_ID,
             api_hash=API_HASH,
-            proxy=PROXY
+            proxy=None 
         )
         self.tester = ConfigTester()
     
