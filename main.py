@@ -48,11 +48,11 @@ V2RAY_PATTERNS = [
 ]
 
 # تنظیمات پروکسی (اختیاری)
-PROXY = {
-    "hostname": "127.0.0.1",
-    "port": 10808,
-    "scheme": "socks5"
-}
+# PROXY = {
+#     "hostname": "127.0.0.1",
+#     "port": 10808,
+#     "scheme": "socks5"
+# }
 
 # تنظیمات تست
 TEST_SETTINGS = {
