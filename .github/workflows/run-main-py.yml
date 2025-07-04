@@ -1,0 +1,52 @@
+name: Extract and Test VPN Configs
+
+on:
+  schedule:
+    # Schedule to run at 00:00, 08:00, and 16:00 UTC every day
+    # Adjust these times based on your local time and desired run frequency.
+    # For example, if you are in Iran (UTC+3:30) and want to run at 9:30, 17:30, 1:30 AM (next day):
+    # 9:30 IRT = 6:00 UTC
+    # 17:30 IRT = 14:00 UTC
+    # 1:30 AM IRT (next day) = 22:00 UTC (current day)
+    - cron: '0 6,14,22 * * *' # Run at 06:00, 14:00, 22:00 UTC
+
+  workflow_dispatch: # Allows manual triggering from the GitHub UI
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10' # You can use '3.x' or a specific version like '3.10', '3.11', '3.12'
+
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt
+
+      - name: Set up Telegram API credentials
+        run: |
+          echo "API_ID=${{ secrets.API_ID }}" >> $GITHUB_ENV
+          echo "API_HASH=${{ secrets.API_HASH }}" >> $GITHUB_ENV
+          echo "BOT_TOKEN=${{ secrets.BOT_TOKEN }}" >> $GITHUB_ENV
+        env:
+          API_ID: ${{ secrets.API_ID }}
+          API_HASH: ${{ secrets.API_HASH }}
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+
+      - name: Run main.py
+        run: python main.py
+
+      - name: Commit and Push new configs
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add Config-jo.yaml Config_jo.txt
+          git diff --staged --quiet || git commit -m "Update VPN configs (GitHub Actions)"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Automatically provided by GitHub
