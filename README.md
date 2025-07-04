@@ -1,9 +1,13 @@
-## دریافت کانفیگ‌های V2Ray
+# 🚀 کانفیگ های اتصال
+Clash Meta ─── Clash Verge ─── FlClash ─── Stash
 
-```url
-https://raw.githubusercontent.com/R3ZARAHIMI/7/refs/heads/main/%F0%9F%94%B0Configs%F0%9F%94%B0.yaml
-https://raw.githubusercontent.com/R3ZARAHIMI/7/refs/heads/main/%F0%9F%94%B0Configs%F0%9F%94%B0.txt
+```
+https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config-jo.yaml
 ```
 
-[💾 دانلود فایل کلش](https://raw.githubusercontent.com/R3ZARAHIMI/7/refs/heads/main/%F0%9F%94%B0Configs%F0%9F%94%B0.yaml)
-[💾 دانلود فایل text](https://raw.githubusercontent.com/R3ZARAHIMI/7/refs/heads/main/%F0%9F%94%B0Configs%F0%9F%94%B0.txt)
+
+v2rayNG ─── MahsaNG ─── v2rayN ─── Shadowrocket ─── Streisand ─── Hiddify
+```
+https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config_jo.txt
+```
+
