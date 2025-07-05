@@ -15,7 +15,7 @@ from pyrogram.errors import FloodWait, RPCError
 API_ID = int(os.environ.get("API_ID", 12345))
 API_HASH = os.environ.get("API_HASH", "your_api_hash_here")
 SESSION_NAME = "my_account"
-CHANNELS = ["@SRCVPN", "@net0n3", "@Anty_Filter","@vpns","@v2ra_config","@mrsoulh","@Capoit"]
+CHANNELS = ["@SRCVPN", "@net0n3", "@Anty_Filter","@vpns","@mrsoulh","@Capoit"]
 OUTPUT_YAML = "Config-jo.yaml"
 OUTPUT_TXT = "Config_jo.txt"
 
