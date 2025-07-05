@@ -28,7 +28,8 @@ NORMAL_CHANNELS = [
     "@xzjinx",
     "@vpns",
     "@Capoit",
-    "@mrsoulh"
+    "@mrsoulh",
+    "@sezar_sec"
 ]
 
 # کانال‌هایی که کانفیگ‌ها را به صورت Base64 شده ارسال می‌کنند
