@@ -21,24 +21,28 @@ API_HASH = os.environ.get("API_HASH")
 SESSION_NAME = "my_account"
 
 # --- لیست کانال‌ها ---
+# کانال‌هایی که به صورت مستقیم (غیر Base64) کانفیگ ارسال می‌کنند
 NORMAL_CHANNELS = [
     "@SRCVPN",
     "@net0n3",
     "@Anty_Filter",
     "@vpns",
-    "@Capoit"
+    "@Capoit",
+    "@mrsoulh"
 ]
 
+# کانال‌هایی که کانفیگ‌ها را به صورت Base64 شده ارسال می‌کنند
 BASE64_ENCODED_CHANNELS = [
     
-    "@v2ra_config"
+    "@v2ra_config" # کانالی که کاربر مشخص کرد Base64 هست
 ]
 
+# لیست کلی کانال‌ها که در حلقه استفاده می‌شود
 ALL_CHANNELS = NORMAL_CHANNELS + BASE64_ENCODED_CHANNELS
 
 # خروجی‌ها
-OUTPUT_YAML = "Config-jo.yaml"
-OUTPUT_TXT = "Config_jo.txt"
+OUTPUT_YAML = "Config-jo.yaml"  # خروجی به فرمت YAML برای Clash
+OUTPUT_TXT = "Config_jo.txt"    # خروجی به فرمت متنی ساده
 
 # الگوهای شناسایی کانفیگ‌های مستقیم (URLها)
 V2RAY_PATTERNS = [
@@ -51,18 +55,21 @@ V2RAY_PATTERNS = [
     re.compile(r"(tuic://[^\s]+)")
 ]
 
-# الگوی جدید و اصلاح شده برای رشته‌های Base64 شده
+# الگوی جدید و اصلاح شده برای رشته‌های Base64 شده (پیدا کردن هر رشته طولانی Base64)
+# این الگو به دنبال هر رشته Base64 با حداقل 50 کاراکتر می‌گردد.
 BASE64_PATTERN = re.compile(r"([A-Za-z0-9+/=]{50,})", re.MULTILINE)
 
 # --- کلاس V2RayExtractor ---
 class V2RayExtractor:
     def __init__(self):
         self.found_configs = set()
-        self.parsed_clash_configs = []
+        self.parsed_clash_configs = [] # هر آیتم شامل {'original_url': ..., 'clash_info': ...} است
+
         self.client = Client(
             SESSION_NAME,
             api_id=API_ID,
             api_hash=API_HASH
+            # GLOBAL_PROXY_SETTINGS را به صورت پیش‌فرض None قرار دادیم و نیازی به پاس دادن آن نیست.
         )
 
     # --- توابع کمکی ---
@@ -70,10 +77,12 @@ class V2RayExtractor:
         if not original_name:
             return f"{prefix}-{str(uuid.uuid4())[:8]}"
         
+        # پاک کردن کاراکترهای غیرمجاز (شامل کاراکترهای فارسی و اموجی)
+        # \u0600-\u06FF برای تطابق با کاراکترهای فارسی است.
         cleaned_name = re.sub(r'[^\w\s\-\_\u0600-\u06FF]', '', original_name)
         cleaned_name = cleaned_name.replace(' ', '_').strip('_-')
         
-        if not cleaned_name:
+        if not cleaned_name: # اگر بعد از تمیزکاری، نام خالی شد
             return f"{prefix}-{str(uuid.uuid4())[:8]}"
             
         return f"{cleaned_name}-{str(uuid.uuid4())[:8]}"
@@ -104,6 +113,23 @@ class V2RayExtractor:
     def parse_config(self, config_url):
         """تجزیه و تحلیل کانفیگ برای استخراج اطلاعات اتصال برای Clash"""
         try:
+            # --- تغییر: اصلاح پیشوند ss:// برای VMess های اشتباهی ---
+            # اگر با ss:// شروع شده و به نظر یک JSON Base64 شده میاد
+            if config_url.startswith('ss://') and len(config_url) > 10: # طول کافی برای Base64
+                possible_b64 = config_url[5:].split('#', 1)[0] # بعد از ss:// و قبل از fragment
+                if len(possible_b64) % 4 != 0: # اگر padding مشکل داشت
+                    possible_b64 += '=' * (4 - (len(possible_b64) % 4))
+                try:
+                    decoded_check = base64.b64decode(possible_b64).decode('utf-8', errors='ignore')
+                    # بررسی اینکه آیا محتوای دی‌کد شده شبیه یک JSON Vmess است
+                    if decoded_check.strip().startswith('{') and '"add":' in decoded_check and '"id":' in decoded_check:
+                        # اگر شبیه JSON برای VMess بود، پیشوند را به vmess:// تغییر بده
+                        config_url = 'vmess://' + possible_b64 + (('#' + config_url.split('#', 1)[1]) if '#' in config_url else '')
+                        # print(f"DEBUG: Corrected ss:// to vmess:// for: {config_url[:60]}...") # برای دیباگ
+                except:
+                    pass # اگر decode نشد یا JSON نبود، اشکالی نداره، به عنوان ss:// معمولی ادامه میده
+            # --- پایان تغییر جدید ---
+
             if config_url.startswith('vmess://'):
                 return self.parse_vmess(config_url)
             elif config_url.startswith('vless://'):
@@ -451,12 +477,12 @@ class V2RayExtractor:
         """بررسی کانال و استخراج کانفیگ‌ها"""
         try:
             print(f"🔍 Scanning channel {channel}...")
-            # limit=100 مناسب‌تر است برای جستجوی کانفیگ‌ها در پیام‌های قدیمی‌تر
-            async for message in self.client.get_chat_history(channel, limit=10): 
+            # limit=30 برای هر کانال
+            async for message in self.client.get_chat_history(channel, limit=30): 
                 if not message.text:
                     continue
 
-                processed_texts = [message.text] # متن اصلی پیام همیشه باید اسکن شود
+                processed_texts = [message.text]
 
                 # --- منطق Base64 Decode فقط برای کانال‌های مشخص شده ---
                 if channel in BASE64_ENCODED_CHANNELS:
@@ -467,7 +493,9 @@ class V2RayExtractor:
                         b64_str = b64_str_match if isinstance(b64_str_match, str) else b64_str_match[0]
 
                         try:
-                            cleaned_b64_str = b64_str.strip().replace('\n', '')
+                            # حذف تمام whitespace ها (شامل فضا، تب، خط جدید)
+                            cleaned_b64_str = re.sub(r'\s+', '', b64_str) 
+                            # اضافه کردن padding قبل از decode
                             padding = len(cleaned_b64_str) % 4
                             if padding:
                                 cleaned_b64_str += '=' * (4 - padding)
@@ -495,30 +523,14 @@ class V2RayExtractor:
                                 
                                 parsed_config = None
                                 try:
-                                    # --- تغییر جدید: اصلاح پیشوند ss:// برای VMess های اشتباهی ---
-                                    # اگر با ss:// شروع شده و به نظر یک JSON Base64 شده میاد
-                                    if config_url.startswith('ss://') and len(config_url) > 10: # طول کافی برای Base64
-                                        possible_b64 = config_url[5:].split('#', 1)[0] # بعد از ss:// و قبل از fragment
-                                        if len(possible_b64) % 4 != 0: # اگر padding مشکل داشت
-                                            possible_b64 += '=' * (4 - (len(possible_b64) % 4))
-                                        try:
-                                            decoded_check = base64.b64decode(possible_b64).decode('utf-8', errors='ignore')
-                                            if decoded_check.strip().startswith('{') and 'add' in decoded_check and 'id' in decoded_check:
-                                                # اگر شبیه JSON برای VMess بود، پیشوند را به vmess:// تغییر بده
-                                                config_url = 'vmess://' + possible_b64 + (('#' + config_url.split('#', 1)[1]) if '#' in config_url else '')
-                                                print(f"DEBUG: Corrected ss:// to vmess:// for: {config_url[:60]}...")
-                                        except:
-                                            pass # اگر decode نشد یا JSON نبود، اشکالی نداره، به عنوان ss:// معمولی ادامه میده
-                                    # --- پایان تغییر جدید ---
-
-                                    parsed_config = self.parse_config(config_url) # حالا این parse_config را با URL اصلاح شده صدا بزن
+                                    parsed_config = self.parse_config(config_url)
                                     
                                     if parsed_config:
                                         self.parsed_clash_configs.append({
                                             'original_url': config_url,
                                             'clash_info': parsed_config
                                         })
-                                        print(f"✅ Parsed config: {parsed_config['name']} ({parsed_config['type']})")
+                                        # print(f"✅ Parsed config: {parsed_config['name']} ({parsed_config['type']})")
                                     else:
                                         print(f"❌ Failed to parse config or invalid structure: {config_url[:50]}...")
                                         
