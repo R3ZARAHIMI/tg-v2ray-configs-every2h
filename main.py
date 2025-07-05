@@ -15,7 +15,7 @@ from pyrogram.errors import FloodWait, RPCError
 API_ID = int(os.environ.get("API_ID", 12345))
 API_HASH = os.environ.get("API_HASH", "your_api_hash_here")
 SESSION_NAME = "my_account"
-CHANNELS = ["@SRCVPN", "@sezar_sec", "@Anty_Filter","@vpns"]
+CHANNELS = ["@SRCVPN", "@net0n3", "@Anty_Filter","@vpns","@v2ra_config","@mrsoulh","@Capoit"]
 OUTPUT_YAML = "Config-jo.yaml"
 OUTPUT_TXT = "Config_jo.txt"
 
@@ -353,7 +353,7 @@ class V2RayExtractor:
         """بررسی کانال و استخراج کانفیگ‌ها"""
         try:
             print(f"🔍 Scanning channel {channel}...")
-            async for message in self.client.get_chat_history(channel, limit=15):
+            async for message in self.client.get_chat_history(channel, limit=8):
                 if not message.text:
                     continue
 
