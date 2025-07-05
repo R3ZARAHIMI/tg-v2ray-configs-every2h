@@ -1,5 +1,23 @@
+mixed-port: 7890
+allow-lan: true
+bind-address: '*'
+mode: rule
+log-level: info
+external-controller: 127.0.0.1:9090
+dns:
+  enable: true
+  ipv6: false
+  default-nameserver:
+  - 223.5.5.5
+  - 8.8.8.8
+  enhanced-mode: fake-ip
+  fake-ip-range: 198.18.0.1/16
+  use-hosts: true
+  nameserver:
+  - https://doh.pub/dns-query
+  - https://dns.alidns.com/dns-query
 proxies:
-- name: config-87771f3a
+- name: vless-f862aee0
   type: vless
   server: 91.99.176.57
   port: 2025
@@ -7,10 +25,11 @@ proxies:
   udp: true
   network: tcp
   tls: true
+  skip-cert-verify: true
   reality-opts:
     public-key: ZYOJiXfnupbX7P2IG8VmWZrZCA9QOY39GYYiTyZ21UE
     short-id: 85decdebbcf6c7bb
-- name: config-9188f7d4
+- name: vless-956bd8f1
   type: vless
   server: 91.99.176.57
   port: 2026
@@ -18,10 +37,25 @@ proxies:
   udp: true
   network: tcp
   tls: true
+  skip-cert-verify: true
   reality-opts:
     public-key: ZYOJiXfnupbX7P2IG8VmWZrZCA9QOY39GYYiTyZ21UE
     short-id: 85decdebbcf6c7bb
-- name: config-f865d84b
+- name: ss-386dfb08
+  type: ss
+  server: 91.99.176.57
+  port: 2025
+  cipher: Telegram--SRCVPN-SRCVPN-SRCVPN
+  password: null
+  udp: true
+- name: ss-ce0f9c5e
+  type: ss
+  server: 91.99.176.57
+  port: 2026
+  cipher: Telegram--SRCVPN-SRCVPN-SRCVPN
+  password: null
+  udp: true
+- name: vless-61d2b52c
   type: vless
   server: accounting.vinamarketcenter.ir
   port: 443
@@ -29,10 +63,18 @@ proxies:
   udp: true
   network: tcp
   tls: true
+  skip-cert-verify: true
   reality-opts:
     public-key: T7Cwk-B3EvZqqRywIgN_TNotJiUOXYUI9bHqYKPnTi0
     short-id: 105e89ba3d2a1c3b
-- name: SRCVPN-6ef59b92
+- name: ss-e26ca1ce
+  type: ss
+  server: accounting.vinamarketcenter.ir
+  port: 443
+  cipher: 5cfba4ac-105a-452a-ac10-88b1adf784ee
+  password: null
+  udp: true
+- name: SRCVPN-0cf53cc7
   type: vless
   server: 150.241.65.211
   port: 443
@@ -40,10 +82,11 @@ proxies:
   udp: true
   network: tcp
   tls: true
+  skip-cert-verify: true
   reality-opts:
     public-key: LYJ37EcS5jyaezTVaVAVCkBWCrjXioiJHI7argkEnCU
     short-id: 236ac31d02
-- name: SRCVPN-b77cf92b
+- name: SRCVPN-e81b49c5
   type: vless
   server: www.speedtest.net
   port: 80
@@ -54,21 +97,49 @@ proxies:
     path: /?ed=2048
     headers:
       Host: Www.speedtest.net.developsp.ir.vegaskala.com.
-- name: config-f917eb65
+- name: SRCVPN-c8d20fab
+  type: ss
+  server: 150.241.65.211
+  port: 443
+  cipher: be5fab84-5edb-4800-927e-243f6e4309bf
+  password: null
+  udp: true
+- name: SRCVPN-7790cc81
+  type: ss
+  server: www.speedtest.net
+  port: 80
+  cipher: a812a015-a65b-4003-ac5f-266e141c6405
+  password: null
+  udp: true
+- name: vless-1e794c6c
   type: vless
   server: srcvpn.fast.hosting-ip.com
   port: 80
   uuid: 3ec5186b-d636-48b0-9a0a-30d824f63078
   udp: true
-  network: http
-- name: config-e2c46050
+  network: xhttp
+- name: vless-a0694191
   type: vless
   server: srcvpn.fast.hosting-ip.com
   port: 80
   uuid: '%54%45%4C%45%47%52%41%4D%2D%4E%55%46%69%4C%54%45%52'
   udp: true
-  network: http
-- name: config-371a3641
+  network: xhttp
+- name: ss-9e9c2c43
+  type: ss
+  server: srcvpn.fast.hosting-ip.com
+  port: 80
+  cipher: 3ec5186b-d636-48b0-9a0a-30d824f63078
+  password: null
+  udp: true
+- name: ss-cd3c5d6f
+  type: ss
+  server: srcvpn.fast.hosting-ip.com
+  port: 80
+  cipher: '%54%45%4C%45%47%52%41%4D%2D%4E%55%46%69%4C%54%45%52'
+  password: null
+  udp: true
+- name: vless-08b1027f
   type: vless
   server: 5.75.193.253
   port: 443
@@ -76,52 +147,102 @@ proxies:
   udp: true
   network: tcp
   tls: true
+  skip-cert-verify: true
   reality-opts:
     public-key: CMB9AENkMsO9qHpxrdodZurjDEW4-l9ruDjsyZYzvVQ
     short-id: f6
-- name: config-12b75dfb
+- name: ss-99984008
+  type: ss
+  server: 5.75.193.253
+  port: 443
+  cipher: f998b63e-bfbe-4a7d-a6c0-800d8febb806
+  password: null
+  udp: true
+- name: vless-f61a0aa2
   type: vless
   server: 151.101.3.8
   port: 80
   uuid: 17a4fc34-3169-4b00-ab8e-12e995fea961
   udp: true
-  network: http
-- name: config-4525eae8
+  network: xhttp
+- name: ss-be0bc8c4
+  type: ss
+  server: 151.101.3.8
+  port: 80
+  cipher: 17a4fc34-3169-4b00-ab8e-12e995fea961
+  password: null
+  udp: true
+- name: vless-758ed057
   type: vless
   server: 151.101.3.8
   port: 80
   uuid: 5c46a07c-aef0-4c3c-96ac-fe6f8a91ee4e
   udp: true
-  network: http
-- name: config-07cfa9e1
+  network: xhttp
+- name: ss-e811f9e6
+  type: ss
+  server: 151.101.3.8
+  port: 80
+  cipher: 5c46a07c-aef0-4c3c-96ac-fe6f8a91ee4e
+  password: null
+  udp: true
+- name: vless-757cc3d4
   type: vless
   server: 151.101.3.8
   port: 80
   uuid: 39096b35-49a7-425e-9656-b32dd65934b5
   udp: true
-  network: http
-- name: config-2db2b266
+  network: xhttp
+- name: ss-21ea3b1a
+  type: ss
+  server: 151.101.3.8
+  port: 80
+  cipher: 39096b35-49a7-425e-9656-b32dd65934b5
+  password: null
+  udp: true
+- name: vless-6439b510
   type: vless
   server: 151.101.3.8
   port: 80
   uuid: 598ed6d5-f2e0-4c30-8b3e-a64eec389013
   udp: true
-  network: http
-- name: config-524006cb
+  network: xhttp
+- name: ss-67ef8e59
+  type: ss
+  server: 151.101.3.8
+  port: 80
+  cipher: 598ed6d5-f2e0-4c30-8b3e-a64eec389013
+  password: null
+  udp: true
+- name: vless-678effa5
   type: vless
   server: aser.digimajaz-social.ir
   port: 500
   uuid: bb4c6b72-4f69-4dd1-a819-574330bdbbdd
   udp: true
   network: tcp
-- name: config-33a2f56d
+- name: vless-a26086a4
   type: vless
   server: 185.49.105.233
   port: 6000
   uuid: d094e677-8202-4301-abac-6c9310d28272
   udp: true
   network: tcp
-- name: config-1a1ae052
+- name: ss-05318b51
+  type: ss
+  server: aser.digimajaz-social.ir
+  port: 500
+  cipher: bb4c6b72-4f69-4dd1-a819-574330bdbbdd
+  password: null
+  udp: true
+- name: ss-e92f78a1
+  type: ss
+  server: 185.49.105.233
+  port: 6000
+  cipher: d094e677-8202-4301-abac-6c9310d28272
+  password: null
+  udp: true
+- name: vless-fe5aa9f4
   type: vless
   server: biography.com
   port: 80
@@ -132,7 +253,14 @@ proxies:
     path: /download
     headers:
       Host: melovy.ir
-- name: config-a239bd98
+- name: ss-dcb453b5
+  type: ss
+  server: biography.com
+  port: 80
+  cipher: bc52c632-5549-4f23-9037-27d7d8c2cec6
+  password: null
+  udp: true
+- name: vless-7f1dc34a
   type: vless
   server: fox1-ov.com
   port: 2070
@@ -140,12 +268,13 @@ proxies:
   udp: true
   network: grpc
   tls: true
+  skip-cert-verify: true
   reality-opts:
     public-key: FrFgwroo7aYMQ42V_6KsspiSfKDjMU_f25LdLKO_G1g
     short-id: 7f817f94232c26
   grpc-opts:
     grpc-service-name: -@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN
-- name: config-4af71c86
+- name: vless-9a4e5538
   type: vless
   server: fox1-ov.com
   port: 2080
@@ -153,12 +282,27 @@ proxies:
   udp: true
   network: grpc
   tls: true
+  skip-cert-verify: true
   reality-opts:
     public-key: FrFgwroo7aYMQ42V_6KsspiSfKDjMU_f25LdLKO_G1g
     short-id: 7f817f94232c26
   grpc-opts:
     grpc-service-name: -@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN
-- name: config-a426d0a1
+- name: ss-71712f61
+  type: ss
+  server: fox1-ov.com
+  port: 2070
+  cipher: Channel--SRCVPN--
+  password: null
+  udp: true
+- name: ss-884a0f83
+  type: ss
+  server: fox1-ov.com
+  port: 2080
+  cipher: Channel--SRCVPN--
+  password: null
+  udp: true
+- name: vless-923dcdd2
   type: vless
   server: 78.47.254.182
   port: 2053
@@ -166,10 +310,18 @@ proxies:
   udp: true
   network: tcp
   tls: true
+  skip-cert-verify: true
   reality-opts:
     public-key: J_hakbFY6qXqGMQr2hSQx686SjqZn4CU4d1BUai7G0Q
     short-id: b5
-- name: config-ad803785
+- name: ss-488de9c4
+  type: ss
+  server: 78.47.254.182
+  port: 2053
+  cipher: ed4a3f76-97c5-429c-971e-48c25254a234
+  password: null
+  udp: true
+- name: vless-093984d7
   type: vless
   server: fox1-ov.com
   port: 2070
@@ -177,12 +329,13 @@ proxies:
   udp: true
   network: grpc
   tls: true
+  skip-cert-verify: true
   reality-opts:
     public-key: FrFgwroo7aYMQ42V_6KsspiSfKDjMU_f25LdLKO_G1g
     short-id: 7f817f94232c26
   grpc-opts:
     grpc-service-name: -@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN
-- name: config-0e380f96
+- name: vless-61a37ff1
   type: vless
   server: fox1-ov.com
   port: 2080
@@ -190,12 +343,27 @@ proxies:
   udp: true
   network: grpc
   tls: true
+  skip-cert-verify: true
   reality-opts:
     public-key: FrFgwroo7aYMQ42V_6KsspiSfKDjMU_f25LdLKO_G1g
     short-id: 7f817f94232c26
   grpc-opts:
     grpc-service-name: -@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN
-- name: config-3ca7ecb1
+- name: ss-23523aec
+  type: ss
+  server: fox1-ov.com
+  port: 2070
+  cipher: idTel--SRCVPN--
+  password: null
+  udp: true
+- name: ss-56d8409f
+  type: ss
+  server: fox1-ov.com
+  port: 2080
+  cipher: idTel--SRCVPN--
+  password: null
+  udp: true
+- name: vless-bba1733e
   type: vless
   server: fox1-ov.com
   port: 2070
@@ -203,12 +371,13 @@ proxies:
   udp: true
   network: grpc
   tls: true
+  skip-cert-verify: true
   reality-opts:
     public-key: FrFgwroo7aYMQ42V_6KsspiSfKDjMU_f25LdLKO_G1g
     short-id: 7f817f94232c26
   grpc-opts:
     grpc-service-name: -@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN
-- name: config-9638002f
+- name: vless-83aac693
   type: vless
   server: fox1-ov.com
   port: 2080
@@ -216,12 +385,27 @@ proxies:
   udp: true
   network: grpc
   tls: true
+  skip-cert-verify: true
   reality-opts:
     public-key: FrFgwroo7aYMQ42V_6KsspiSfKDjMU_f25LdLKO_G1g
     short-id: 7f817f94232c26
   grpc-opts:
     grpc-service-name: -@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN
-- name: config-977330af
+- name: ss-58f092e4
+  type: ss
+  server: fox1-ov.com
+  port: 2070
+  cipher: Telegram--SRCVPN-
+  password: null
+  udp: true
+- name: ss-feb3fbbf
+  type: ss
+  server: fox1-ov.com
+  port: 2080
+  cipher: Telegram--SRCVPN-
+  password: null
+  udp: true
+- name: vless-f1759859
   type: vless
   server: fox1-ov.com
   port: 2070
@@ -229,12 +413,13 @@ proxies:
   udp: true
   network: grpc
   tls: true
+  skip-cert-verify: true
   reality-opts:
     public-key: FrFgwroo7aYMQ42V_6KsspiSfKDjMU_f25LdLKO_G1g
     short-id: 7f817f94232c26
   grpc-opts:
     grpc-service-name: -@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN
-- name: config-6134f31a
+- name: vless-06c633a4
   type: vless
   server: fox1-ov.com
   port: 2080
@@ -242,12 +427,27 @@ proxies:
   udp: true
   network: grpc
   tls: true
+  skip-cert-verify: true
   reality-opts:
     public-key: FrFgwroo7aYMQ42V_6KsspiSfKDjMU_f25LdLKO_G1g
     short-id: 7f817f94232c26
   grpc-opts:
     grpc-service-name: -@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN
-- name: config-f60c484a
+- name: ss-150e8a2b
+  type: ss
+  server: fox1-ov.com
+  port: 2070
+  cipher: Telegram-SRCVPN-
+  password: null
+  udp: true
+- name: ss-f1fa4f92
+  type: ss
+  server: fox1-ov.com
+  port: 2080
+  cipher: Telegram-SRCVPN-
+  password: null
+  udp: true
+- name: vless-e3a99165
   type: vless
   server: fox1-ov.com
   port: 2070
@@ -255,12 +455,13 @@ proxies:
   udp: true
   network: grpc
   tls: true
+  skip-cert-verify: true
   reality-opts:
     public-key: FrFgwroo7aYMQ42V_6KsspiSfKDjMU_f25LdLKO_G1g
     short-id: 7f817f94232c26
   grpc-opts:
     grpc-service-name: -@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN
-- name: config-fbb38619
+- name: vless-ec85c723
   type: vless
   server: fox1-ov.com
   port: 2080
@@ -268,12 +469,27 @@ proxies:
   udp: true
   network: grpc
   tls: true
+  skip-cert-verify: true
   reality-opts:
     public-key: FrFgwroo7aYMQ42V_6KsspiSfKDjMU_f25LdLKO_G1g
     short-id: 7f817f94232c26
   grpc-opts:
     grpc-service-name: -@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN
-- name: config-01c253ab
+- name: ss-d8446082
+  type: ss
+  server: fox1-ov.com
+  port: 2070
+  cipher: Channel--SRCVPN--
+  password: null
+  udp: true
+- name: ss-ae8242a1
+  type: ss
+  server: fox1-ov.com
+  port: 2080
+  cipher: Channel--SRCVPN--
+  password: null
+  udp: true
+- name: vless-93c7a3ea
   type: vless
   server: fox1-ov.com
   port: 2070
@@ -281,12 +497,13 @@ proxies:
   udp: true
   network: grpc
   tls: true
+  skip-cert-verify: true
   reality-opts:
     public-key: FrFgwroo7aYMQ42V_6KsspiSfKDjMU_f25LdLKO_G1g
     short-id: 7f817f94232c26
   grpc-opts:
     grpc-service-name: -@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN
-- name: config-fb895b63
+- name: vless-95134f0a
   type: vless
   server: fox1-ov.com
   port: 2080
@@ -294,12 +511,27 @@ proxies:
   udp: true
   network: grpc
   tls: true
+  skip-cert-verify: true
   reality-opts:
     public-key: FrFgwroo7aYMQ42V_6KsspiSfKDjMU_f25LdLKO_G1g
     short-id: 7f817f94232c26
   grpc-opts:
     grpc-service-name: -@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN
-- name: config-8647c1a7
+- name: ss-b3b4018f
+  type: ss
+  server: fox1-ov.com
+  port: 2070
+  cipher: Channel-SRCVPN-
+  password: null
+  udp: true
+- name: ss-e214950e
+  type: ss
+  server: fox1-ov.com
+  port: 2080
+  cipher: Channel-SRCVPN-
+  password: null
+  udp: true
+- name: vless-686ce86b
   type: vless
   server: fox1-ov.com
   port: 2070
@@ -307,12 +539,13 @@ proxies:
   udp: true
   network: grpc
   tls: true
+  skip-cert-verify: true
   reality-opts:
     public-key: FrFgwroo7aYMQ42V_6KsspiSfKDjMU_f25LdLKO_G1g
     short-id: 7f817f94232c26
   grpc-opts:
     grpc-service-name: -@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN
-- name: config-f91df2c9
+- name: vless-08436bef
   type: vless
   server: fox1-ov.com
   port: 2080
@@ -320,12 +553,27 @@ proxies:
   udp: true
   network: grpc
   tls: true
+  skip-cert-verify: true
   reality-opts:
     public-key: FrFgwroo7aYMQ42V_6KsspiSfKDjMU_f25LdLKO_G1g
     short-id: 7f817f94232c26
   grpc-opts:
     grpc-service-name: -@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN
-- name: config-81f35282
+- name: ss-ec0eea3f
+  type: ss
+  server: fox1-ov.com
+  port: 2070
+  cipher: Telegram-id-SRCVPN-
+  password: null
+  udp: true
+- name: ss-12c64084
+  type: ss
+  server: fox1-ov.com
+  port: 2080
+  cipher: Telegram-id-SRCVPN-
+  password: null
+  udp: true
+- name: vless-72d94011
   type: vless
   server: fox1-ov.com
   port: 2070
@@ -333,12 +581,13 @@ proxies:
   udp: true
   network: grpc
   tls: true
+  skip-cert-verify: true
   reality-opts:
     public-key: FrFgwroo7aYMQ42V_6KsspiSfKDjMU_f25LdLKO_G1g
     short-id: 7f817f94232c26
   grpc-opts:
     grpc-service-name: -@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN
-- name: config-336143f0
+- name: vless-f69c1e64
   type: vless
   server: fox1-ov.com
   port: 2080
@@ -346,631 +595,174 @@ proxies:
   udp: true
   network: grpc
   tls: true
+  skip-cert-verify: true
   reality-opts:
     public-key: FrFgwroo7aYMQ42V_6KsspiSfKDjMU_f25LdLKO_G1g
     short-id: 7f817f94232c26
   grpc-opts:
     grpc-service-name: -@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN
-- name: config-9c4c99a9
-  type: vless
+- name: ss-cc488e7b
+  type: ss
   server: fox1-ov.com
-  port: 2050
-  uuid: Telegram-SRCVPN-
-  udp: true
-  network: grpc
-  tls: true
-  reality-opts:
-    public-key: FrFgwroo7aYMQ42V_6KsspiSfKDjMU_f25LdLKO_G1g
-    short-id: 7f817f94232c26
-  grpc-opts:
-    grpc-service-name: -@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN
-- name: config-3ada5a4f
-  type: vless
-  server: fox1-ov.com
-  port: 2060
-  uuid: Telegram-SRCVPN-
-  udp: true
-  network: grpc
-  tls: true
-  reality-opts:
-    public-key: FrFgwroo7aYMQ42V_6KsspiSfKDjMU_f25LdLKO_G1g
-    short-id: 7f817f94232c26
-  grpc-opts:
-    grpc-service-name: -@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN
-- name: config-c721456a
-  type: vless
-  server: 77.110.107.170
-  port: 2025
-  uuid: Telegram--SRCVPN--
-  udp: true
-  network: grpc
-  tls: true
-  reality-opts:
-    public-key: FrFgwroo7aYMQ42V_6KsspiSfKDjMU_f25LdLKO_G1g
-    short-id: 7f817f94232c26
-  grpc-opts:
-    grpc-service-name: -@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN
-- name: config-187b80d7
-  type: vless
-  server: 77.110.107.170
-  port: 2026
-  uuid: Telegram--SRCVPN--
-  udp: true
-  network: grpc
-  tls: true
-  reality-opts:
-    public-key: FrFgwroo7aYMQ42V_6KsspiSfKDjMU_f25LdLKO_G1g
-    short-id: 7f817f94232c26
-  grpc-opts:
-    grpc-service-name: -@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN
-- name: config-45534e58
-  type: vless
-  server: 77.110.107.170
-  port: 2050
-  uuid: Channel--SRCVPN--
-  udp: true
-  network: grpc
-  tls: true
-  reality-opts:
-    public-key: FrFgwroo7aYMQ42V_6KsspiSfKDjMU_f25LdLKO_G1g
-    short-id: 7f817f94232c26
-  grpc-opts:
-    grpc-service-name: -@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN
-- name: config-bda62fdc
-  type: vless
-  server: 77.110.107.170
-  port: 2060
-  uuid: Channel--SRCVPN--
-  udp: true
-  network: grpc
-  tls: true
-  reality-opts:
-    public-key: FrFgwroo7aYMQ42V_6KsspiSfKDjMU_f25LdLKO_G1g
-    short-id: 7f817f94232c26
-  grpc-opts:
-    grpc-service-name: -@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN
-- name: config-5c741dca
-  type: vless
-  server: 77.110.107.170
-  port: 2050
-  uuid: Telegram--SRCVPN-
-  udp: true
-  network: grpc
-  tls: true
-  reality-opts:
-    public-key: FrFgwroo7aYMQ42V_6KsspiSfKDjMU_f25LdLKO_G1g
-    short-id: 7f817f94232c26
-  grpc-opts:
-    grpc-service-name: -@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN
-- name: config-cf631850
-  type: vless
-  server: 77.110.107.170
-  port: 2060
-  uuid: Telegram--SRCVPN-
-  udp: true
-  network: grpc
-  tls: true
-  reality-opts:
-    public-key: FrFgwroo7aYMQ42V_6KsspiSfKDjMU_f25LdLKO_G1g
-    short-id: 7f817f94232c26
-  grpc-opts:
-    grpc-service-name: -@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN
-- name: config-385e8e6d
-  type: vless
-  server: 77.110.107.170
-  port: 2050
-  uuid: Telegram-SRCVPN-
-  udp: true
-  network: grpc
-  tls: true
-  reality-opts:
-    public-key: FrFgwroo7aYMQ42V_6KsspiSfKDjMU_f25LdLKO_G1g
-    short-id: 7f817f94232c26
-  grpc-opts:
-    grpc-service-name: -@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN
-- name: config-0e3c4e40
-  type: vless
-  server: 77.110.107.170
-  port: 2060
-  uuid: Telegram-SRCVPN-
-  udp: true
-  network: grpc
-  tls: true
-  reality-opts:
-    public-key: FrFgwroo7aYMQ42V_6KsspiSfKDjMU_f25LdLKO_G1g
-    short-id: 7f817f94232c26
-  grpc-opts:
-    grpc-service-name: -@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN
-- name: config-5b9ae8a6
-  type: vless
-  server: 77.110.107.170
-  port: 2050
-  uuid: Channel--SRCVPN-
-  udp: true
-  network: grpc
-  tls: true
-  reality-opts:
-    public-key: FrFgwroo7aYMQ42V_6KsspiSfKDjMU_f25LdLKO_G1g
-    short-id: 7f817f94232c26
-  grpc-opts:
-    grpc-service-name: -@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN
-- name: config-04421593
-  type: vless
-  server: 77.110.107.170
-  port: 2060
-  uuid: Channel--SRCVPN-
-  udp: true
-  network: grpc
-  tls: true
-  reality-opts:
-    public-key: FrFgwroo7aYMQ42V_6KsspiSfKDjMU_f25LdLKO_G1g
-    short-id: 7f817f94232c26
-  grpc-opts:
-    grpc-service-name: -@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN
-- name: config-38452f8c
-  type: vless
-  server: 77.110.107.170
   port: 2070
-  uuid: Telegram--SRCVPN--
+  cipher: Telegram--SRCVPN--
+  password: null
   udp: true
-  network: grpc
-  tls: true
-  reality-opts:
-    public-key: FrFgwroo7aYMQ42V_6KsspiSfKDjMU_f25LdLKO_G1g
-    short-id: 7f817f94232c26
-  grpc-opts:
-    grpc-service-name: -@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN
-- name: config-5efd8fc7
-  type: vless
-  server: 77.110.107.170
+- name: ss-5fbec6af
+  type: ss
+  server: fox1-ov.com
   port: 2080
-  uuid: Telegram--SRCVPN--
+  cipher: Telegram--SRCVPN--
+  password: null
   udp: true
-  network: grpc
-  tls: true
-  reality-opts:
-    public-key: FrFgwroo7aYMQ42V_6KsspiSfKDjMU_f25LdLKO_G1g
-    short-id: 7f817f94232c26
-  grpc-opts:
-    grpc-service-name: -@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN
-- name: config-38173e36
+- name: vless-d6096f55
   type: vless
-  server: 77.110.107.170
-  port: 20500
-  uuid: Telegram--SRCVPN-
-  udp: true
-  network: grpc
-  tls: true
-  reality-opts:
-    public-key: FrFgwroo7aYMQ42V_6KsspiSfKDjMU_f25LdLKO_G1g
-    short-id: 7f817f94232c26
-  grpc-opts:
-    grpc-service-name: -@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN
-- name: config-6fa8ab21
-  type: vless
-  server: 77.110.107.170
-  port: 20600
-  uuid: Telegram--SRCVPN-
-  udp: true
-  network: grpc
-  tls: true
-  reality-opts:
-    public-key: FrFgwroo7aYMQ42V_6KsspiSfKDjMU_f25LdLKO_G1g
-    short-id: 7f817f94232c26
-  grpc-opts:
-    grpc-service-name: -@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN
-- name: config-c57cf290
-  type: vless
-  server: src.primzoeron.ir
-  port: 20500
-  uuid: Telegram--SRCVPN-
-  udp: true
-  network: grpc
-  tls: true
-  reality-opts:
-    public-key: FrFgwroo7aYMQ42V_6KsspiSfKDjMU_f25LdLKO_G1g
-    short-id: 7f817f94232c26
-  grpc-opts:
-    grpc-service-name: -@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN
-- name: config-565fdfef
-  type: vless
-  server: src.primzoeron.ir
-  port: 20600
-  uuid: Telegram--SRCVPN-
-  udp: true
-  network: grpc
-  tls: true
-  reality-opts:
-    public-key: FrFgwroo7aYMQ42V_6KsspiSfKDjMU_f25LdLKO_G1g
-    short-id: 7f817f94232c26
-  grpc-opts:
-    grpc-service-name: -@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN
-- name: config-4fe582b8
-  type: vless
-  server: src.primzoeron.ir
-  port: 20500
-  uuid: Channel--SRCVPN-
-  udp: true
-  network: grpc
-  tls: true
-  reality-opts:
-    public-key: FrFgwroo7aYMQ42V_6KsspiSfKDjMU_f25LdLKO_G1g
-    short-id: 7f817f94232c26
-  grpc-opts:
-    grpc-service-name: -@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN
-- name: config-7c2b9c50
-  type: vless
-  server: src.primzoeron.ir
-  port: 20600
-  uuid: Channel--SRCVPN-
-  udp: true
-  network: grpc
-  tls: true
-  reality-opts:
-    public-key: FrFgwroo7aYMQ42V_6KsspiSfKDjMU_f25LdLKO_G1g
-    short-id: 7f817f94232c26
-  grpc-opts:
-    grpc-service-name: -@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN
-- name: config-e55bfe9b
-  type: vless
-  server: src.primzoeron.ir
-  port: 20500
-  uuid: Channel--SRCVPN
-  udp: true
-  network: grpc
-  tls: true
-  reality-opts:
-    public-key: FrFgwroo7aYMQ42V_6KsspiSfKDjMU_f25LdLKO_G1g
-    short-id: 7f817f94232c26
-  grpc-opts:
-    grpc-service-name: -@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN
-- name: config-3cc299cd
-  type: vless
-  server: src.primzoeron.ir
-  port: 20600
-  uuid: Channel--SRCVPN
-  udp: true
-  network: grpc
-  tls: true
-  reality-opts:
-    public-key: FrFgwroo7aYMQ42V_6KsspiSfKDjMU_f25LdLKO_G1g
-    short-id: 7f817f94232c26
-  grpc-opts:
-    grpc-service-name: -@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN
-- name: config-ac437a68
-  type: vless
-  server: src.primzoeron.ir
-  port: 20500
+  server: fox1-ov.com
+  port: 2050
   uuid: Telegram-SRCVPN-
   udp: true
   network: grpc
   tls: true
+  skip-cert-verify: true
   reality-opts:
     public-key: FrFgwroo7aYMQ42V_6KsspiSfKDjMU_f25LdLKO_G1g
     short-id: 7f817f94232c26
   grpc-opts:
-    grpc-service-name: '@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN'
-- name: config-83176e33
+    grpc-service-name: -@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN
+- name: vless-bc7a2711
   type: vless
-  server: src.primzoeron.ir
-  port: 20600
+  server: fox1-ov.com
+  port: 2060
   uuid: Telegram-SRCVPN-
   udp: true
   network: grpc
   tls: true
+  skip-cert-verify: true
   reality-opts:
     public-key: FrFgwroo7aYMQ42V_6KsspiSfKDjMU_f25LdLKO_G1g
     short-id: 7f817f94232c26
   grpc-opts:
-    grpc-service-name: '@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN'
-- name: config-ce27b739
-  type: vless
-  server: src.primzoeron.ir
-  port: 20500
-  uuid: JoinTel--SRCVPN
+    grpc-service-name: -@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN
+- name: ss-e8869ca3
+  type: ss
+  server: fox1-ov.com
+  port: 2050
+  cipher: Telegram-SRCVPN-
+  password: null
   udp: true
-  network: grpc
-  tls: true
-  reality-opts:
-    public-key: FrFgwroo7aYMQ42V_6KsspiSfKDjMU_f25LdLKO_G1g
-    short-id: 7f817f94232c26
-  grpc-opts:
-    grpc-service-name: '@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN'
-- name: config-ac6b9946
-  type: vless
-  server: src.primzoeron.ir
-  port: 20600
-  uuid: Telegram--SRCVPN
+- name: ss-6ce7fe85
+  type: ss
+  server: fox1-ov.com
+  port: 2060
+  cipher: Telegram-SRCVPN-
+  password: null
   udp: true
-  network: grpc
-  tls: true
-  reality-opts:
-    public-key: FrFgwroo7aYMQ42V_6KsspiSfKDjMU_f25LdLKO_G1g
-    short-id: 7f817f94232c26
-  grpc-opts:
-    grpc-service-name: '@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN'
-- name: config-62bec198
-  type: vless
-  server: src.primzoeron.ir
-  port: 20500
-  uuid: telegram-SRCVPN
+- name: Sezar_Sec-187e4607
+  type: ss
+  server: 109.199.100.128
+  port: 49893
+  cipher: chacha20-ietf-poly1305
+  password: 36fbd1f4e8660d48
   udp: true
-  network: grpc
-  tls: true
-  reality-opts:
-    public-key: FrFgwroo7aYMQ42V_6KsspiSfKDjMU_f25LdLKO_G1g
-    short-id: 7f817f94232c26
-  grpc-opts:
-    grpc-service-name: '@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN'
-- name: config-52bdfb7e
-  type: vless
-  server: src.primzoeron.ir
-  port: 20600
-  uuid: telegram-SRCVPN
+- name: Sezar_Sec-73b9e01d
+  type: ss
+  server: 45.92.11.72
+  port: 46351
+  cipher: chacha20-ietf-poly1305
+  password: 9fb95bb045a486fc
   udp: true
-  network: grpc
-  tls: true
-  reality-opts:
-    public-key: FrFgwroo7aYMQ42V_6KsspiSfKDjMU_f25LdLKO_G1g
-    short-id: 7f817f94232c26
-  grpc-opts:
-    grpc-service-name: '@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN'
-- name: config-35f0f2fd
-  type: vless
-  server: src.primzoeron.ir
-  port: 20500
-  uuid: telegram-SRCVPN-
+- name: Sezar_Sec-b669334a
+  type: ss
+  server: 185.222.240.223
+  port: 27017
+  cipher: chacha20-ietf-poly1305
+  password: fc99ecd16fed879e
   udp: true
-  network: grpc
-  tls: true
-  reality-opts:
-    public-key: MoPHqY7G5BWHV_JAXNdvkwdNJligsbuMfY95nt3pQDs
-    short-id: a360a26c94
-  grpc-opts:
-    grpc-service-name: /@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN
-- name: config-dd4ccf98
-  type: vless
-  server: src.primzoeron.ir
-  port: 20600
-  uuid: telegram-SRCVPN-
+- name: Sezar_Sec-4768239b
+  type: ss
+  server: 195.7.6.157
+  port: 41171
+  cipher: chacha20-ietf-poly1305
+  password: d172cb34577034b4
   udp: true
-  network: grpc
-  tls: true
-  reality-opts:
-    public-key: MoPHqY7G5BWHV_JAXNdvkwdNJligsbuMfY95nt3pQDs
-    short-id: a360a26c94
-  grpc-opts:
-    grpc-service-name: /@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN
-- name: config-f2a68aed
-  type: vless
-  server: src.primzoeron.ir
-  port: 20500
-  uuid: Tel--SRCVPN
+- name: Sezar_Sec-613005a5
+  type: ss
+  server: 100.42.177.39
+  port: 22912
+  cipher: chacha20-ietf-poly1305
+  password: cd8c3b058e96b07c
   udp: true
-  network: grpc
-  tls: true
-  reality-opts:
-    public-key: lyyxDvJxwpzb0Hj1g-YRPR71RuSGNpjAzyEUdPKNhSI
-    short-id: 23e9b1
-  grpc-opts:
-    grpc-service-name: /@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN
-- name: config-d238f26e
-  type: vless
-  server: src.primzoeron.ir
-  port: 20600
-  uuid: Tel--SRCVPN
+- name: Sezar_Sec-488efe9f
+  type: ss
+  server: 100.42.182.2
+  port: 21999
+  cipher: chacha20-ietf-poly1305
+  password: fdacba921e93e82b
   udp: true
-  network: grpc
-  tls: true
-  reality-opts:
-    public-key: lyyxDvJxwpzb0Hj1g-YRPR71RuSGNpjAzyEUdPKNhSI
-    short-id: 23e9b1
-  grpc-opts:
-    grpc-service-name: /@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN
-- name: config-9c4c7190
-  type: vless
-  server: src.primzoeron.ir
-  port: 20500
-  uuid: idTel--SRCVPN
+- name: Sezar_Sec-4f403bd3
+  type: ss
+  server: 217.76.53.245
+  port: 10128
+  cipher: chacha20-ietf-poly1305
+  password: a124ddb08fc32f9c
   udp: true
-  network: grpc
-  tls: true
-  reality-opts:
-    public-key: lyyxDvJxwpzb0Hj1g-YRPR71RuSGNpjAzyEUdPKNhSI
-    short-id: 23e9b1
-  grpc-opts:
-    grpc-service-name: /@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN
-- name: config-00d12df9
-  type: vless
-  server: src.primzoeron.ir
-  port: 20600
-  uuid: idTel--SRCVPN
-  udp: true
-  network: grpc
-  tls: true
-  reality-opts:
-    public-key: lyyxDvJxwpzb0Hj1g-YRPR71RuSGNpjAzyEUdPKNhSI
-    short-id: 23e9b1
-  grpc-opts:
-    grpc-service-name: /@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN
-- name: DAA9D8A7D986D8A7D98420D8AAD984DAAFD8B1D8A7D985DB8C20D985D8A7203A20SRCVPN40-b434b56a
-  type: vless
-  server: srcvpn.fast.hosting-ip.com
-  port: 80
-  uuid: '%4D%4D%44'
-  udp: true
-  network: http
-- name: DAA9D8A7D986D8A7D98420D8AAD984DAAFD8B1D8A7D985DB8C20D985D8A7203A20SRCVPN40-fc8ebd39
-  type: vless
-  server: speedtest.net
-  port: 80
-  uuid: '%4D%4D%44'
-  udp: true
-  network: http
-- name: Tel-d7772530
-  type: vless
-  server: srcvpn.fast.hosting-ip.com
-  port: 80
-  uuid: --%56%32%52%41%58%58--
-  udp: true
-  network: http
-- name: Tel-e4356045
-  type: vless
-  server: speedtest.net
-  port: 80
-  uuid: --%56%32%52%41%58%58--
-  udp: true
-  network: http
-- name: Tel-51888133
-  type: vless
-  server: srcvpn.fast.hosting-ip.com
-  port: 80
-  uuid: --%56%32%52%41%58%58
-  udp: true
-  network: http
-- name: Tel-aef8741a
-  type: vless
-  server: speedtest.net
-  port: 80
-  uuid: --%56%32%52%41%58%58
-  udp: true
-  network: http
-- name: Tel-e0487fe3
-  type: vless
-  server: srcvpn.fast.hosting-ip.com
-  port: 80
-  uuid: '%56%32%52%41%58%58%58'
-  udp: true
-  network: http
-- name: Tel-9571d3f3
-  type: vless
-  server: 151.101.0.155
-  port: 80
-  uuid: '%56%32%52%41%58%58%58'
-  udp: true
-  network: http
-- name: Tel-3d95cab4
-  type: vless
-  server: srcvpn.fast.hosting-ip.com
-  port: 80
-  uuid: '%56%32%52%41%58%58'
-  udp: true
-  network: http
-- name: Tel-08e4cc2d
-  type: vless
-  server: 151.101.0.155
-  port: 80
-  uuid: '%56%32%52%41%58%58'
-  udp: true
-  network: http
-- name: Tel-f3ce2b7e
-  type: vless
-  server: 151.101.0.155
-  port: 80
-  uuid: --%56%32%52%41%58%58--
-  udp: true
-  network: http
-- name: Tel-1b495ea8
-  type: vless
-  server: srcvpn.fast.hosting-ip.com
-  port: 80
-  uuid: '%56%32%52%41%58%58-'
-  udp: true
-  network: http
-- name: Tel-cc283152
-  type: vless
-  server: 151.101.0.155
-  port: 80
-  uuid: '%56%32%52%41%58%58-'
-  udp: true
-  network: http
-- name: Tel-9d682d8c
-  type: vless
-  server: srcvpn.fastly80-3.hosting-ip.com
-  port: 80
-  uuid: '%56%32%52%41%58%58'
-  udp: true
-  network: http
-- name: Tel-31645fdb
-  type: vless
-  server: speedtest.net
-  port: 80
-  uuid: '%56%32%52%41%58%58'
-  udp: true
-  network: http
-- name: Tel-b4e73696
-  type: vless
-  server: hqmobin.ir
-  port: 2087
-  uuid: '%69%64%2D%48%71%76%32%72%61%79%4E%47'
-  udp: true
-  network: tcp
-  tls: true
-  reality-opts:
-    public-key: z0Di-2ywYXzOdsNidu-6XSbSkCoAsHUbU05kbTPVzAQ
-    short-id: 69a916d351
-- name: Tel-804ce79b
-  type: vless
-  server: 84.234.31.28
-  port: 2087
-  uuid: '%69%64%2D%48%71%76%32%72%61%79%4E%47'
-  udp: true
-  network: tcp
-  tls: true
-  reality-opts:
-    public-key: z0Di-2ywYXzOdsNidu-6XSbSkCoAsHUbU05kbTPVzAQ
-    short-id: 69a916d351
-- name: Tel-0088ad46
-  type: vless
-  server: hqmobin.ir
-  port: 443
-  uuid: '%69%64%2D%2D%48%71%76%32%72%61%79%4E%47'
-  udp: true
-  network: tcp
-  tls: true
-  reality-opts:
-    public-key: FtDr_UhjnVUI0icGx9L4isHVQTNOl_cGsFEDSWigM28
-    short-id: 7c4ea43b6c6f
-- name: Tel-69630b00
-  type: vless
-  server: 84.234.31.28
-  port: 443
-  uuid: '%69%64%2D%2D%48%71%76%32%72%61%79%4E%47'
-  udp: true
-  network: tcp
-  tls: true
-  reality-opts:
-    public-key: FtDr_UhjnVUI0icGx9L4isHVQTNOl_cGsFEDSWigM28
-    short-id: 7c4ea43b6c6f
-- name: 40Sezar_Sec-b924f0b5
+- name: Sezar_Sec-4748fea1
   type: vless
   server: 212.33.201.231
   port: 2054
   uuid: d843b700-0e0d-5ad9-72d9-46ced5785cd1
   udp: true
   network: tcp
-- name: 40Sezar_Sec-b3fa1bde
+- name: Sezar_Sec-8e9ed838
   type: vless
   server: 85.133.201.45
   port: 18818
   uuid: 8b4c316e-f05a-413e-bda5-a7383a123a77
   udp: true
   network: tcp
-- name: 40Sezar_Sec-7db6bbe8
+- name: Sezar_Sec-094e4113
   type: vless
   server: 212.33.201.222
   port: 2054
   uuid: d843b700-0e0d-5ad9-72d9-46ced5785cd1
   udp: true
   network: tcp
-- name: 40Sezar_Sec-49134228
+- name: Sezar_Sec-c2ca9ffd
+  type: ss
+  server: 212.33.201.231
+  port: 2054
+  cipher: d843b700-0e0d-5ad9-72d9-46ced5785cd1
+  password: null
+  udp: true
+- name: Sezar_Sec-e7c09cba
+  type: ss
+  server: 85.133.201.45
+  port: 18818
+  cipher: 8b4c316e-f05a-413e-bda5-a7383a123a77
+  password: null
+  udp: true
+- name: Sezar_Sec-ef0fbef7
+  type: ss
+  server: 212.33.201.222
+  port: 2054
+  cipher: d843b700-0e0d-5ad9-72d9-46ced5785cd1
+  password: null
+  udp: true
+- name: Sezar_Sec-73ec96aa
+  type: ss
+  server: 4freakconfig.usecharge.ir
+  port: 443
+  cipher: chacha20-ietf-poly1305
+  password: W74XFALLLuw6m5IA
+  udp: true
+- name: Sezar_Sec-8c581754
   type: vless
   server: 91.99.160.210
   port: 443
   uuid: 2eaef053-5fd6-4def-b234-d760690355ff
   udp: true
   network: tcp
-- name: 40Sezar_Sec-de8a8f4b
+- name: Sezar_Sec-9a6a401d
   type: vless
   server: 37.27.220.157
   port: 443
@@ -978,45 +770,81 @@ proxies:
   udp: true
   network: tcp
   tls: true
+  skip-cert-verify: true
   reality-opts:
     public-key: 98o3NKmGSULn2eRsvgrWQk9blOwPAQ4Lt4YWu_R-GBk
     short-id: cbfe
-- name: 40Sezar_Sec-ae9c4221
+- name: Sezar_Sec-ab5609ae
   type: vless
   server: 185.201.49.94
   port: 58089
   uuid: d3f3fd0b-7b5c-4070-d5dc-61f96641b507
   udp: true
   network: tcp
-- name: 40Sezar_Sec-11de04e9
+- name: Sezar_Sec-651f74a9
   type: vless
   server: 109.122.249.156
   port: 57107
   uuid: 600eae54-5014-40a2-99f3-215ff340c26d
   udp: true
   network: tcp
-- name: 40Sezar_Sec-27b21856
+- name: Sezar_Sec-10c6d548
   type: vless
   server: test.yoyohihi.com
   port: 57107
   uuid: 600eae54-5014-40a2-99f3-215ff340c26d
   udp: true
   network: tcp
-- name: 40Sezar_Sec-a328c5d5
+- name: Sezar_Sec-bdae8911
+  type: ss
+  server: 91.99.160.210
+  port: 443
+  cipher: 2eaef053-5fd6-4def-b234-d760690355ff
+  password: null
+  udp: true
+- name: Sezar_Sec-27ba9bb9
+  type: ss
+  server: 37.27.220.157
+  port: 443
+  cipher: 378df8e8-add6-4416-9eba-e30042fc19c8
+  password: null
+  udp: true
+- name: Sezar_Sec-8343a526
+  type: ss
+  server: 185.201.49.94
+  port: 58089
+  cipher: d3f3fd0b-7b5c-4070-d5dc-61f96641b507
+  password: null
+  udp: true
+- name: Sezar_Sec-b434bd0d
+  type: ss
+  server: 109.122.249.156
+  port: 57107
+  cipher: 600eae54-5014-40a2-99f3-215ff340c26d
+  password: null
+  udp: true
+- name: Sezar_Sec-1e34f454
+  type: ss
+  server: test.yoyohihi.com
+  port: 57107
+  cipher: 600eae54-5014-40a2-99f3-215ff340c26d
+  password: null
+  udp: true
+- name: Sezar_Sec-f164b55f
   type: vless
   server: 81.12.35.242
   port: 2096
   uuid: 0d1cb112-006f-4eaa-89d1-15da714d12e1
   udp: true
   network: tcp
-- name: 40Sezar_Sec-04801e83
+- name: Sezar_Sec-051adf8a
   type: vless
   server: 5.182.46.67
   port: 2051
   uuid: a7f5d152-0287-af42-bfbc-f8ce1e31d97e
   udp: true
   network: tcp
-- name: 40Sezar_Sec-068b7aaf
+- name: Sezar_Sec-5d77945b
   type: vless
   server: 104.21.57.88
   port: 443
@@ -1024,27 +852,62 @@ proxies:
   udp: true
   network: ws
   tls: true
+  skip-cert-verify: true
   servername: eEeeeEE4.iran.PP.Ua
-  skip-cert-verify: false
   ws-opts:
     path: /GLDvleH8RDu6ZqfwAwY2SNm
     headers:
       Host: eEeeeEE4.iran.PP.Ua
-- name: 40Sezar_Sec-1390db2c
+- name: Sezar_Sec-872fa2b0
+  type: ss
+  server: 81.12.35.242
+  port: 2096
+  cipher: 0d1cb112-006f-4eaa-89d1-15da714d12e1
+  password: null
+  udp: true
+- name: Sezar_Sec-06bbfc14
+  type: ss
+  server: 5.182.46.67
+  port: 2051
+  cipher: a7f5d152-0287-af42-bfbc-f8ce1e31d97e
+  password: null
+  udp: true
+- name: Sezar_Sec-446c4371
+  type: ss
+  server: 104.21.57.88
+  port: 443
+  cipher: 3d9741da-c0e4-47cc-a5e0-f1af3d337dae
+  password: null
+  udp: true
+- name: Sezar_Sec-dab43604
   type: vless
   server: 91.99.181.193
   port: 51615
   uuid: 2eaef053-5fd6-4def-b234-d760690355ff
   udp: true
   network: tcp
-- name: 40Sezar_Sec-1a8cd9d9
+- name: Sezar_Sec-b1873ec6
   type: vless
   server: ver2.tcod008.info
   port: 59761
   uuid: ae9539b5-70dd-41b5-9666-11a29559a840
   udp: true
   network: tcp
-- name: 40Sezar_Sec-bb3e55b3
+- name: Sezar_Sec-c31b04af
+  type: ss
+  server: 91.99.181.193
+  port: 51615
+  cipher: 2eaef053-5fd6-4def-b234-d760690355ff
+  password: null
+  udp: true
+- name: Sezar_Sec-6f2f3eb8
+  type: ss
+  server: ver2.tcod008.info
+  port: 59761
+  cipher: ae9539b5-70dd-41b5-9666-11a29559a840
+  password: null
+  udp: true
+- name: Sezar_Sec-8b2d3757
   type: vless
   server: viusr.atashsite.ir
   port: 9076
@@ -1052,17 +915,32 @@ proxies:
   udp: true
   network: tcp
   tls: true
+  skip-cert-verify: true
   reality-opts:
     public-key: SbVKOEMjK0sIlbwg4akyBg5mL5KZwwB-ed4eEE7YnRc
     short-id: 6ba85179e30d4fc2
-- name: 40Sezar_Sec-fb3b2add
+- name: Sezar_Sec-297e23bc
+  type: ss
+  server: viusr.atashsite.ir
+  port: 9076
+  cipher: a6d81882-5ec9-4134-a955-cbcf2f0a0976
+  password: null
+  udp: true
+- name: Sezar_Sec-0f8d7fcc
   type: vless
   server: k1.fast.hosting-ip.com
   port: 80
   uuid: b756b31f-b4ee-42f6-ae40-a6bf9e30f42c
   udp: true
-  network: http
-- name: 40Sezar_sEC-a3928c03
+  network: xhttp
+- name: Sezar_Sec-39246393
+  type: ss
+  server: k1.fast.hosting-ip.com
+  port: 80
+  cipher: b756b31f-b4ee-42f6-ae40-a6bf9e30f42c
+  password: null
+  udp: true
+- name: Sezar_sEC-56687a03
   type: vless
   server: 104.26.13.31
   port: 8080
@@ -1073,21 +951,42 @@ proxies:
     path: /
     headers:
       Host: 0612.heweiyi.dpdns.org
-- name: 40Sezar_Sec-a2687a26
+- name: Sezar_sEC-2ff0b0f3
+  type: ss
+  server: 104.26.13.31
+  port: 8080
+  cipher: 9314580d-c11e-4f32-d544-566e6142565a
+  password: null
+  udp: true
+- name: Sezar_Sec-e33ee1c6
   type: vless
   server: 85.9.124.32
   port: 443
   uuid: 32e9de27-5788-40ac-df65-7b195c44e487
   udp: true
   network: tcp
-- name: 40Sezar_Sec-39c8506d
+- name: Sezar_Sec-b8961fce
+  type: ss
+  server: 85.9.124.32
+  port: 443
+  cipher: 32e9de27-5788-40ac-df65-7b195c44e487
+  password: null
+  udp: true
+- name: Sezar_Sec-6ac349e6
   type: vless
   server: mtn.ivy-net.ir
   port: 8080
   uuid: 8960c969-eebb-4b5a-b480-4662e51893ca
   udp: true
   network: httpupgrade
-- name: Sezar_Sec-5300d8df
+- name: Sezar_Sec-979508c9
+  type: ss
+  server: mtn.ivy-net.ir
+  port: 8080
+  cipher: 8960c969-eebb-4b5a-b480-4662e51893ca
+  password: null
+  udp: true
+- name: Sezar_Sec-55131fee
   type: vmess
   server: 172.67.22.14
   port: 80
@@ -1100,7 +999,7 @@ proxies:
     path: /
     headers:
       Host: q4.19kAla.co
-- name: Sezar_Sec_-_All_ISPs-fce6bc9a
+- name: Sezar_Sec_-_All_ISPs-26ea6a92
   type: vmess
   server: 151.101.3.8
   port: 80
@@ -1108,285 +1007,49 @@ proxies:
   alterId: 0
   cipher: auto
   udp: true
-- name: 40Sezar_Sec-cc075b3d
+- name: Sezar_Sec-e2dfd7a9
   type: vless
   server: ens.zdshop.ir
   port: 80
   uuid: 1b8df49d-cd7e-456f-adc6-76974001e05f
   udp: true
   network: tcp
-- name: 40Sezar_Sec-4af7d089
+- name: Sezar_Sec-4d6e332c
   type: vless
   server: 151.101.3.8
   port: 80
   uuid: Parsashonam-265
   udp: true
   network: tcp
-- name: 40Sezar_Sec-9d5ccda4
+- name: Sezar_Sec-bed1bd25
+  type: ss
+  server: ens.zdshop.ir
+  port: 80
+  cipher: 1b8df49d-cd7e-456f-adc6-76974001e05f
+  password: null
+  udp: true
+- name: Sezar_Sec-009c425f
+  type: ss
+  server: 151.101.3.8
+  port: 80
+  cipher: Parsashonam-265
+  password: null
+  udp: true
+- name: Sezar_Sec-4ce6fe0f
   type: vless
   server: cdn.sigmav2bot.top
   port: 80
   uuid: add8b256-0c53-411d-8184-c8eb337fecb8
   udp: true
-  network: http
-- name: 40Sezar_Sec-770ed495
-  type: vless
-  server: 2sudo.winapp3.ir
+  network: xhttp
+- name: Sezar_Sec-91aa47a7
+  type: ss
+  server: cdn.sigmav2bot.top
   port: 80
-  uuid: 5b0e1347-1e9b-4b83-a27b-468e3dafb69b
+  cipher: add8b256-0c53-411d-8184-c8eb337fecb8
+  password: null
   udp: true
-  network: tcp
-- name: 40Sezar_Sec-6811940a
-  type: vless
-  server: grr.x2net.top
-  port: 443
-  uuid: 73692651-6ad1-4856-8ee3-74b48cb9e004
-  udp: true
-  network: ws
-  tls: true
-  servername: grr.x2net.top
-  skip-cert-verify: false
-  ws-opts:
-    path: /
-    headers: {}
-- name: 40Sezar_Sec-cf0e67dd
-  type: vless
-  server: 91.99.99.20
-  port: 52914
-  uuid: d569b044-0dbb-496a-8d28-a3f14a003e73
-  udp: true
-  network: tcp
-- name: 40Sezar_Sec-61cfe59f
-  type: vless
-  server: 46.102.157.79
-  port: 58105
-  uuid: fbddfda5-cf1f-4bf4-acbc-a60555541beb
-  udp: true
-  network: tcp
-- name: 40Sezar_Sec-27a9ff1d
-  type: vless
-  server: 151.101.3.8
-  port: 80
-  uuid: 33a22f3f-6073-4b3b-b550-b8610597b159
-  udp: true
-  network: tcp
-- name: 40Sezar_Sec20F09F9B91-436454ea
-  type: vless
-  server: vip8.radmanmax.ir
-  port: 8052
-  uuid: 94b9b7ac-4cff-4f7a-956a-05fd51bbf7c5
-  udp: true
-  network: tcp
-- name: 40Sezar_Sec-73770478
-  type: vless
-  server: 1414team2.persianclouding.ir
-  port: 80
-  uuid: 64b58515-5ab7-43dd-8517-049e03db19e6
-  udp: true
-  network: tcp
-- name: 40Sezar_Sec-87ac908c
-  type: vless
-  server: food4.hamrahconfig.com
-  port: 80
-  uuid: 13aab6b3-d6a8-4592-9bf8-e792b3a9fa3a
-  udp: true
-  network: ws
-  ws-opts:
-    path: /download
-    headers:
-      Host: test.shop
-- name: 40Sezar_Sec-945d429e
-  type: vless
-  server: tamizokatamizveryclearifiedtamiz.ivy-net.ir
-  port: 8080
-  uuid: ac420431-c00d-4094-88dd-7f5330bd072f
-  udp: true
-  network: httpupgrade
-- name: 40Sezar_Sec20F09F8EA1-18745f02
-  type: vless
-  server: nim.france-learns.ir
-  port: 42535
-  uuid: fc3d8c39-675a-4f96-8c0d-5f0fd98690a6
-  udp: true
-  network: tcp
-- name: 40Sezar_Sec20F09F9B95-77ac39b1
-  type: vless
-  server: 89.44.243.113
-  port: 39131
-  uuid: 3949e54e-919d-4192-94b3-e398e7911ecf
-  udp: true
-  network: tcp
-- name: 40Sezar_Sec-1c77246d
-  type: vless
-  server: speedtest.net
-  port: 80
-  uuid: 306d3b21-2f56-4679-8806-9d17ecb82a26
-  udp: true
-  network: http
-- name: 40Sezar_Sec-7167c503
-  type: vless
-  server: cdn3.myandroidplus2.ir
-  port: 2894
-  uuid: ec46cba7-458c-81b1-ade9-5471757087d1
-  udp: true
-  network: ws
-  ws-opts:
-    path: /
-    headers:
-      Host: bama.ir
-- name: 40Sezar_Sec20F09F8F96-c910cd84
-  type: vless
-  server: api2.gamingserverstream.ir
-  port: 8443
-  uuid: c5e011a7-6de9-4eec-96bc-e38d424785ba
-  udp: true
-  network: tcp
-  tls: true
-  reality-opts:
-    public-key: 0cq2Hb48xoxO-DvY40HycXGqZd3XmB90_g1pSShCpjs
-    short-id: 711bc39b
-- name: Sezar_Sec-7407e7fa
-  type: vmess
-  server: mobi.jahanplus.sbs
-  port: 443
-  uuid: e7b3656a-4648-4d11-a1e3-633a0f9e6a6f
-  alterId: 0
-  cipher: auto
-  udp: true
-- name: 40Sezar_Sec20-20US-a34952fa
-  type: vless
-  server: 154.218.15.238
-  port: 443
-  uuid: 401374e6-df77-41fb-f638-dad8184f175b
-  udp: true
-  network: grpc
-  tls: true
-  servername: pqh23v4.hiddendom.shop
-  skip-cert-verify: false
-  grpc-opts:
-    grpc-service-name: ''
-- name: 40Sezar_Sec-f0d51950
-  type: vless
-  server: www.speedtest.net
-  port: 2096
-  uuid: 24a4aa9b-b341-4717-9d4a-00d74c2b84e0
-  udp: true
-  network: ws
-  tls: true
-  servername: HkPk6Cd2Kj.9PeSc.CoM
-  skip-cert-verify: false
-  ws-opts:
-    path: /
-    headers:
-      Host: HkPk6Cd2Kj.9PeSc.CoM
-- name: 40Sezar_Sec20F09F9AB8-33b6522a
-  type: vless
-  server: 151.101.3.8
-  port: 80
-  uuid: 263535f3-e631-442f-b25f-1f3f1db2b8e7
-  udp: true
-  network: http
-- name: Sezar_Sec-0ea48d38
-  type: vmess
-  server: 102.177.189.30
-  port: 80
-  uuid: 5ccf6c13-f60f-4c34-91e4-ce8cd44b5fe5
-  alterId: 0
-  cipher: auto
-  udp: true
-  network: ws
-  ws-opts:
-    path: /
-    headers:
-      Host: q2.19kAla.co
-- name: Sezar_Sec-41cdfce9
-  type: vmess
-  server: 102.132.188.220
-  port: 80
-  uuid: 0bc0a97e-9d93-4566-9c29-c610af51f5d2
-  alterId: 0
-  cipher: auto
-  udp: true
-  network: ws
-  ws-opts:
-    path: /
-    headers:
-      Host: q7.19KAla.co
-- name: 40Sezar_Sec-9b2bc446
-  type: vless
-  server: speedtest.net
-  port: 80
-  uuid: c2ca977c-83ea-481a-b55b-c946d502d970
-  udp: true
-  network: http
-- name: 40Sezar_Sec20F09FA499-a3b0a3f9
-  type: vless
-  server: ge1.shahinstore1.com
-  port: 2095
-  uuid: a462bc01-86d3-46ae-8f45-61fd7fd710c7
-  udp: true
-  network: ws
-  ws-opts:
-    path: /
-    headers: {}
-- name: 40Sezar_Sec20F09FA499-6887e860
-  type: vless
-  server: 87.107.153.243
-  port: 49986
-  uuid: ae036c2a-9f29-409a-adf5-0ce4b09550b7
-  udp: true
-  network: ws
-  ws-opts:
-    path: /
-    headers: {}
-- name: 40Sezar_Sec20F09FA499-69e42fd6
-  type: vless
-  server: stjadgal.golden-ping.ir
-  port: 52127
-  uuid: a0c2611d-798a-4502-ec15-6432d554a4cd
-  udp: true
-  network: tcp
-- name: 40Sezar_Sec20Mci-feb950cd
-  type: vless
-  server: a2.gozarino.com
-  port: 2323
-  uuid: d621818e-2707-47d4-a860-a79831092fbb
-  udp: true
-  network: tcp
-  tls: true
-  reality-opts:
-    public-key: YWfCdTnr4FAOMYTY2dLrMtQUokyxOGpPhYEEszPj20E
-    short-id: ''
-- name: 40Sezar_Sec20Mci-db391789
-  type: vless
-  server: a1.gozarino.com
-  port: 2323
-  uuid: d621818e-2707-47d4-a860-a79831092fbb
-  udp: true
-  network: tcp
-  tls: true
-  reality-opts:
-    public-key: YWfCdTnr4FAOMYTY2dLrMtQUokyxOGpPhYEEszPj20E
-    short-id: ''
-- name: 40Sezar_Sec-14a39609
-  type: vless
-  server: sn434.nikatel.uno
-  port: 8080
-  uuid: 8b262468-6e0d-46bf-b54f-32e6fae5af8b
-  udp: true
-  network: tcp
-- name: 40Sezar_Sec-c4b3a086
-  type: vless
-  server: 102.177.189.29
-  port: 8880
-  uuid: fab7bf9c-ddb9-4563-8a04-fb01ce6c0fbf
-  udp: true
-  network: ws
-  ws-opts:
-    path: /TelegramU0001F1E8U0001F1F3
-    headers:
-      Host: hk.laoyoutiao.link
-- name: Telegram3A2040vpnbaz-f8a328e4
+- name: Telegram_vpnbaz-3748318e
   type: vless
   server: www.speedtest.net
   port: 80
@@ -1397,7 +1060,7 @@ proxies:
     path: /?ed=2560
     headers:
       Host: redfree8mahsang6.redfree8.ir
-- name: Telegram3A2040vpnbaz-91ba1ccb
+- name: Telegram_vpnbaz-2ba1ce86
   type: vless
   server: 172.67.17.195
   port: 80
@@ -1408,7 +1071,7 @@ proxies:
     path: /?ed=2560
     headers:
       Host: sib.sibzamini.dpdns.org
-- name: Telegram3A2040vpnbaz-bc8818c3
+- name: Telegram_vpnbaz-62761c4e
   type: vless
   server: 104.16.104.151
   port: 80
@@ -1419,7 +1082,7 @@ proxies:
     path: /?ed=2560
     headers:
       Host: pari.parinazz.dpdns.org
-- name: Telegram3A2040vpnbaz-b3fdaf24
+- name: Telegram_vpnbaz-6ce5c24e
   type: vless
   server: 141.101.121.243
   port: 8080
@@ -1430,7 +1093,7 @@ proxies:
     path: /?ed=2048
     headers:
       Host: 1750293123492.china.baidu.bilibili.china.aeko.cn
-- name: Telegram3A2040vpnbaz-faa92d7c
+- name: Telegram_vpnbaz-13e66594
   type: vless
   server: 172.67.67.92
   port: 80
@@ -1441,7 +1104,7 @@ proxies:
     path: /?ed=2560
     headers:
       Host: delam.ahaysiahzangi.dpdns.org
-- name: Telegram3A2040vpnbaz-9ad49e59
+- name: Telegram_vpnbaz-75f842f5
   type: vless
   server: 104.24.31.150
   port: 80
@@ -1452,7 +1115,63 @@ proxies:
     path: /?ed=2570
     headers:
       Host: lot.sosant.dpdns.org
-- name: Telegram3A2040vpnbaz-8baefd4d
+- name: Telegram_vpnbaz-acffcae9
+  type: ss
+  server: www.speedtest.net
+  port: 80
+  cipher: 53fa8faf-ba4b-4322-9c69-a3e5b1555049
+  password: null
+  udp: true
+- name: Telegram_vpnbaz-36a2ec02
+  type: ss
+  server: 172.67.17.195
+  port: 80
+  cipher: 6f690965-3be3-43bb-9331-3ead6efb20aa
+  password: null
+  udp: true
+- name: Telegram_vpnbaz-b57ea8a9
+  type: ss
+  server: 104.16.104.151
+  port: 80
+  cipher: 1f431db3-1918-4e7b-a855-c93485e11694
+  password: null
+  udp: true
+- name: Telegram_vpnbaz-1497e733
+  type: ss
+  server: 141.101.121.243
+  port: 8080
+  cipher: d342d11e-d424-4583-b36e-524ab1f0afa4
+  password: null
+  udp: true
+- name: Telegram_vpnbaz-e6afd37c
+  type: ss
+  server: 172.67.67.92
+  port: 80
+  cipher: f78ce1bb-0fa6-4ef4-b4c9-b91014a7055d
+  password: null
+  udp: true
+- name: Telegram_vpnbaz-4868588c
+  type: ss
+  server: 104.24.31.150
+  port: 80
+  cipher: 9d6315f7-f272-4806-97c8-5fdaafad391e
+  password: null
+  udp: true
+- name: Telegram_vpnbaz-6a011c21
+  type: ss
+  server: api.namasha.co
+  port: 443
+  cipher: chacha20-ietf-poly1305
+  password: u17T3BvpYaaiuW2c
+  udp: true
+- name: Telegram_vpnbaz-e896e376
+  type: ss
+  server: series-a2.varzesh360.co
+  port: 443
+  cipher: chacha20-ietf-poly1305
+  password: mps3FwmDjLrWaOVg
+  udp: true
+- name: Telegram_vpnbaz-a5063f3a
   type: vless
   server: 81.12.30.51
   port: 58045
@@ -1461,15 +1180,14 @@ proxies:
   network: ws
   ws-opts:
     path: /
-    headers: {}
-- name: Telegram3A2040vpnbaz-b228d7fe
+- name: Telegram_vpnbaz-ce663df6
   type: vless
   server: 91.99.203.69
   port: 51615
   uuid: 2eaef053-5fd6-4def-b234-d760690355ff
   udp: true
   network: tcp
-- name: Telegram3A2040vpnbaz-61caf6e3
+- name: Telegram_vpnbaz-5083d616
   type: vless
   server: 104.24.56.187
   port: 80
@@ -1480,7 +1198,7 @@ proxies:
     path: /?ed=2560
     headers:
       Host: a1.ghormehsabzi.dpdns.org
-- name: Telegram3A2040vpnbaz-57d34746
+- name: Telegram_vpnbaz-efcde9d5
   type: vless
   server: 104.16.180.35
   port: 80
@@ -1491,7 +1209,7 @@ proxies:
     path: /?ed=2560
     headers:
       Host: dw.alibichareh.dpdns.org
-- name: Telegram3A2040vpnbaz-8a0c40cf
+- name: Telegram_vpnbaz-f3f55f5d
   type: vless
   server: 104.17.209.145
   port: 80
@@ -1502,7 +1220,7 @@ proxies:
     path: /?ed=2560
     headers:
       Host: dw.alibichareh.dpdns.org
-- name: Telegram3A2040vpnbaz-05673a8b
+- name: Telegram_vpnbaz-cb0f018f
   type: vless
   server: 172.67.78.196
   port: 80
@@ -1513,7 +1231,7 @@ proxies:
     path: /?ed=2560
     headers:
       Host: tannaz.juveitaly.dpdns.org
-- name: Telegram3A2040vpnbaz-53a3a448
+- name: Telegram_vpnbaz-3bb89027
   type: vless
   server: 141.101.121.55
   port: 8080
@@ -1524,7 +1242,56 @@ proxies:
     path: /?ed=2048
     headers:
       Host: 1750293123492.china.baidu.bilibili.china.aeko.cn
-- name: Telegram3A2040vpnbaz-0b78bd94
+- name: Telegram_vpnbaz-edef7379
+  type: ss
+  server: 81.12.30.51
+  port: 58045
+  cipher: 9deda4f9-a9b9-4614-b840-ece9998ec6db
+  password: null
+  udp: true
+- name: Telegram_vpnbaz-4a8a526e
+  type: ss
+  server: 91.99.203.69
+  port: 51615
+  cipher: 2eaef053-5fd6-4def-b234-d760690355ff
+  password: null
+  udp: true
+- name: Telegram_vpnbaz-4dbc0347
+  type: ss
+  server: 104.24.56.187
+  port: 80
+  cipher: e6236ebc-7334-4bed-977f-0c20bcdfcc00
+  password: null
+  udp: true
+- name: Telegram_vpnbaz-34517302
+  type: ss
+  server: 104.16.180.35
+  port: 80
+  cipher: 92f481b6-ad92-43e4-a683-2bb0aeaa9846
+  password: null
+  udp: true
+- name: Telegram_vpnbaz-fbfb174a
+  type: ss
+  server: 104.17.209.145
+  port: 80
+  cipher: 92f481b6-ad92-43e4-a683-2bb0aeaa9846
+  password: null
+  udp: true
+- name: Telegram_vpnbaz-a333820d
+  type: ss
+  server: 172.67.78.196
+  port: 80
+  cipher: dfdf1c0a-5e52-4746-88bd-19d4e4ac7853
+  password: null
+  udp: true
+- name: Telegram_vpnbaz-03946738
+  type: ss
+  server: 141.101.121.55
+  port: 8080
+  cipher: d342d11e-d424-4583-b36e-524ab1f0afa4
+  password: null
+  udp: true
+- name: Telegram_vpnbaz-eeb8ed55
   type: vless
   server: 172.66.132.44
   port: 80
@@ -1535,7 +1302,7 @@ proxies:
     path: /?ed=2560
     headers:
       Host: abcd.taraneh.dpdns.org
-- name: Telegram3A2040vpnbaz-99f0489f
+- name: Telegram_vpnbaz-dd2b2dc7
   type: vless
   server: 172.67.78.196
   port: 80
@@ -1546,7 +1313,7 @@ proxies:
     path: /?ed=2560
     headers:
       Host: tannaz.juveitaly.dpdns.org
-- name: Telegram3A2040vpnbaz-d57fcf2f
+- name: Telegram_vpnbaz-f124742d
   type: vless
   server: 172.67.128.105
   port: 80
@@ -1557,578 +1324,248 @@ proxies:
     path: /?ed=2560
     headers:
       Host: di.dibdibini.dpdns.org
-- name: Telegram3A2040vpnbaz-fbca8f35
-  type: vless
-  server: mtn.ivy-net.ir
-  port: 8080
-  uuid: 8960c969-eebb-4b5a-b480-4662e51893ca
+- name: Telegram_vpnbaz-4c13de58
+  type: ss
+  server: 85.210.120.237
+  port: 443
+  cipher: chacha20-ietf-poly1305
+  password: Bog0ELmMM9DSxDdQ
   udp: true
-  network: httpupgrade
-- name: Telegram3A2040vpnbaz-ef5d487b
-  type: vless
-  server: 66.81.247.83
+- name: Telegram_vpnbaz-28c2ac63
+  type: ss
+  server: series-a2-mec.varzesh360.co
+  port: 443
+  cipher: chacha20-ietf-poly1305
+  password: u17T3BvpYaaiuW2c
+  udp: true
+- name: Telegram_vpnbaz-a0a3653b
+  type: ss
+  server: 172.66.132.44
   port: 80
-  uuid: 89b3cbba-e6ac-485a-9481-976a0415eab9
+  cipher: 5459f68e-d914-4b31-93a3-ecdf638b7a5b
+  password: null
   udp: true
-  network: ws
-  ws-opts:
-    path: Telegram:@ShadowProxy66/?ed=2560
-    headers:
-      Host: uuhUHYygEsdFGH.UYHJHGvgFcjGUJhbUIlbVFDxDxM.xyz
-- name: Telegram3A2040vpnbaz-e0ce7bf0
-  type: vless
-  server: www.speedtest.net
+- name: Telegram_vpnbaz-2e4b4432
+  type: ss
+  server: 172.67.78.196
   port: 80
-  uuid: 7c9e3c1d-a360-4429-9189-e45a98de7fde
+  cipher: dfdf1c0a-5e52-4746-88bd-19d4e4ac7853
+  password: null
   udp: true
-  network: ws
-  ws-opts:
-    path: /
-    headers:
-      Host: mail.ski1plag.ir
-- name: 40vpnbaz207C20D986D8AA20D985D984DB8C-e1f3f755
-  type: vless
-  server: mtn.ivy-net.ir
-  port: 8080
-  uuid: 8960c969-eebb-4b5a-b480-4662e51893ca
-  udp: true
-  network: httpupgrade
-- name: 40vpnbaz207C20D986D8AA20D985D984DB8C-d84a0e85
-  type: vless
-  server: upload.nobifay.ir
+- name: Telegram_vpnbaz-52d94753
+  type: ss
+  server: 172.67.128.105
   port: 80
-  uuid: d4a155e2-9e4b-4173-89e1-2062b89431ae
+  cipher: 4179c595-08ca-45cd-b555-91b6f1faeadc
+  password: null
   udp: true
-  network: ws
-  ws-opts:
-    path: /
-    headers:
-      Host: a1a1a1a1wsew.com
-- name: 40vpnbaz207C20D986D8AA20D985D984DB8C-71f34484
-  type: vless
-  server: route.france-learns.ir
-  port: 80
-  uuid: b939a039-66a4-4033-8f84-fdba83b6a3f8
-  udp: true
-  network: http
-- name: 40vpnbaz207C20D986D8AA20D985D984DB8C-7f9b07b5
-  type: vless
-  server: 62.60.156.14
-  port: 2053
-  uuid: b432caaa-c7bd-4cde-92f9-836db11a7d88
-  udp: true
-  network: ws
-  tls: true
-  servername: MyAccount.McimikbeiServer.CoM.
-  skip-cert-verify: false
-  ws-opts:
-    path: /wp-admin.php?ed=2083
-    headers:
-      Host: MyAccount.McimikbeiServer.CoM.
-- name: 40vpnbaz207C20D986D8AA20D985D984DB8C-02459258
-  type: vless
-  server: h2.tikmarket1.site
-  port: 2095
-  uuid: 7e3b4e5a-483f-4c2d-957d-765137dbe186
-  udp: true
-  network: ws
-  ws-opts:
-    path: /
-    headers: {}
-- name: 40vpnbaz-2987a0ba
-  type: vless
-  server: www.speedtest.net
-  port: 80
-  uuid: 53fa8faf-ba4b-4322-9c69-a3e5b1555049
-  udp: true
-  network: ws
-  ws-opts:
-    path: /?ed=2560
-    headers:
-      Host: redfree8mahsang6.redfree8.ir
-- name: 40vpnbaz-f607984c
-  type: vless
-  server: www.speedtest.net
-  port: 80
-  uuid: 7c9e3c1d-a360-4429-9189-e45a98de7fde
-  udp: true
-  network: ws
-  ws-opts:
-    path: /
-    headers:
-      Host: mail.ski1plag.ir
-- name: 40vpnbaz-96c0a60e
-  type: vless
-  server: 104.17.147.22
-  port: 80
-  uuid: f75fb361-e22c-483d-a737-d5ea2cc40ef0
-  udp: true
-  network: ws
-  ws-opts:
-    path: /d6ad4517-1616-4e8e-bb4f-776ce825cbda
-    headers:
-      Host: ip9vpn.cioa.ir
-- name: 40vpnbaz-e186227c
-  type: vless
-  server: 104.17.147.22
-  port: 80
-  uuid: 7395770b-84f0-4b1c-b67c-73bcc27b6431
-  udp: true
-  network: ws
-  ws-opts:
-    path: /02LwlXufahR82S1t?ed=2560
-    headers:
-      Host: s1.s11qq.workers.dev
-- name: vpnbaz-f0457be4
-  type: vmess
-  server: 2.56.125.101
-  port: 38088
-  uuid: 1275ea18-bc9c-4bcb-b3fd-fee70272e143
-  alterId: 0
-  cipher: auto
-  udp: true
-- name: 40vpnbaz207C20D986D8AA20D985D984DB8C-78ad8b74
-  type: vless
-  server: srv3.darkvpn.pro
-  port: 2082
-  uuid: 9e98bc71-daf5-4c64-a5ef-58ec37644ee7
-  udp: true
-  network: ws
-  ws-opts:
-    path: /
-    headers: {}
-- name: 40vpnbaz207C20D986D8AA20D985D984DB8C-9b615da2
-  type: vless
-  server: 85.133.194.83
-  port: 3333
-  uuid: 7d283c1a-3a5b-4b2a-a924-0bd256e89726
-  udp: true
-  network: tcp
-- name: 40vpnbaz207C20D986D8AA20D985D984DB8C-dd0d4ea2
-  type: vless
-  server: 46.102.157.79
-  port: 58071
-  uuid: fbddfd48-22f2-a619-4151-4be8b8b9f6fa
-  udp: true
-  network: tcp
-- name: 40vpnbaz207C20D986D8AA20D985D984DB8C-b08ecba6
-  type: vless
-  server: fina.iranbuildings.com
-  port: 8444
-  uuid: ac083fa9-df9a-4722-b70d-24c17bef0516
-  udp: true
-  network: tcp
-- name: 40vpnbaz207C20D986D8AA20D985D984DB8C-8fe237e2
-  type: vless
-  server: cdnf.ten10rocket.top
-  port: 80
-  uuid: 6231a8be-01ec-4ea0-9b39-ca00151f59ea
-  udp: true
-  network: ws
-  ws-opts:
-    path: /?ed=2048
-    headers:
-      Host: Zedmore.com
-- name: 40vpnbaz207C20D986D8AA20D985D984DB8C-28cfed6b
-  type: vless
-  server: 2sudo.winapp3.ir
-  port: 80
-  uuid: 5b0e1347-1e9b-4b83-a27b-468e3dafb69b
-  udp: true
-  network: http
-- name: 40vpnbaz207C20D986D8AA20D985D984DB8C-a7910c95
-  type: vless
-  server: speedtest.net
-  port: 80
-  uuid: 49abbd48-f69f-446c-9cc4-7bb3ba940b6f
-  udp: true
-  network: http
-- name: 40vpnbaz207C20D986D8AA20D985D984DB8C-ffdf3da5
-  type: vless
-  server: 151.101.2.219
-  port: 80
-  uuid: 37953a08-dad2-4f9e-abd3-c7a4ad8910bf
-  udp: true
-  network: http
-- name: 40vpnbaz207C20D986D8AA20D985D984DB8C-d269cbf3
-  type: vless
-  server: 151.101.3.8
-  port: 80
-  uuid: 749b6531-0edd-498a-8a69-832fca73c6e7
-  udp: true
-  network: http
-- name: vpnbaz__نت_ملی-6e5f6833
-  type: vmess
-  server: 151.101.3.8
-  port: 80
-  uuid: freewireguard-marg-bar-zahak
-  alterId: 0
-  cipher: auto
-  udp: true
-- name: 40vpnbaz207C20D8B1D8A7DB8CD8AAD984-3af38731
-  type: vless
-  server: iza3.lalash.ir
-  port: 80
-  uuid: d2b1da5b-7f0d-4004-923f-7eadc7a69b74
-  udp: true
-  network: http
-- name: 40vpnbaz207C20D8B1D8A7DB8CD8AAD984-b5550747
-  type: vless
-  server: iza5.lalash.ir
-  port: 80
-  uuid: 30678ab8-5d17-464e-8820-fc1b1dfe5f7b
-  udp: true
-  network: http
-- name: 40vpnbaz207C20D8B3D8A7D985D8A7D986D8AAD984-1104ccc7
-  type: vless
-  server: x3.snaapppfree.com
-  port: 1360
-  uuid: 9da21010-6025-430a-9ce9-6096673d86d1
-  udp: true
-  network: tcp
-- name: 40vpnbaz207C20D8B3D8A7D985D8A7D986D8AAD984-f354777d
-  type: vless
-  server: 46.38.148.83
-  port: 4002
-  uuid: adb34ed3-d31e-40cb-8e54-4d2d83f5908e
-  udp: true
-  network: tcp
-- name: 40vpnbaz207C20D986D8AA20D985D984DB8C-8a96378a
-  type: vless
-  server: iza3.lalash.ir
-  port: 80
-  uuid: d2b1da5b-7f0d-4004-923f-7eadc7a69b74
-  udp: true
-  network: http
-- name: 40vpnbaz207C20D986D8AA20D985D984DB8C-9d753887
-  type: vless
-  server: iza5.lalash.ir
-  port: 80
-  uuid: 30678ab8-5d17-464e-8820-fc1b1dfe5f7b
-  udp: true
-  network: http
-- name: 40vpnbaz207C20D986D8AA20D985D984DB8C-24b69b54
-  type: vless
-  server: tfir.tehranify.shop
-  port: 2344
-  uuid: ac13024d-c339-46b5-933a-f27db4e98278
-  udp: true
-  network: tcp
-- name: 40vpnbaz207C20D986D8AA20D985D984DB8C-fd528bb7
-  type: vless
-  server: 46.102.157.79
-  port: 58105
-  uuid: fbddfda5-cf1f-4bf4-acbc-a60555541beb
-  udp: true
-  network: tcp
-- name: vpnbaz__نت_ملی-fa01908a
-  type: vmess
-  server: hpir.alotonv.top
-  port: 7580
-  uuid: 47a4e822-61ce-4eb2-d5bd-8db6f17bab93
-  alterId: 0
-  cipher: auto
-  udp: true
-- name: 40vpnbaz-1a941445
-  type: vless
-  server: 104.24.56.187
-  port: 80
-  uuid: e6236ebc-7334-4bed-977f-0c20bcdfcc00
-  udp: true
-  network: ws
-  ws-opts:
-    path: /?ed=2560
-    headers:
-      Host: a1.ghormehsabzi.dpdns.org
-- name: 40vpnbaz-6203074f
-  type: vless
-  server: 104.21.77.239
-  port: 2083
-  uuid: ef6a1a95-f082-44e3-ac10-7f7a5f56d0b6
-  udp: true
-  network: ws
-  tls: true
-  servername: b2GovRrSDUy5650fkE1fzuytWIopWzNk.SMoOheBiI.WORkERS.deV
-  skip-cert-verify: false
-  ws-opts:
-    path: /jZH9LgTYdget55Sa?ed=2560
-    headers:
-      Host: b2govrrsduy5650fke1fzuytwiopwznk.smoohebii.workers.dev
-- name: 40vpnbaz207C20D986D8AA20D985D984DB8C-00b1b64a
-  type: vless
-  server: 151.101.3.8
-  port: 80
-  uuid: 7d50d209-6325-4afe-bc14-52aaae20c0fd
-  udp: true
-  network: ws
-  ws-opts:
-    path: /download
-    headers:
-      Host: speedfastly.net
-- name: 40vpnbaz207C20D986D8AA20D985D984DB8C-e342aebc
-  type: vless
-  server: 151.101.3.8
-  port: 80
-  uuid: bad6c0db-094c-42f7-9cc7-68b738bc0e2e
-  udp: true
-  network: http
-- name: 40vpnbaz207C20D986D8AA20D985D984DB8C-f00789eb
-  type: vless
-  server: ver2.tcod008.info
-  port: 59761
-  uuid: ae9539b5-70dd-41b5-9666-11a29559a840
-  udp: true
-  network: tcp
-- name: vpnbaz__نت_ملی-ca6a71e0
-  type: vmess
-  server: 81.12.33.197
-  port: 6014
-  uuid: 2bf6cb84-d726-43eb-9928-8d8e442a4b6c
-  alterId: 0
-  cipher: auto
-  udp: true
-- name: vpnbaz__نت_ملی-51d5197b
-  type: vmess
-  server: 81.12.33.193
-  port: 6009
-  uuid: 2bf6cb84-d726-43eb-9928-8d8e442a4b6c
-  alterId: 0
-  cipher: auto
-  udp: true
-- name: vpnbaz__نت_ملی-3146ac5f
-  type: vmess
-  server: 81.12.33.193
-  port: 6006
-  uuid: 2bf6cb84-d726-43eb-9928-8d8e442a4b6c
-  alterId: 0
-  cipher: auto
-  udp: true
-- name: 40vpnbaz207C20D986D8AA20D985D984DB8C-1ba77903
-  type: vless
-  server: 46.102.157.79
-  port: 58210
-  uuid: fbddfdbf-d505-51ee-b6a6-bc1f4f4e0195
-  udp: true
-  network: tcp
-- name: vpnbaz__نت_ملی-3dcf3dd4
-  type: vmess
-  server: BorobababezarbadbiaddeltkhvaghtesheballdrarmHi.fast.hosting-ip.com
-  port: 80
-  uuid: bdff7122-386f-45a6-9853-7807abf43f5d
-  alterId: 0
-  cipher: auto
-  udp: true
-  network: ws
-  ws-opts:
-    path: ws/?ed=2048
-    headers:
-      Host: freepanelll.com
 proxy-groups:
-- name: 🚀 Auto
-  type: url-test
-  proxies:
-  - config-87771f3a
-  - config-9188f7d4
-  - config-f865d84b
-  - SRCVPN-6ef59b92
-  - SRCVPN-b77cf92b
-  - config-f917eb65
-  - config-e2c46050
-  - config-371a3641
-  - config-12b75dfb
-  - config-4525eae8
-  - config-07cfa9e1
-  - config-2db2b266
-  - config-524006cb
-  - config-33a2f56d
-  - config-1a1ae052
-  - config-a239bd98
-  - config-4af71c86
-  - config-a426d0a1
-  - config-ad803785
-  - config-0e380f96
-  - config-3ca7ecb1
-  - config-9638002f
-  - config-977330af
-  - config-6134f31a
-  - config-f60c484a
-  - config-fbb38619
-  - config-01c253ab
-  - config-fb895b63
-  - config-8647c1a7
-  - config-f91df2c9
-  - config-81f35282
-  - config-336143f0
-  - config-9c4c99a9
-  - config-3ada5a4f
-  - config-c721456a
-  - config-187b80d7
-  - config-45534e58
-  - config-bda62fdc
-  - config-5c741dca
-  - config-cf631850
-  - config-385e8e6d
-  - config-0e3c4e40
-  - config-5b9ae8a6
-  - config-04421593
-  - config-38452f8c
-  - config-5efd8fc7
-  - config-38173e36
-  - config-6fa8ab21
-  - config-c57cf290
-  - config-565fdfef
-  - config-4fe582b8
-  - config-7c2b9c50
-  - config-e55bfe9b
-  - config-3cc299cd
-  - config-ac437a68
-  - config-83176e33
-  - config-ce27b739
-  - config-ac6b9946
-  - config-62bec198
-  - config-52bdfb7e
-  - config-35f0f2fd
-  - config-dd4ccf98
-  - config-f2a68aed
-  - config-d238f26e
-  - config-9c4c7190
-  - config-00d12df9
-  - DAA9D8A7D986D8A7D98420D8AAD984DAAFD8B1D8A7D985DB8C20D985D8A7203A20SRCVPN40-b434b56a
-  - DAA9D8A7D986D8A7D98420D8AAD984DAAFD8B1D8A7D985DB8C20D985D8A7203A20SRCVPN40-fc8ebd39
-  - Tel-d7772530
-  - Tel-e4356045
-  - Tel-51888133
-  - Tel-aef8741a
-  - Tel-e0487fe3
-  - Tel-9571d3f3
-  - Tel-3d95cab4
-  - Tel-08e4cc2d
-  - Tel-f3ce2b7e
-  - Tel-1b495ea8
-  - Tel-cc283152
-  - Tel-9d682d8c
-  - Tel-31645fdb
-  - Tel-b4e73696
-  - Tel-804ce79b
-  - Tel-0088ad46
-  - Tel-69630b00
-  - 40Sezar_Sec-b924f0b5
-  - 40Sezar_Sec-b3fa1bde
-  - 40Sezar_Sec-7db6bbe8
-  - 40Sezar_Sec-49134228
-  - 40Sezar_Sec-de8a8f4b
-  - 40Sezar_Sec-ae9c4221
-  - 40Sezar_Sec-11de04e9
-  - 40Sezar_Sec-27b21856
-  - 40Sezar_Sec-a328c5d5
-  - 40Sezar_Sec-04801e83
-  - 40Sezar_Sec-068b7aaf
-  - 40Sezar_Sec-1390db2c
-  - 40Sezar_Sec-1a8cd9d9
-  - 40Sezar_Sec-bb3e55b3
-  - 40Sezar_Sec-fb3b2add
-  - 40Sezar_sEC-a3928c03
-  - 40Sezar_Sec-a2687a26
-  - 40Sezar_Sec-39c8506d
-  - Sezar_Sec-5300d8df
-  - Sezar_Sec_-_All_ISPs-fce6bc9a
-  - 40Sezar_Sec-cc075b3d
-  - 40Sezar_Sec-4af7d089
-  - 40Sezar_Sec-9d5ccda4
-  - 40Sezar_Sec-770ed495
-  - 40Sezar_Sec-6811940a
-  - 40Sezar_Sec-cf0e67dd
-  - 40Sezar_Sec-61cfe59f
-  - 40Sezar_Sec-27a9ff1d
-  - 40Sezar_Sec20F09F9B91-436454ea
-  - 40Sezar_Sec-73770478
-  - 40Sezar_Sec-87ac908c
-  - 40Sezar_Sec-945d429e
-  - 40Sezar_Sec20F09F8EA1-18745f02
-  - 40Sezar_Sec20F09F9B95-77ac39b1
-  - 40Sezar_Sec-1c77246d
-  - 40Sezar_Sec-7167c503
-  - 40Sezar_Sec20F09F8F96-c910cd84
-  - Sezar_Sec-7407e7fa
-  - 40Sezar_Sec20-20US-a34952fa
-  - 40Sezar_Sec-f0d51950
-  - 40Sezar_Sec20F09F9AB8-33b6522a
-  - Sezar_Sec-0ea48d38
-  - Sezar_Sec-41cdfce9
-  - 40Sezar_Sec-9b2bc446
-  - 40Sezar_Sec20F09FA499-a3b0a3f9
-  - 40Sezar_Sec20F09FA499-6887e860
-  - 40Sezar_Sec20F09FA499-69e42fd6
-  - 40Sezar_Sec20Mci-feb950cd
-  - 40Sezar_Sec20Mci-db391789
-  - 40Sezar_Sec-14a39609
-  - 40Sezar_Sec-c4b3a086
-  - Telegram3A2040vpnbaz-f8a328e4
-  - Telegram3A2040vpnbaz-91ba1ccb
-  - Telegram3A2040vpnbaz-bc8818c3
-  - Telegram3A2040vpnbaz-b3fdaf24
-  - Telegram3A2040vpnbaz-faa92d7c
-  - Telegram3A2040vpnbaz-9ad49e59
-  - Telegram3A2040vpnbaz-8baefd4d
-  - Telegram3A2040vpnbaz-b228d7fe
-  - Telegram3A2040vpnbaz-61caf6e3
-  - Telegram3A2040vpnbaz-57d34746
-  - Telegram3A2040vpnbaz-8a0c40cf
-  - Telegram3A2040vpnbaz-05673a8b
-  - Telegram3A2040vpnbaz-53a3a448
-  - Telegram3A2040vpnbaz-0b78bd94
-  - Telegram3A2040vpnbaz-99f0489f
-  - Telegram3A2040vpnbaz-d57fcf2f
-  - Telegram3A2040vpnbaz-fbca8f35
-  - Telegram3A2040vpnbaz-ef5d487b
-  - Telegram3A2040vpnbaz-e0ce7bf0
-  - 40vpnbaz207C20D986D8AA20D985D984DB8C-e1f3f755
-  - 40vpnbaz207C20D986D8AA20D985D984DB8C-d84a0e85
-  - 40vpnbaz207C20D986D8AA20D985D984DB8C-71f34484
-  - 40vpnbaz207C20D986D8AA20D985D984DB8C-7f9b07b5
-  - 40vpnbaz207C20D986D8AA20D985D984DB8C-02459258
-  - 40vpnbaz-2987a0ba
-  - 40vpnbaz-f607984c
-  - 40vpnbaz-96c0a60e
-  - 40vpnbaz-e186227c
-  - vpnbaz-f0457be4
-  - 40vpnbaz207C20D986D8AA20D985D984DB8C-78ad8b74
-  - 40vpnbaz207C20D986D8AA20D985D984DB8C-9b615da2
-  - 40vpnbaz207C20D986D8AA20D985D984DB8C-dd0d4ea2
-  - 40vpnbaz207C20D986D8AA20D985D984DB8C-b08ecba6
-  - 40vpnbaz207C20D986D8AA20D985D984DB8C-8fe237e2
-  - 40vpnbaz207C20D986D8AA20D985D984DB8C-28cfed6b
-  - 40vpnbaz207C20D986D8AA20D985D984DB8C-a7910c95
-  - 40vpnbaz207C20D986D8AA20D985D984DB8C-ffdf3da5
-  - 40vpnbaz207C20D986D8AA20D985D984DB8C-d269cbf3
-  - vpnbaz__نت_ملی-6e5f6833
-  - 40vpnbaz207C20D8B1D8A7DB8CD8AAD984-3af38731
-  - 40vpnbaz207C20D8B1D8A7DB8CD8AAD984-b5550747
-  - 40vpnbaz207C20D8B3D8A7D985D8A7D986D8AAD984-1104ccc7
-  - 40vpnbaz207C20D8B3D8A7D985D8A7D986D8AAD984-f354777d
-  - 40vpnbaz207C20D986D8AA20D985D984DB8C-8a96378a
-  - 40vpnbaz207C20D986D8AA20D985D984DB8C-9d753887
-  - 40vpnbaz207C20D986D8AA20D985D984DB8C-24b69b54
-  - 40vpnbaz207C20D986D8AA20D985D984DB8C-fd528bb7
-  - vpnbaz__نت_ملی-fa01908a
-  - 40vpnbaz-1a941445
-  - 40vpnbaz-6203074f
-  - 40vpnbaz207C20D986D8AA20D985D984DB8C-00b1b64a
-  - 40vpnbaz207C20D986D8AA20D985D984DB8C-e342aebc
-  - 40vpnbaz207C20D986D8AA20D985D984DB8C-f00789eb
-  - vpnbaz__نت_ملی-ca6a71e0
-  - vpnbaz__نت_ملی-51d5197b
-  - vpnbaz__نت_ملی-3146ac5f
-  - 40vpnbaz207C20D986D8AA20D985D984DB8C-1ba77903
-  - vpnbaz__نت_ملی-3dcf3dd4
-  url: http://www.gstatic.com/generate_204
-  interval: 300
-- name: 🔮 Proxy
+- name: 🚀 Proxy
   type: select
   proxies:
-  - 🚀 Auto
+  - ♻️ Auto
+  - 🔯 Fallback
+  - 🔮 LoadBalance
+  - DIRECT
+- name: ♻️ Auto
+  type: url-test
+  proxies: &id001
+  - vless-f862aee0
+  - vless-956bd8f1
+  - ss-386dfb08
+  - ss-ce0f9c5e
+  - vless-61d2b52c
+  - ss-e26ca1ce
+  - SRCVPN-0cf53cc7
+  - SRCVPN-e81b49c5
+  - SRCVPN-c8d20fab
+  - SRCVPN-7790cc81
+  - vless-1e794c6c
+  - vless-a0694191
+  - ss-9e9c2c43
+  - ss-cd3c5d6f
+  - vless-08b1027f
+  - ss-99984008
+  - vless-f61a0aa2
+  - ss-be0bc8c4
+  - vless-758ed057
+  - ss-e811f9e6
+  - vless-757cc3d4
+  - ss-21ea3b1a
+  - vless-6439b510
+  - ss-67ef8e59
+  - vless-678effa5
+  - vless-a26086a4
+  - ss-05318b51
+  - ss-e92f78a1
+  - vless-fe5aa9f4
+  - ss-dcb453b5
+  - vless-7f1dc34a
+  - vless-9a4e5538
+  - ss-71712f61
+  - ss-884a0f83
+  - vless-923dcdd2
+  - ss-488de9c4
+  - vless-093984d7
+  - vless-61a37ff1
+  - ss-23523aec
+  - ss-56d8409f
+  - vless-bba1733e
+  - vless-83aac693
+  - ss-58f092e4
+  - ss-feb3fbbf
+  - vless-f1759859
+  - vless-06c633a4
+  - ss-150e8a2b
+  - ss-f1fa4f92
+  - vless-e3a99165
+  - vless-ec85c723
+  - ss-d8446082
+  - ss-ae8242a1
+  - vless-93c7a3ea
+  - vless-95134f0a
+  - ss-b3b4018f
+  - ss-e214950e
+  - vless-686ce86b
+  - vless-08436bef
+  - ss-ec0eea3f
+  - ss-12c64084
+  - vless-72d94011
+  - vless-f69c1e64
+  - ss-cc488e7b
+  - ss-5fbec6af
+  - vless-d6096f55
+  - vless-bc7a2711
+  - ss-e8869ca3
+  - ss-6ce7fe85
+  - Sezar_Sec-187e4607
+  - Sezar_Sec-73b9e01d
+  - Sezar_Sec-b669334a
+  - Sezar_Sec-4768239b
+  - Sezar_Sec-613005a5
+  - Sezar_Sec-488efe9f
+  - Sezar_Sec-4f403bd3
+  - Sezar_Sec-4748fea1
+  - Sezar_Sec-8e9ed838
+  - Sezar_Sec-094e4113
+  - Sezar_Sec-c2ca9ffd
+  - Sezar_Sec-e7c09cba
+  - Sezar_Sec-ef0fbef7
+  - Sezar_Sec-73ec96aa
+  - Sezar_Sec-8c581754
+  - Sezar_Sec-9a6a401d
+  - Sezar_Sec-ab5609ae
+  - Sezar_Sec-651f74a9
+  - Sezar_Sec-10c6d548
+  - Sezar_Sec-bdae8911
+  - Sezar_Sec-27ba9bb9
+  - Sezar_Sec-8343a526
+  - Sezar_Sec-b434bd0d
+  - Sezar_Sec-1e34f454
+  - Sezar_Sec-f164b55f
+  - Sezar_Sec-051adf8a
+  - Sezar_Sec-5d77945b
+  - Sezar_Sec-872fa2b0
+  - Sezar_Sec-06bbfc14
+  - Sezar_Sec-446c4371
+  - Sezar_Sec-dab43604
+  - Sezar_Sec-b1873ec6
+  - Sezar_Sec-c31b04af
+  - Sezar_Sec-6f2f3eb8
+  - Sezar_Sec-8b2d3757
+  - Sezar_Sec-297e23bc
+  - Sezar_Sec-0f8d7fcc
+  - Sezar_Sec-39246393
+  - Sezar_sEC-56687a03
+  - Sezar_sEC-2ff0b0f3
+  - Sezar_Sec-e33ee1c6
+  - Sezar_Sec-b8961fce
+  - Sezar_Sec-6ac349e6
+  - Sezar_Sec-979508c9
+  - Sezar_Sec-55131fee
+  - Sezar_Sec_-_All_ISPs-26ea6a92
+  - Sezar_Sec-e2dfd7a9
+  - Sezar_Sec-4d6e332c
+  - Sezar_Sec-bed1bd25
+  - Sezar_Sec-009c425f
+  - Sezar_Sec-4ce6fe0f
+  - Sezar_Sec-91aa47a7
+  - Telegram_vpnbaz-3748318e
+  - Telegram_vpnbaz-2ba1ce86
+  - Telegram_vpnbaz-62761c4e
+  - Telegram_vpnbaz-6ce5c24e
+  - Telegram_vpnbaz-13e66594
+  - Telegram_vpnbaz-75f842f5
+  - Telegram_vpnbaz-acffcae9
+  - Telegram_vpnbaz-36a2ec02
+  - Telegram_vpnbaz-b57ea8a9
+  - Telegram_vpnbaz-1497e733
+  - Telegram_vpnbaz-e6afd37c
+  - Telegram_vpnbaz-4868588c
+  - Telegram_vpnbaz-6a011c21
+  - Telegram_vpnbaz-e896e376
+  - Telegram_vpnbaz-a5063f3a
+  - Telegram_vpnbaz-ce663df6
+  - Telegram_vpnbaz-5083d616
+  - Telegram_vpnbaz-efcde9d5
+  - Telegram_vpnbaz-f3f55f5d
+  - Telegram_vpnbaz-cb0f018f
+  - Telegram_vpnbaz-3bb89027
+  - Telegram_vpnbaz-edef7379
+  - Telegram_vpnbaz-4a8a526e
+  - Telegram_vpnbaz-4dbc0347
+  - Telegram_vpnbaz-34517302
+  - Telegram_vpnbaz-fbfb174a
+  - Telegram_vpnbaz-a333820d
+  - Telegram_vpnbaz-03946738
+  - Telegram_vpnbaz-eeb8ed55
+  - Telegram_vpnbaz-dd2b2dc7
+  - Telegram_vpnbaz-f124742d
+  - Telegram_vpnbaz-4c13de58
+  - Telegram_vpnbaz-28c2ac63
+  - Telegram_vpnbaz-a0a3653b
+  - Telegram_vpnbaz-2e4b4432
+  - Telegram_vpnbaz-52d94753
+  url: http://www.gstatic.com/generate_204
+  interval: 300
+  tolerance: 50
+- name: 🔯 Fallback
+  type: fallback
+  proxies: *id001
+  url: http://www.gstatic.com/generate_204
+  interval: 300
+- name: 🔮 LoadBalance
+  type: load-balance
+  strategy: consistent-hashing
+  proxies: *id001
+  url: http://www.gstatic.com/generate_204
+  interval: 300
+- name: 🌍 Global
+  type: select
+  proxies:
+  - 🚀 Proxy
+  - DIRECT
+- name: 🍃 Hijacking
+  type: select
+  proxies:
+  - REJECT
   - DIRECT
 rules:
+- DOMAIN-SUFFIX,local,DIRECT
+- IP-CIDR,127.0.0.0/8,DIRECT
+- IP-CIDR,172.16.0.0/12,DIRECT
+- IP-CIDR,192.168.0.0/16,DIRECT
+- IP-CIDR,10.0.0.0/8,DIRECT
+- IP-CIDR,17.0.0.0/8,DIRECT
+- IP-CIDR,100.64.0.0/10,DIRECT
 - DOMAIN-SUFFIX,ir,DIRECT
 - GEOIP,IR,DIRECT
-- MATCH,🔮 Proxy
+- DOMAIN-KEYWORD,ads,🍃 Hijacking
+- DOMAIN-KEYWORD,analytics,🍃 Hijacking
+- DOMAIN-KEYWORD,facebook,🌍 Global
+- DOMAIN-KEYWORD,google,🌍 Global
+- DOMAIN-KEYWORD,instagram,🌍 Global
+- DOMAIN-KEYWORD,telegram,🌍 Global
+- DOMAIN-KEYWORD,twitter,🌍 Global
+- DOMAIN-KEYWORD,youtube,🌍 Global
+- MATCH,🚀 Proxy
