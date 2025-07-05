@@ -1,15 +1,15 @@
 import re
 import asyncio
-import aiohttp
-import time
+import aiohttp # این دیگه نیازی نیست، چون ConfigTester حذف میشه
+import time    # این هم دیگه نیازی نیست، چون ConfigTester حذف میشه
 import base64
 import json
 import yaml
 import os
-import platform
+import platform # این هم دیگه نیازی نیست
 import uuid
 from urllib.parse import urlparse, parse_qs
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor # این هم دیگه نیازی نیست
 
 # Pyrogram imports
 from pyrogram import Client
@@ -28,7 +28,7 @@ SESSION_NAME = "v2rayTrack"
 CHANNELS = [
     "@SRCVPN",
     "@sezar_sec",
-    "@Anty_Filter", # @SRCVPN دو بار تکرار شده بود، یکی را حذف کردم
+    "@Anty_Filter",
     "@proxy_kafee",
     "@vpns"
 ]
@@ -49,36 +49,24 @@ V2RAY_PATTERNS = [
 ]
 
 # تنظیمات پروکسی (اختیاری) - برای GitHub Actions معمولاً غیرفعال است
-# PROXY = {
-#     "hostname": "127.0.0.1",
-#     "port": 10808,
-#     "scheme": "socks5"
-# }
-# در این حالت، چون از User Client استفاده می‌شود و سشن به صورت فایل منتقل می‌شود،
-# بهتر است پروکسی در اینجا فعال نباشد مگر اینکه مطمئن باشید نیاز است.
-# اگر به پروکسی نیاز دارید (مثلاً برای دور زدن فیلترینگ تلگرام در خود GitHub Actions)،
-# باید یک پروکسی واقعی و قابل دسترس از خارج داشته باشید و تنظیمات آن را اینجا قرار دهید.
-# در غیر این صورت، این را None بگذارید یا کامنت کنید.
-GLOBAL_PROXY_SETTINGS = None # اگر پروکسی خاصی نیاز نیست، این را None بگذارید.
+GLOBAL_PROXY_SETTINGS = None
 
-# تنظیمات تست کانفیگ‌ها
-TEST_SETTINGS = {
-    "timeout": 10,
-    "test_urls": [
-        "https://httpbin.org/ip",
-        "https://api.ipify.org?format=json",
-        "https://ifconfig.me/ip"
-    ],
-    "max_workers": 20, # حداکثر تعداد کانفیگ‌هایی که همزمان تست می‌شوند
-    "ping_count": 1    # تعداد پینگ برای هر سرور (1 یا 2 کافی است)
-}
-
-# --- کلاس ConfigTester برای تست و تجزیه کانفیگ‌ها ---
-class ConfigTester:
+# --- کلاس V2RayExtractor برای تعامل با تلگرام و ذخیره‌سازی ---
+class V2RayExtractor:
     def __init__(self):
-        self.working_configs = []
-        self.failed_configs = []
+        self.found_configs = set() # مجموعه ای از کانفیگ‌های URL پیدا شده
+        self.parsed_clash_configs = [] # لیست کانفیگ‌ها بعد از تجزیه برای فرمت Clash
 
+        # مقداردهی Client برای User Client
+        self.client = Client(
+            SESSION_NAME,
+            api_id=API_ID,
+            api_hash=API_HASH,
+            # اگر GLOBAL_PROXY_SETTINGS تعریف شده و None نیست، از آن استفاده کن
+            **({"proxy": GLOBAL_PROXY_SETTINGS} if GLOBAL_PROXY_SETTINGS else {})
+        )
+
+    # توابع تجزیه کانفیگ‌ها را اینجا نگه می‌داریم زیرا برای تبدیل به فرمت Clash نیاز هستند
     def parse_config(self, config_url):
         """تجزیه و تحلیل کانفیگ برای استخراج اطلاعات اتصال برای Clash"""
         try:
@@ -103,7 +91,6 @@ class ConfigTester:
     def parse_vmess(self, vmess_url):
         try:
             encoded_data = vmess_url.replace('vmess://', '')
-            # Padding برای decode base64
             padding = len(encoded_data) % 4
             if padding:
                 encoded_data += '=' * (4 - padding)
@@ -273,145 +260,26 @@ class ConfigTester:
             print(f"❌ خطا در تجزیه TUIC ({tuic_url[:50]}...): {str(e)}")
             return None
 
-    async def ping_test(self, host):
-        """تست پینگ"""
-        try:
-            cmd = ["ping", "-n", "1", host] if platform.system().lower() == "windows" else ["ping", "-c", "1", host]
-            process = await asyncio.create_subprocess_exec(
-                *cmd,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
-            )
-            stdout, stderr = await process.communicate()
-
-            if process.returncode == 0:
-                output = stdout.decode()
-                # برای ویندوز: "time=XXms"  برای لینوکس: "time=XX.X ms"
-                time_match = re.search(r'time[=<](\d+(?:\.\d+)?)ms', output)
-                if time_match:
-                    return float(time_match.group(1))
-            return False
-        except Exception as e:
-            # print(f"⚠️ خطای پینگ برای {host}: {e}") # برای لاگ‌های تمیزتر، این رو فعلاً خاموش نگه می‌داریم
-            return False
-
-    async def tcp_test(self, host, port):
-        """تست اتصال TCP"""
-        try:
-            future = asyncio.open_connection(host, port)
-            # با timeout مشخص، از گیر کردن در اتصال‌های طولانی جلوگیری می‌کنیم
-            reader, writer = await asyncio.wait_for(future, timeout=TEST_SETTINGS['timeout'] / 2)
-            writer.close()
-            await writer.wait_closed()
-            return True
-        except Exception as e:
-            # print(f"⚠️ خطای TCP برای {host}:{port}: {e}")
-            return False
-
-    async def test_config_connection(self, config_info, config_url):
-        """تست اتصال کانفیگ"""
-        if not config_info:
-            return False, "نمی‌تواند کانفیگ را تجزیه کند"
-
-        # تست پینگ (اختیاری، اگر فقط TCP/HTTP تست می‌کنید)
-        ping_latency = await self.ping_test(config_info['server'])
-        if ping_latency is False:
-            return False, f"پینگ ناموفق یا خیلی زیاد ({config_info['server']})"
-
-        # تست اتصال TCP
-        tcp_result = await self.tcp_test(config_info['server'], config_info['port'])
-        if not tcp_result:
-            return False, f"اتصال TCP ناموفق ({config_info['server']}:{config_info['port']})"
-
-        return True, f"موفق - پینگ: {ping_latency:.2f}ms" # نمایش پینگ با دقت دو رقم اعشار
-
-    async def test_single_config(self, config_url):
-        """تست یک کانفیگ و ثبت نتیجه"""
-        try:
-            config_info = self.parse_config(config_url)
-            success, message = await self.test_config_connection(config_info, config_url)
-
-            result = {
-                'config': config_url,
-                'info': config_info,
-                'working': success,
-                'message': message,
-                'test_time': time.time()
-            }
-
-            if success:
-                self.working_configs.append(result)
-                name = config_info['name'] if config_info and 'name' in config_info else 'Unknown'
-                print(f"✅ {name}: {message}")
-            else:
-                self.failed_configs.append(result)
-                name = config_info['name'] if config_info and 'name' in config_info else 'Unknown'
-                print(f"❌ {name}: {message}")
-
-            return result
-
-        except Exception as e:
-            print(f"❌ خطا در تست کانفیگ ({config_url[:50]}...): {str(e)}")
-            return None
-
-    async def test_all_configs(self, configs):
-        """تست همه کانفیگ‌ها با محدودیت همزمانی"""
-        print(f"🧪 شروع تست {len(configs)} کانفیگ...")
-        print("=" * 50)
-
-        # از ThreadPoolExecutor برای کارهایی که CPU-bound هستند (مانند پینگ) استفاده می‌کنیم
-        # و از asyncio.Semaphore برای محدود کردن تعداد تسک‌های همزمان
-        semaphore = asyncio.Semaphore(TEST_SETTINGS['max_workers'])
-
-        async def test_with_semaphore(config):
-            async with semaphore:
-                return await self.test_single_config(config)
-
-        tasks = [test_with_semaphore(config) for config in configs]
-        results = await asyncio.gather(*tasks, return_exceptions=True)
-
-        print("=" * 50)
-        print(f"📊 نتیجه تست:")
-        print(f"✅ کانفیگ‌های کاری: {len(self.working_configs)}")
-        print(f"❌ کانفیگ‌های غیرفعال: {len(self.failed_configs)}")
-        if (len(self.working_configs) + len(self.failed_configs)) > 0:
-            success_rate = len(self.working_configs) / (len(self.working_configs) + len(self.failed_configs)) * 100
-            print(f"📈 نرخ موفقیت: {success_rate:.1f}%")
-        else:
-            print(f"📈 نرخ موفقیت: 0.0% (هیچ کانفیگی برای تست وجود نداشت)")
-
-        return self.working_configs
-
-# --- کلاس V2RayExtractor برای تعامل با تلگرام ---
-class V2RayExtractor:
-    def __init__(self):
-        self.found_configs = set()
-        # مقداردهی Client برای User Client
-        self.client = Client(
-            SESSION_NAME,
-            api_id=API_ID,
-            api_hash=API_HASH,
-            # اگر GLOBAL_PROXY_SETTINGS تعریف شده و None نیست، از آن استفاده کن
-            **({"proxy": GLOBAL_PROXY_SETTINGS} if GLOBAL_PROXY_SETTINGS else {})
-        )
-        self.tester = ConfigTester()
-
     async def check_channel(self, channel):
         """بررسی یک کانال تلگرام برای استخراج کانفیگ"""
         try:
             print(f"🔍 در حال بررسی کانال {channel}...")
             # از get_chat_history برای گرفتن پیام‌ها استفاده می‌کنیم.
             # چون این یک User Client است، باید به تاریخچه دسترسی داشته باشد.
-            async for message in self.client.get_chat_history(channel, limit=10): # limit را کمی بیشتر کردم
+            async for message in self.client.get_chat_history(channel, limit=100): # limit را به 100 افزایش دادم
                 if not message.text:
                     continue
 
                 for pattern in V2RAY_PATTERNS:
                     matches = pattern.findall(message.text)
-                    for config in matches:
-                        if config not in self.found_configs:
-                            self.found_configs.add(config)
-                            print(f"✅ کانفیگ جدید یافت شد از {channel}: {config[:60]}...")
+                    for config_url in matches: # نام متغیر به config_url تغییر یافت
+                        if config_url not in self.found_configs:
+                            self.found_configs.add(config_url)
+                            print(f"✅ کانفیگ جدید یافت شد از {channel}: {config_url[:60]}...")
+                            # بلافاصله پس از یافتن، آن را تجزیه و به لیست Clash اضافه می‌کنیم
+                            clash_format = self.parse_config(config_url)
+                            if clash_format:
+                                self.parsed_clash_configs.append(clash_format)
 
         except FloodWait as e:
             print(f"⏳ نیاز به انتظار {e.value} ثانیه (محدودیت تلگرام) برای کانال {channel}")
@@ -437,111 +305,88 @@ class V2RayExtractor:
             print("2. SESSION_NAME در main.py دقیقاً با نام فایل سشن شما (بدون پسوند) مطابقت دارد.")
             print("3. API_ID و API_HASH در GitHub Secrets صحیح هستند.")
             # اگر به این بخش رسید، یعنی اتصال به تلگرام ناموفق بوده، پس ادامه کار معنی ندارد
-            self.found_configs.clear() # برای اطمینان از اینکه configs خالی باشند.
+            self.found_configs.clear() # برای اطمینان از اینکه configs خالی باشند
+            self.parsed_clash_configs.clear() # خالی کردن لیست Clash configs نیز
 
 
-    async def test_and_save_configs(self):
-        """تست و ذخیره کانفیگ‌ها به هر دو فرمت YAML و TXT"""
+    async def save_configs(self):
+        """ذخیره تمام کانفیگ‌های پیدا شده به هر دو فرمت YAML و TXT (بدون تست)"""
         if not self.found_configs:
-            print("⚠️ هیچ کانفیگ جدیدی یافت نشد یا خطا در استخراج کانفیگ‌ها.")
+            print("⚠️ هیچ کانفیگی یافت نشد یا خطا در استخراج کانفیگ‌ها.")
             # ایجاد فایل‌های خالی برای جلوگیری از خطای "No such file or directory" در Git
             open(OUTPUT_YAML, "w").close()
             open(OUTPUT_TXT, "w").close()
             print(f"فایل‌های خالی {OUTPUT_YAML} و {OUTPUT_TXT} ایجاد شدند.")
             return
 
-        print(f"\n🚀 شروع تست کردن {len(self.found_configs)} کانفیگ...")
-        working_configs = await self.tester.test_all_configs(list(self.found_configs))
+        print(f"\n💾 شروع ذخیره {len(self.found_configs)} کانفیگ پیدا شده...")
 
-        if working_configs:
-            # ذخیره به فرمت YAML برای Clash
-            clash_config = {
-                'proxies': [],
-                'proxy-groups': [
-                    {
-                        'name': '🚀 Auto Select',
-                        'type': 'url-test',
-                        'proxies': [],
-                        'url': 'http://www.gstatic.com/generate_204',
-                        'interval': 300
-                    },
-                    {
-                        'name': '🔮 Proxy',
-                        'type': 'select',
-                        'proxies': ['🚀 Auto Select', 'DIRECT']
-                    },
-                    {
-                        'name': '🎯 Domestic',
-                        'type': 'select',
-                        'proxies': ['DIRECT']
-                    }
-                ],
-                'rules': [
-                    'DOMAIN-SUFFIX,ir,🎯 Domestic',
-                    'GEOIP,IR,🎯 Domestic',
-                    'MATCH,🔮 Proxy'
-                ]
-            }
+        # ذخیره به فرمت YAML برای Clash
+        clash_config_output = {
+            'proxies': self.parsed_clash_configs, # استفاده مستقیم از لیست تجزیه شده
+            'proxy-groups': [
+                {
+                    'name': '🚀 Auto Select',
+                    'type': 'url-test',
+                    'proxies': [cfg['name'] for cfg in self.parsed_clash_configs if 'name' in cfg], # استفاده از نام‌های کانفیگ‌ها
+                    'url': 'http://www.gstatic.com/generate_204',
+                    'interval': 300
+                },
+                {
+                    'name': '🔮 Proxy',
+                    'type': 'select',
+                    'proxies': ['🚀 Auto Select', 'DIRECT']
+                },
+                {
+                    'name': '🎯 Domestic',
+                    'type': 'select',
+                    'proxies': ['DIRECT']
+                }
+            ],
+            'rules': [
+                'DOMAIN-SUFFIX,ir,🎯 Domestic',
+                'GEOIP,IR,🎯 Domestic',
+                'MATCH,🔮 Proxy'
+            ]
+        }
 
-            # ذخیره به فرمت متنی ساده
-            raw_configs = []
+        # ذخیره فایل YAML
+        try:
+            with open(OUTPUT_YAML, "w", encoding="utf-8") as f:
+                yaml.dump(clash_config_output, f, allow_unicode=True, sort_keys=False)
+            print(f"🎉 {len(self.parsed_clash_configs)} کانفیگ در {OUTPUT_YAML} ذخیره شد.")
+        except Exception as e:
+            print(f"❌ خطا در ذخیره فایل YAML: {str(e)}")
 
-            for config_result in working_configs:
-                if config_result['info']:
-                    clash_config['proxies'].append(config_result['info'])
-                    clash_config['proxy-groups'][0]['proxies'].append(config_result['info']['name'])
-                raw_configs.append(config_result['config'])
+        # ذخیره به فرمت متنی ساده
+        raw_configs_output = list(self.found_configs) # همه کانفیگ‌های پیدا شده (URLs)
+        try:
+            with open(OUTPUT_TXT, "w", encoding="utf-8") as f:
+                f.write("\n".join(raw_configs_output))
+            print(f"🎉 {len(self.found_configs)} کانفیگ در {OUTPUT_TXT} ذخیره شد.")
+        except Exception as e:
+            print(f"❌ خطا در ذخیره فایل TXT: {str(e)}")
 
-            # ذخیره فایل YAML
-            try:
-                with open(OUTPUT_YAML, "w", encoding="utf-8") as f:
-                    yaml.dump(clash_config, f, allow_unicode=True, sort_keys=False)
-                print(f"🎉 {len(working_configs)} کانفیگ کارکرده در {OUTPUT_YAML} ذخیره شد.")
-            except Exception as e:
-                print(f"❌ خطا در ذخیره فایل YAML: {str(e)}")
-
-            # ذخیره فایل متنی
-            try:
-                with open(OUTPUT_TXT, "w", encoding="utf-8") as f:
-                    f.write("\n".join(raw_configs))
-                print(f"🎉 {len(working_configs)} کانفیگ کارکرده در {OUTPUT_TXT} ذخیره شد.")
-            except Exception as e:
-                print(f"❌ خطا در ذخیره فایل TXT: {str(e)}")
-
-            # نمایش جزئیات کانفیگ‌های کاری
-            print(f"\n📋 لیستی از کانفیگ‌های کاری (10 مورد اول):")
-            for i, config_result in enumerate(working_configs[:10], 1):
-                info = config_result['info']
-                if info:
-                    print(f"{i}. {info.get('name', 'N/A')} ({info.get('type', 'N/A')}) - {info.get('server', 'N/A')}:{info.get('port', 'N/A')}")
-                else:
-                    print(f"{i}. {config_result['config'][:50]}...")
-        else:
-            print("😞 هیچ کانفیگ کاری یافت نشد!")
-            # اطمینان از ایجاد فایل‌های خالی حتی در صورت عدم یافتن کانفیگ
-            open(OUTPUT_YAML, "w").close()
-            open(OUTPUT_TXT, "w").close()
-            print(f"فایل‌های خالی {OUTPUT_YAML} و {OUTPUT_TXT} ایجاد شدند.")
+        # نمایش جزئیات کانفیگ‌های پیدا شده
+        print(f"\n📋 لیستی از کانفیگ‌های پیدا شده (10 مورد اول):")
+        for i, config_info in enumerate(self.parsed_clash_configs[:10], 1): # نمایش 10 مورد اول از Clash Format
+            if config_info:
+                print(f"{i}. {config_info.get('name', 'N/A')} ({config_info.get('type', 'N/A')}) - {config_info.get('server', 'N/A')}:{config_info.get('port', 'N/A')}")
+            else:
+                # این حالت نباید رخ دهد اگر parse_config به درستی کار کند
+                print(f"{i}. (کانفیگ نامعتبر)")
 
 
 async def main():
-    print("🚀 شروع استخراج و تست کانفیگ‌های V2Ray...")
+    print("🚀 شروع استخراج کانفیگ‌های V2Ray...")
     print("=" * 60)
 
     extractor = V2RayExtractor()
 
-    await extractor.extract_configs() # این مرحله ممکن است `self.found_configs` را خالی کند اگر خطا رخ دهد
+    await extractor.extract_configs() # استخراج کانفیگ‌ها
 
-    # فقط در صورتی ادامه می‌دهیم که کانفیگ‌هایی برای تست وجود داشته باشد
-    if extractor.found_configs:
-        await extractor.test_and_save_configs()
-    else:
-        print("⚠️ مرحله تست و ذخیره نادیده گرفته شد، زیرا هیچ کانفیگی یافت نشد.")
-        # اطمینان از ایجاد فایل‌های خالی برای گیت
-        open(OUTPUT_YAML, "w").close()
-        open(OUTPUT_TXT, "w").close()
-        print(f"فایل‌های خالی {OUTPUT_YAML} و {OUTPUT_TXT} برای Git Actions ایجاد شدند.")
-
+    # حالا بدون تست، مستقیماً به مرحله ذخیره‌سازی می‌رویم
+    await extractor.save_configs()
 
     print("=" * 60)
     print("✨ اتمام کار!")
