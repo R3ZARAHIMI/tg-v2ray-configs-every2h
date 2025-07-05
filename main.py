@@ -452,7 +452,7 @@ class V2RayExtractor:
         try:
             print(f"🔍 Scanning channel {channel}...")
             # limit=100 مناسب‌تر است برای جستجوی کانفیگ‌ها در پیام‌های قدیمی‌تر
-            async for message in self.client.get_chat_history(channel, limit=100): 
+            async for message in self.client.get_chat_history(channel, limit=10): 
                 if not message.text:
                     continue
 
