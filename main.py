@@ -15,7 +15,7 @@ from pyrogram.errors import FloodWait, RPCError
 API_ID = int(os.environ.get("API_ID")) # فرض می‌کنیم مقادیر پیش‌فرض در GitHub Actions ست می‌شوند
 API_HASH = os.environ.get("API_HASH")
 SESSION_NAME = "my_account"
-CHANNELS = ["@SRCVPN", "@net0n3", "@Anty_Filter","@vpns","@mrsoulh","@Capoit","v2ra_config"]
+CHANNELS = ["@SRCVPN", "@net0n3", "@Anty_Filter","@vpns","@mrsoulh","@Capoit","@v2ra_config"]
 OUTPUT_YAML = "Config-jo.yaml"
 OUTPUT_TXT = "Config_jo.txt"
 
