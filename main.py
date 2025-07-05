@@ -1,15 +1,11 @@
 import re
 import asyncio
-import aiohttp # این دیگه نیازی نیست، چون ConfigTester حذف میشه
-import time    # این هم دیگه نیازی نیست، چون ConfigTester حذف میشه
 import base64
 import json
 import yaml
 import os
-import platform # این هم دیگه نیازی نیست
 import uuid
 from urllib.parse import urlparse, parse_qs
-from concurrent.futures import ThreadPoolExecutor # این هم دیگه نیازی نیست
 
 # Pyrogram imports
 from pyrogram import Client
@@ -22,6 +18,7 @@ API_ID = int(os.environ.get("API_ID"))
 API_HASH = os.environ.get("API_HASH")
 
 # نام فایل سشن برای Pyrogram (باید با نامی که در GitHub Secret ذخیره کرده‌اید مطابقت داشته باشد)
+# این نام باید دقیقاً با نام فایل سشن محلی شما (مثلاً v2rayTrack.session) مطابقت داشته باشد، اما بدون پسوند .session
 SESSION_NAME = "v2rayTrack"
 
 # کانال‌هایی که باید اسکن شوند
@@ -37,7 +34,7 @@ CHANNELS = [
 OUTPUT_YAML = "Config-jo.yaml"  # خروجی به فرمت YAML برای Clash
 OUTPUT_TXT = "Config_jo.txt"    # خروجی به فرمت متنی ساده
 
-# الگوهای شناسایی کانفیگ‌ها
+# الگوهای شناسایی کانفیگ‌ها (این‌ها کانفیگ‌های URL را شناسایی می‌کنند)
 V2RAY_PATTERNS = [
     re.compile(r"(vless://[^\s]+)"),
     re.compile(r"(vmess://[^\s]+)"),
@@ -49,20 +46,23 @@ V2RAY_PATTERNS = [
 ]
 
 # تنظیمات پروکسی (اختیاری) - برای GitHub Actions معمولاً غیرفعال است
+# اگر به پروکسی نیاز دارید (مثلاً برای دور زدن فیلترینگ تلگرام در خود GitHub Actions)،
+# باید یک پروکسی واقعی و قابل دسترس از خارج داشته باشید و تنظیمات آن را اینجا قرار دهید.
+# در غیر این صورت، این را None بگذارید یا کامنت کنید.
 GLOBAL_PROXY_SETTINGS = None
 
 # --- کلاس V2RayExtractor برای تعامل با تلگرام و ذخیره‌سازی ---
 class V2RayExtractor:
     def __init__(self):
-        self.found_configs = set() # مجموعه ای از کانفیگ‌های URL پیدا شده
-        self.parsed_clash_configs = [] # لیست کانفیگ‌ها بعد از تجزیه برای فرمت Clash
+        self.found_configs = set() # مجموعه ای از کانفیگ‌های URL پیدا شده (رشته‌های خام)
+        self.parsed_clash_configs = [] # لیست کانفیگ‌ها بعد از تجزیه برای فرمت Clash (دیکشنری‌ها)
 
         # مقداردهی Client برای User Client
         self.client = Client(
             SESSION_NAME,
             api_id=API_ID,
             api_hash=API_HASH,
-            # اگر GLOBAL_PROXY_SETTINGS تعریف شده و None نیست، از آن استفاده کن
+            # bot_token=BOT_TOKEN, # این خط باید حذف یا کامنت شود زیرا ما از User Client استفاده می‌کنیم
             **({"proxy": GLOBAL_PROXY_SETTINGS} if GLOBAL_PROXY_SETTINGS else {})
         )
 
@@ -85,7 +85,7 @@ class V2RayExtractor:
             else:
                 return None
         except Exception as e:
-            print(f"❌ خطا در تجزیه کانفیگ ({config_url[:50]}...): {str(e)}")
+            # print(f"❌ خطا در تجزیه کانفیگ ({config_url[:50]}...): {str(e)}") # برای کاهش لاگ‌ها
             return None
 
     def parse_vmess(self, vmess_url):
@@ -128,7 +128,7 @@ class V2RayExtractor:
                 }
             return clash_config
         except Exception as e:
-            print(f"❌ خطا در تجزیه VMess ({vmess_url[:50]}...): {str(e)}")
+            # print(f"❌ خطا در تجزیه VMess ({vmess_url[:50]}...): {str(e)}")
             return None
 
     def parse_vless(self, vless_url):
@@ -167,7 +167,7 @@ class V2RayExtractor:
                 }
             return clash_config
         except Exception as e:
-            print(f"❌ خطا در تجزیه VLESS ({vless_url[:50]}...): {str(e)}")
+            # print(f"❌ خطا در تجزیه VLESS ({vless_url[:50]}...): {str(e)}")
             return None
 
     def parse_trojan(self, trojan_url):
@@ -188,7 +188,7 @@ class V2RayExtractor:
                 'alpn': query.get('alpn', [''])[0].split(',') if query.get('alpn') else None
             }
         except Exception as e:
-            print(f"❌ خطا در تجزیه Trojan ({trojan_url[:50]}...): {str(e)}")
+            # print(f"❌ خطا در تجزیه Trojan ({trojan_url[:50]}...): {str(e)}")
             return None
 
     def parse_shadowsocks(self, ss_url):
@@ -213,7 +213,7 @@ class V2RayExtractor:
                     'udp': True
                 }
         except Exception as e:
-            print(f"❌ خطا در تجزیه Shadowsocks ({ss_url[:50]}...): {str(e)}")
+            # print(f"❌ خطا در تجزیه Shadowsocks ({ss_url[:50]}...): {str(e)}")
             return None
 
     def parse_hysteria(self, hysteria_url):
@@ -236,7 +236,7 @@ class V2RayExtractor:
                 'alpn': query.get('alpn', [''])[0].split(',') if query.get('alpn') else None
             }
         except Exception as e:
-            print(f"❌ خطا در تجزیه Hysteria ({hysteria_url[:50]}...): {str(e)}")
+            # print(f"❌ خطا در تجزیه Hysteria ({hysteria_url[:50]}...): {str(e)}")
             return None
 
     def parse_tuic(self, tuic_url):
@@ -257,7 +257,7 @@ class V2RayExtractor:
                 'alpn': query.get('alpn', [''])[0].split(',') if query.get('alpn') else None
             }
         except Exception as e:
-            print(f"❌ خطا در تجزیه TUIC ({tuic_url[:50]}...): {str(e)}")
+            # print(f"❌ خطا در تجزیه TUIC ({tuic_url[:50]}...): {str(e)}")
             return None
 
     async def check_channel(self, channel):
@@ -266,7 +266,8 @@ class V2RayExtractor:
             print(f"🔍 در حال بررسی کانال {channel}...")
             # از get_chat_history برای گرفتن پیام‌ها استفاده می‌کنیم.
             # چون این یک User Client است، باید به تاریخچه دسترسی داشته باشد.
-            async for message in self.client.get_chat_history(channel, limit=100): # limit را به 100 افزایش دادم
+            # limit=100 به معنای بررسی 100 پیام آخر است. می‌توانید آن را افزایش دهید.
+            async for message in self.client.get_chat_history(channel, limit=100):
                 if not message.text:
                     continue
 
@@ -287,8 +288,11 @@ class V2RayExtractor:
             await self.check_channel(channel) # دوباره امتحان کن
         except RPCError as e: # برای خطاهای خاص Pyrogram (مثلاً Peer Flood)
             print(f"❌ خطای RPC در کانال {channel}: {e.MESSAGE} (کد: {e.CODE})")
+            # اگر این خطا "The method can't be used by bots" باشد، یعنی سشن شما User نیست.
+            # باید مجدداً سشن را به صورت User Client ایجاد و Base64 کنید.
         except Exception as e:
             print(f"❌ خطای عمومی در کانال {channel}: {str(e)}")
+
 
     async def extract_configs(self):
         """اتصال به تلگرام و استخراج کانفیگ‌ها از تمام کانال‌ها"""
@@ -302,7 +306,7 @@ class V2RayExtractor:
             print(f"🔴 خطای اتصال به تلگرام یا استخراج کانفیگ: {str(e)}")
             print("لطفاً مطمئن شوید:")
             print("1. Secret PYROGRAM_SESSION در GitHub Secrets به درستی و کامل Base64 شده است.")
-            print("2. SESSION_NAME در main.py دقیقاً با نام فایل سشن شما (بدون پسوند) مطابقت دارد.")
+            print(f"2. SESSION_NAME در main.py (فعلاً '{SESSION_NAME}') دقیقاً با نام فایل سشن شما (بدون پسوند) مطابقت دارد.")
             print("3. API_ID و API_HASH در GitHub Secrets صحیح هستند.")
             # اگر به این بخش رسید، یعنی اتصال به تلگرام ناموفق بوده، پس ادامه کار معنی ندارد
             self.found_configs.clear() # برای اطمینان از اینکه configs خالی باشند
