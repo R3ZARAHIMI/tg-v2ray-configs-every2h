@@ -353,7 +353,7 @@ class V2RayExtractor:
         """بررسی کانال و استخراج کانفیگ‌ها"""
         try:
             print(f"🔍 Scanning channel {channel}...")
-            async for message in self.client.get_chat_history(channel, limit=100):
+            async for message in self.client.get_chat_history(channel, limit=15):
                 if not message.text:
                     continue
 
@@ -381,7 +381,7 @@ class V2RayExtractor:
                                     })
                                     print(f"✅ Found valid config: {parsed_config['name']} ({parsed_config['type']})")
                                 else:
-                                    print(f"❌ Invalid config: {config_url[:20]}...")
+                                    print(f"❌ Invalid config: {config_url[:50]}...")
                                     
                             except Exception as e:
                                 print(f"❌ Error parsing config: {str(e)}")
