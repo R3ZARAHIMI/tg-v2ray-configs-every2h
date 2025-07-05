@@ -18,7 +18,8 @@ API_ID = int(os.environ.get("API_ID"))
 API_HASH = os.environ.get("API_HASH")
 
 # نام فایل سشن برای Pyrogram (باید با نامی که در GitHub Secret ذخیره کرده‌اید مطابقت داشته باشد)
-SESSION_NAME = "my_account" # نام سشن را به my_account تغییر دادم بر اساس مکالمه قبلی
+# این نام باید دقیقاً با نام فایل سشن محلی شما (مثلاً my_account.session) مطابقت داشته باشد، اما بدون پسوند .session
+SESSION_NAME = "my_account"
 
 # کانال‌هایی که باید اسکن شوند
 CHANNELS = [
@@ -50,16 +51,19 @@ GLOBAL_PROXY_SETTINGS = None
 # --- کلاس V2RayExtractor برای تعامل با تلگرام و ذخیره‌سازی ---
 class V2RayExtractor:
     def __init__(self):
-        self.found_configs = set()
-        self.parsed_clash_configs = [] # هر آیتم شامل {'original_url': ..., 'clash_info': ...} است
+        self.found_configs = set() # مجموعه ای از کانفیگ‌های URL پیدا شده (رشته‌های خام)
+        self.parsed_clash_configs = [] # لیست کانفیگ‌ها بعد از تجزیه برای فرمت Clash (دیکشنری‌ها)
 
+        # مقداردهی Client برای User Client
         self.client = Client(
             SESSION_NAME,
             api_id=API_ID,
             api_hash=API_HASH,
+            # bot_token=BOT_TOKEN, # این خط باید حذف یا کامنت شود زیرا ما از User Client استفاده می‌کنیم
             **({"proxy": GLOBAL_PROXY_SETTINGS} if GLOBAL_PROXY_SETTINGS else {})
         )
 
+    # توابع تجزیه کانفیگ‌ها
     def parse_config(self, config_url):
         """تجزیه و تحلیل کانفیگ برای استخراج اطلاعات اتصال برای Clash"""
         try:
@@ -78,7 +82,7 @@ class V2RayExtractor:
             else:
                 return None
         except Exception as e:
-            # print(f"❌ خطا در تجزیه کانفیگ ({config_url[:50]}...): {str(e)}")
+            # print(f"❌ خطا در تجزیه کانفیگ ({config_url[:50]}...): {str(e)}") # برای کاهش لاگ‌ها
             return None
 
     def parse_vmess(self, vmess_url):
@@ -91,6 +95,23 @@ class V2RayExtractor:
             decoded_data = base64.b64decode(encoded_data).decode('utf-8')
             config = json.loads(decoded_data)
 
+            # --- تغییر برای رفع 'vmess unsupported secu' ---
+            vmess_cipher = config.get('scy', 'auto') # scy = security
+            clash_cipher = vmess_cipher
+
+            # لیست cipher های رایج و پشتیبانی شده توسط Clash
+            # 'auto' در برخی موارد توسط Clash پشتیبانی می‌شود، اما گاهی باعث مشکل می‌شود.
+            # 'none' قطعاً پشتیبانی نمی‌شود.
+            supported_clash_ciphers = ['aes-128-gcm', 'chacha20-poly1305', 'aes-256-gcm']
+
+            if vmess_cipher.lower() == 'none' or vmess_cipher.lower() == 'auto':
+                # اگر 'none' بود یا 'auto' (که برای Clash ممکن است مشکل ساز باشد)، به پیش‌فرض تغییرش بده
+                clash_cipher = 'aes-128-gcm' # می‌توانید به 'chacha20-poly1305' هم تغییر دهید
+            elif vmess_cipher not in supported_clash_ciphers:
+                # اگر cipher ناشناخته یا غیرمعمول بود، به پیش‌فرض تغییرش بده
+                clash_cipher = 'aes-128-gcm'
+            # --- پایان تغییر ---
+
             clash_config = {
                 'name': config.get('ps', f"vmess-{str(uuid.uuid4())[:8]}"),
                 'type': 'vmess',
@@ -98,7 +119,7 @@ class V2RayExtractor:
                 'port': int(config.get('port', 443)),
                 'uuid': config.get('id'),
                 'alterId': int(config.get('aid', 0)),
-                'cipher': config.get('scy', 'auto'),
+                'cipher': clash_cipher, # استفاده از cipher اصلاح شده
                 'tls': config.get('tls') == 'tls',
                 'skip-cert-verify': False,
                 'network': config.get('net', 'tcp'),
@@ -263,6 +284,7 @@ class V2RayExtractor:
                     for config_url in matches:
                         if config_url not in self.found_configs:
                             self.found_configs.add(config_url)
+                            print(f"✅ کانفیگ جدید یافت شد از {channel}: {config_url[:60]}...")
                             # --- پرینت دیباگ: URL خام استخراج شده ---
                             print(f"DEBUG: URL خام استخراج شده از {channel}: {config_url}")
                             
@@ -353,12 +375,12 @@ class V2RayExtractor:
         except Exception as e:
             print(f"❌ خطا در ذخیره فایل YAML: {str(e)}")
 
-        # --- ذخیره به فرمت متنی ساده (حذف منطق اصلاح پیشوند) ---
+        # --- ذخیره به فرمت متنی ساده (با استفاده از original_url) ---
         raw_configs_output_final = []
         for item in self.parsed_clash_configs:
             original_url = item['original_url']
-            # اگر مطمئن هستیم که original_url همیشه از کانال درست است،
-            # نیازی به هیچ اصلاحی نیست و آن را همانطور که هست اضافه می‌کنیم.
+            # اینجا فقط original_url رو که از کانال اومده اضافه می‌کنیم.
+            # اگر کانال اون رو درست فرستاده باشه، فایل متنی هم درست خواهد بود.
             raw_configs_output_final.append(original_url)
 
         try:
