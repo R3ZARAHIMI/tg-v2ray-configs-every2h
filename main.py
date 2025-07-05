@@ -478,7 +478,7 @@ class V2RayExtractor:
         try:
             print(f"🔍 Scanning channel {channel}...")
             # limit=30 برای هر کانال
-            async for message in self.client.get_chat_history(channel, limit=30): 
+            async for message in self.client.get_chat_history(channel, limit=8): 
                 if not message.text:
                     continue
 
