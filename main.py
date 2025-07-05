@@ -25,7 +25,7 @@ SESSION_NAME = "my_account"
 NORMAL_CHANNELS = [
     "@SRCVPN",
     "@net0n3",
-    "@Anty_Filter",
+    # "@Anty_Filter",
     "@vpns",
     "@Capoit",
     "@mrsoulh"
