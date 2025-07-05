@@ -23,10 +23,10 @@ SESSION_NAME = "my_account"
 
 # کانال‌هایی که باید اسکن شوند
 CHANNELS = [
-    "@SRCVPN",
-    "@sezar_sec",
-    "@Anty_Filter",
-    "@proxy_kafee",
+    # "@SRCVPN",
+    # "@sezar_sec",
+    # "@Anty_Filter",
+    # "@proxy_kafee",
     "@vpns"
 ]
 
