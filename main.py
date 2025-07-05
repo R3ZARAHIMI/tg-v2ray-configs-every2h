@@ -18,8 +18,7 @@ API_ID = int(os.environ.get("API_ID"))
 API_HASH = os.environ.get("API_HASH")
 
 # نام فایل سشن برای Pyrogram (باید با نامی که در GitHub Secret ذخیره کرده‌اید مطابقت داشته باشد)
-# این نام باید دقیقاً با نام فایل سشن محلی شما (مثلاً v2rayTrack.session) مطابقت داشته باشد، اما بدون پسوند .session
-SESSION_NAME = "my_account"
+SESSION_NAME = "my_account" # نام سشن را به my_account تغییر دادم بر اساس مکالمه قبلی
 
 # کانال‌هایی که باید اسکن شوند
 CHANNELS = [
@@ -46,27 +45,21 @@ V2RAY_PATTERNS = [
 ]
 
 # تنظیمات پروکسی (اختیاری) - برای GitHub Actions معمولاً غیرفعال است
-# اگر به پروکسی نیاز دارید (مثلاً برای دور زدن فیلترینگ تلگرام در خود GitHub Actions)،
-# باید یک پروکسی واقعی و قابل دسترس از خارج داشته باشید و تنظیمات آن را اینجا قرار دهید.
-# در غیر این صورت، این را None بگذارید یا کامنت کنید.
 GLOBAL_PROXY_SETTINGS = None
 
 # --- کلاس V2RayExtractor برای تعامل با تلگرام و ذخیره‌سازی ---
 class V2RayExtractor:
     def __init__(self):
-        self.found_configs = set() # مجموعه ای از کانفیگ‌های URL پیدا شده (رشته‌های خام)
-        self.parsed_clash_configs = [] # لیست کانفیگ‌ها بعد از تجزیه برای فرمت Clash (دیکشنری‌ها)
+        self.found_configs = set()
+        self.parsed_clash_configs = [] # هر آیتم شامل {'original_url': ..., 'clash_info': ...} است
 
-        # مقداردهی Client برای User Client
         self.client = Client(
             SESSION_NAME,
             api_id=API_ID,
             api_hash=API_HASH,
-            # bot_token=BOT_TOKEN, # این خط باید حذف یا کامنت شود زیرا ما از User Client استفاده می‌کنیم
             **({"proxy": GLOBAL_PROXY_SETTINGS} if GLOBAL_PROXY_SETTINGS else {})
         )
 
-    # توابع تجزیه کانفیگ‌ها را اینجا نگه می‌داریم زیرا برای تبدیل به فرمت Clash نیاز هستند
     def parse_config(self, config_url):
         """تجزیه و تحلیل کانفیگ برای استخراج اطلاعات اتصال برای Clash"""
         try:
@@ -85,7 +78,7 @@ class V2RayExtractor:
             else:
                 return None
         except Exception as e:
-            # print(f"❌ خطا در تجزیه کانفیگ ({config_url[:50]}...): {str(e)}") # برای کاهش لاگ‌ها
+            # print(f"❌ خطا در تجزیه کانفیگ ({config_url[:50]}...): {str(e)}")
             return None
 
     def parse_vmess(self, vmess_url):
@@ -128,7 +121,6 @@ class V2RayExtractor:
                 }
             return clash_config
         except Exception as e:
-            # print(f"❌ خطا در تجزیه VMess ({vmess_url[:50]}...): {str(e)}")
             return None
 
     def parse_vless(self, vless_url):
@@ -167,7 +159,6 @@ class V2RayExtractor:
                 }
             return clash_config
         except Exception as e:
-            # print(f"❌ خطا در تجزیه VLESS ({vless_url[:50]}...): {str(e)}")
             return None
 
     def parse_trojan(self, trojan_url):
@@ -188,7 +179,6 @@ class V2RayExtractor:
                 'alpn': query.get('alpn', [''])[0].split(',') if query.get('alpn') else None
             }
         except Exception as e:
-            # print(f"❌ خطا در تجزیه Trojan ({trojan_url[:50]}...): {str(e)}")
             return None
 
     def parse_shadowsocks(self, ss_url):
@@ -199,12 +189,15 @@ class V2RayExtractor:
                 if padding:
                     method_password += '=' * (4 - padding)
 
-                method_password = base64.b64decode(method_password).decode('utf-8')
-                method, password = method_password.split(':', 1)
-                host, port = server_info.split(':')
+                decoded_method_password = base64.b64decode(method_password).decode('utf-8')
+                method, password = decoded_method_password.split(':', 1)
+                host_port_fragment = server_info.split('#', 1)
+                host_port = host_port_fragment[0]
+                name = host_port_fragment[1] if len(host_port_fragment) > 1 else f"ss-{str(uuid.uuid4())[:8]}"
+                host, port = host_port.split(':')
 
                 return {
-                    'name': f"ss-{str(uuid.uuid4())[:8]}",
+                    'name': name,
                     'type': 'ss',
                     'server': host,
                     'port': int(port),
@@ -213,7 +206,6 @@ class V2RayExtractor:
                     'udp': True
                 }
         except Exception as e:
-            # print(f"❌ خطا در تجزیه Shadowsocks ({ss_url[:50]}...): {str(e)}")
             return None
 
     def parse_hysteria(self, hysteria_url):
@@ -236,7 +228,6 @@ class V2RayExtractor:
                 'alpn': query.get('alpn', [''])[0].split(',') if query.get('alpn') else None
             }
         except Exception as e:
-            # print(f"❌ خطا در تجزیه Hysteria ({hysteria_url[:50]}...): {str(e)}")
             return None
 
     def parse_tuic(self, tuic_url):
@@ -257,39 +248,39 @@ class V2RayExtractor:
                 'alpn': query.get('alpn', [''])[0].split(',') if query.get('alpn') else None
             }
         except Exception as e:
-            # print(f"❌ خطا در تجزیه TUIC ({tuic_url[:50]}...): {str(e)}")
             return None
 
     async def check_channel(self, channel):
         """بررسی یک کانال تلگرام برای استخراج کانفیگ"""
         try:
             print(f"🔍 در حال بررسی کانال {channel}...")
-            # از get_chat_history برای گرفتن پیام‌ها استفاده می‌کنیم.
-            # چون این یک User Client است، باید به تاریخچه دسترسی داشته باشد.
-            # limit=100 به معنای بررسی 100 پیام آخر است. می‌توانید آن را افزایش دهید.
-            async for message in self.client.get_chat_history(channel, limit=15):
+            async for message in self.client.get_chat_history(channel, limit=100):
                 if not message.text:
                     continue
 
                 for pattern in V2RAY_PATTERNS:
                     matches = pattern.findall(message.text)
-                    for config_url in matches: # نام متغیر به config_url تغییر یافت
+                    for config_url in matches:
                         if config_url not in self.found_configs:
                             self.found_configs.add(config_url)
-                            print(f"✅ کانفیگ جدید یافت شد از {channel}: {config_url[:60]}...")
-                            # بلافاصله پس از یافتن، آن را تجزیه و به لیست Clash اضافه می‌کنیم
+                            # --- پرینت دیباگ: URL خام استخراج شده ---
+                            print(f"DEBUG: URL خام استخراج شده از {channel}: {config_url}")
+                            
                             clash_format = self.parse_config(config_url)
                             if clash_format:
-                                self.parsed_clash_configs.append(clash_format)
+                                self.parsed_clash_configs.append({
+                                    'original_url': config_url, # ذخیره URL خام
+                                    'clash_info': clash_format
+                                })
+                                # --- پرینت دیباگ: اطلاعات بعد از تجزیه ---
+                                print(f"DEBUG: اطلاعات تجزیه شده (نوع): {clash_format.get('type')}, نام: {clash_format.get('name')}")
 
         except FloodWait as e:
             print(f"⏳ نیاز به انتظار {e.value} ثانیه (محدودیت تلگرام) برای کانال {channel}")
             await asyncio.sleep(e.value)
-            await self.check_channel(channel) # دوباره امتحان کن
-        except RPCError as e: # برای خطاهای خاص Pyrogram (مثلاً Peer Flood)
+            await self.check_channel(channel)
+        except RPCError as e:
             print(f"❌ خطای RPC در کانال {channel}: {e.MESSAGE} (کد: {e.CODE})")
-            # اگر این خطا "The method can't be used by bots" باشد، یعنی سشن شما User نیست.
-            # باید مجدداً سشن را به صورت User Client ایجاد و Base64 کنید.
         except Exception as e:
             print(f"❌ خطای عمومی در کانال {channel}: {str(e)}")
 
@@ -308,16 +299,14 @@ class V2RayExtractor:
             print("1. Secret PYROGRAM_SESSION در GitHub Secrets به درستی و کامل Base64 شده است.")
             print(f"2. SESSION_NAME در main.py (فعلاً '{SESSION_NAME}') دقیقاً با نام فایل سشن شما (بدون پسوند) مطابقت دارد.")
             print("3. API_ID و API_HASH در GitHub Secrets صحیح هستند.")
-            # اگر به این بخش رسید، یعنی اتصال به تلگرام ناموفق بوده، پس ادامه کار معنی ندارد
-            self.found_configs.clear() # برای اطمینان از اینکه configs خالی باشند
-            self.parsed_clash_configs.clear() # خالی کردن لیست Clash configs نیز
+            self.found_configs.clear()
+            self.parsed_clash_configs.clear()
 
 
     async def save_configs(self):
         """ذخیره تمام کانفیگ‌های پیدا شده به هر دو فرمت YAML و TXT (بدون تست)"""
         if not self.found_configs:
             print("⚠️ هیچ کانفیگی یافت نشد یا خطا در استخراج کانفیگ‌ها.")
-            # ایجاد فایل‌های خالی برای جلوگیری از خطای "No such file or directory" در Git
             open(OUTPUT_YAML, "w").close()
             open(OUTPUT_TXT, "w").close()
             print(f"فایل‌های خالی {OUTPUT_YAML} و {OUTPUT_TXT} ایجاد شدند.")
@@ -325,14 +314,17 @@ class V2RayExtractor:
 
         print(f"\n💾 شروع ذخیره {len(self.found_configs)} کانفیگ پیدا شده...")
 
-        # ذخیره به فرمت YAML برای Clash
+        # --- ذخیره به فرمت YAML برای Clash ---
+        clash_proxies_list = [item['clash_info'] for item in self.parsed_clash_configs]
+        clash_proxy_names = [item['clash_info']['name'] for item in self.parsed_clash_configs if 'name' in item['clash_info']]
+
         clash_config_output = {
-            'proxies': self.parsed_clash_configs, # استفاده مستقیم از لیست تجزیه شده
+            'proxies': clash_proxies_list,
             'proxy-groups': [
                 {
                     'name': '🚀 Auto Select',
                     'type': 'url-test',
-                    'proxies': [cfg['name'] for cfg in self.parsed_clash_configs if 'name' in cfg], # استفاده از نام‌های کانفیگ‌ها
+                    'proxies': clash_proxy_names,
                     'url': 'http://www.gstatic.com/generate_204',
                     'interval': 300
                 },
@@ -354,30 +346,35 @@ class V2RayExtractor:
             ]
         }
 
-        # ذخیره فایل YAML
         try:
             with open(OUTPUT_YAML, "w", encoding="utf-8") as f:
                 yaml.dump(clash_config_output, f, allow_unicode=True, sort_keys=False)
-            print(f"🎉 {len(self.parsed_clash_configs)} کانفیگ در {OUTPUT_YAML} ذخیره شد.")
+            print(f"🎉 {len(clash_proxies_list)} کانفیگ در {OUTPUT_YAML} ذخیره شد.")
         except Exception as e:
             print(f"❌ خطا در ذخیره فایل YAML: {str(e)}")
 
-        # ذخیره به فرمت متنی ساده
-        raw_configs_output = list(self.found_configs) # همه کانفیگ‌های پیدا شده (URLs)
+        # --- ذخیره به فرمت متنی ساده (حذف منطق اصلاح پیشوند) ---
+        raw_configs_output_final = []
+        for item in self.parsed_clash_configs:
+            original_url = item['original_url']
+            # اگر مطمئن هستیم که original_url همیشه از کانال درست است،
+            # نیازی به هیچ اصلاحی نیست و آن را همانطور که هست اضافه می‌کنیم.
+            raw_configs_output_final.append(original_url)
+
         try:
             with open(OUTPUT_TXT, "w", encoding="utf-8") as f:
-                f.write("\n".join(raw_configs_output))
-            print(f"🎉 {len(self.found_configs)} کانفیگ در {OUTPUT_TXT} ذخیره شد.")
+                f.write("\n".join(raw_configs_output_final))
+            print(f"🎉 {len(raw_configs_output_final)} کانفیگ در {OUTPUT_TXT} ذخیره شد.")
         except Exception as e:
             print(f"❌ خطا در ذخیره فایل TXT: {str(e)}")
 
-        # نمایش جزئیات کانفیگ‌های پیدا شده
+        # --- نمایش جزئیات کانفیگ‌های پیدا شده ---
         print(f"\n📋 لیستی از کانفیگ‌های پیدا شده (10 مورد اول):")
-        for i, config_info in enumerate(self.parsed_clash_configs[:10], 1): # نمایش 10 مورد اول از Clash Format
+        for i, item in enumerate(self.parsed_clash_configs[:10], 1):
+            config_info = item['clash_info']
             if config_info:
                 print(f"{i}. {config_info.get('name', 'N/A')} ({config_info.get('type', 'N/A')}) - {config_info.get('server', 'N/A')}:{config_info.get('port', 'N/A')}")
             else:
-                # این حالت نباید رخ دهد اگر parse_config به درستی کار کند
                 print(f"{i}. (کانفیگ نامعتبر)")
 
 
@@ -387,9 +384,8 @@ async def main():
 
     extractor = V2RayExtractor()
 
-    await extractor.extract_configs() # استخراج کانفیگ‌ها
+    await extractor.extract_configs()
 
-    # حالا بدون تست، مستقیماً به مرحله ذخیره‌سازی می‌رویم
     await extractor.save_configs()
 
     print("=" * 60)
