@@ -495,14 +495,30 @@ class V2RayExtractor:
                                 
                                 parsed_config = None
                                 try:
-                                    parsed_config = self.parse_config(config_url)
+                                    # --- تغییر جدید: اصلاح پیشوند ss:// برای VMess های اشتباهی ---
+                                    # اگر با ss:// شروع شده و به نظر یک JSON Base64 شده میاد
+                                    if config_url.startswith('ss://') and len(config_url) > 10: # طول کافی برای Base64
+                                        possible_b64 = config_url[5:].split('#', 1)[0] # بعد از ss:// و قبل از fragment
+                                        if len(possible_b64) % 4 != 0: # اگر padding مشکل داشت
+                                            possible_b64 += '=' * (4 - (len(possible_b64) % 4))
+                                        try:
+                                            decoded_check = base64.b64decode(possible_b64).decode('utf-8', errors='ignore')
+                                            if decoded_check.strip().startswith('{') and 'add' in decoded_check and 'id' in decoded_check:
+                                                # اگر شبیه JSON برای VMess بود، پیشوند را به vmess:// تغییر بده
+                                                config_url = 'vmess://' + possible_b64 + (('#' + config_url.split('#', 1)[1]) if '#' in config_url else '')
+                                                print(f"DEBUG: Corrected ss:// to vmess:// for: {config_url[:60]}...")
+                                        except:
+                                            pass # اگر decode نشد یا JSON نبود، اشکالی نداره، به عنوان ss:// معمولی ادامه میده
+                                    # --- پایان تغییر جدید ---
+
+                                    parsed_config = self.parse_config(config_url) # حالا این parse_config را با URL اصلاح شده صدا بزن
                                     
                                     if parsed_config:
                                         self.parsed_clash_configs.append({
                                             'original_url': config_url,
                                             'clash_info': parsed_config
                                         })
-                                        # print(f"✅ Parsed config: {parsed_config['name']} ({parsed_config['type']})")
+                                        print(f"✅ Parsed config: {parsed_config['name']} ({parsed_config['type']})")
                                     else:
                                         print(f"❌ Failed to parse config or invalid structure: {config_url[:50]}...")
                                         
