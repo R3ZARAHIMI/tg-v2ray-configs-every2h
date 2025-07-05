@@ -85,6 +85,23 @@ class V2RayExtractor:
             # print(f"❌ خطا در تجزیه کانفیگ ({config_url[:50]}...): {str(e)}") # برای کاهش لاگ‌ها
             return None
 
+    # تابع کمکی برای تولید نام منحصر به فرد
+    def _generate_unique_name(self, original_name, prefix="config"):
+        # حذف کاراکترهای خاصی که Clash ممکن است با آنها مشکل داشته باشد
+        cleaned_name = re.sub(r'[^\w\s\-\_]', '', original_name)
+        # جایگزینی فضا با آندرلاین
+        cleaned_name = cleaned_name.replace(' ', '_')
+        # حذف خط تیره یا آندرلاین اضافی از ابتدا/انتها
+        cleaned_name = cleaned_name.strip('_-')
+        
+        # اضافه کردن یک UUID کوتاه برای تضمین منحصر به فرد بودن
+        # اگر نام اصلی خالی بود، از پیشوند + UUID استفاده کن
+        final_name = f"{cleaned_name}-{str(uuid.uuid4())[:8]}" if cleaned_name else f"{prefix}-{str(uuid.uuid4())[:8]}"
+        
+        # محدود کردن طول نام نهایی
+        return final_name[:50]
+
+
     def parse_vmess(self, vmess_url):
         try:
             encoded_data = vmess_url.replace('vmess://', '')
@@ -95,31 +112,28 @@ class V2RayExtractor:
             decoded_data = base64.b64decode(encoded_data).decode('utf-8')
             config = json.loads(decoded_data)
 
-            # --- تغییر برای رفع 'vmess unsupported secu' ---
-            vmess_cipher = config.get('scy', 'auto') # scy = security
-            clash_cipher = vmess_cipher
+            # --- اصلاح برای نام منحصر به فرد ---
+            original_name = config.get('ps', '')
+            unique_name = self._generate_unique_name(original_name, "vmess")
 
-            # لیست cipher های رایج و پشتیبانی شده توسط Clash
-            # 'auto' در برخی موارد توسط Clash پشتیبانی می‌شود، اما گاهی باعث مشکل می‌شود.
-            # 'none' قطعاً پشتیبانی نمی‌شود.
+            # --- اصلاح برای رفع 'vmess unsupported secu' ---
+            vmess_cipher = config.get('scy', 'auto')
+            clash_cipher = vmess_cipher
             supported_clash_ciphers = ['aes-128-gcm', 'chacha20-poly1305', 'aes-256-gcm']
 
             if vmess_cipher.lower() == 'none' or vmess_cipher.lower() == 'auto':
-                # اگر 'none' بود یا 'auto' (که برای Clash ممکن است مشکل ساز باشد)، به پیش‌فرض تغییرش بده
-                clash_cipher = 'aes-128-gcm' # می‌توانید به 'chacha20-poly1305' هم تغییر دهید
-            elif vmess_cipher not in supported_clash_ciphers:
-                # اگر cipher ناشناخته یا غیرمعمول بود، به پیش‌فرض تغییرش بده
                 clash_cipher = 'aes-128-gcm'
-            # --- پایان تغییر ---
+            elif vmess_cipher not in supported_clash_ciphers:
+                clash_cipher = 'aes-128-gcm'
 
             clash_config = {
-                'name': config.get('ps', f"vmess-{str(uuid.uuid4())[:8]}"),
+                'name': unique_name,
                 'type': 'vmess',
                 'server': config.get('add'),
                 'port': int(config.get('port', 443)),
                 'uuid': config.get('id'),
                 'alterId': int(config.get('aid', 0)),
-                'cipher': clash_cipher, # استفاده از cipher اصلاح شده
+                'cipher': clash_cipher,
                 'tls': config.get('tls') == 'tls',
                 'skip-cert-verify': False,
                 'network': config.get('net', 'tcp'),
@@ -148,9 +162,16 @@ class V2RayExtractor:
         try:
             parsed = urlparse(vless_url)
             query = parse_qs(parsed.query)
+            
+            # --- اصلاح برای نام منحصر به فرد ---
+            original_name = parse_qs(parsed.fragment).get('', [''])[0]
+            if not original_name:
+                 original_name = query.get('ps', [''])[0] # گاهی اوقات نام در query param 'ps' هست
+            unique_name = self._generate_unique_name(original_name, "vless")
+            # --- پایان اصلاح ---
 
             clash_config = {
-                'name': parse_qs(parsed.fragment).get('', [f"vless-{str(uuid.uuid4())[:8]}"])[0],
+                'name': unique_name,
                 'type': 'vless',
                 'server': parsed.hostname,
                 'port': parsed.port or 443,
@@ -186,9 +207,16 @@ class V2RayExtractor:
         try:
             parsed = urlparse(trojan_url)
             query = parse_qs(parsed.query)
+            
+            # --- اصلاح برای نام منحصر به فرد ---
+            original_name = parsed.fragment or ''
+            if not original_name:
+                 original_name = query.get('ps', [''])[0]
+            unique_name = self._generate_unique_name(original_name, "trojan")
+            # --- پایان اصلاح ---
 
             return {
-                'name': parsed.fragment or f"trojan-{str(uuid.uuid4())[:8]}",
+                'name': unique_name,
                 'type': 'trojan',
                 'server': parsed.hostname,
                 'port': parsed.port or 443,
@@ -212,13 +240,21 @@ class V2RayExtractor:
 
                 decoded_method_password = base64.b64decode(method_password).decode('utf-8')
                 method, password = decoded_method_password.split(':', 1)
+                
                 host_port_fragment = server_info.split('#', 1)
                 host_port = host_port_fragment[0]
-                name = host_port_fragment[1] if len(host_port_fragment) > 1 else f"ss-{str(uuid.uuid4())[:8]}"
+                
+                # --- اصلاح برای نام منحصر به فرد ---
+                original_name = host_port_fragment[1] if len(host_port_fragment) > 1 else ''
+                if not original_name:
+                    original_name = host_port # Fallback to server:port if no name/fragment
+                unique_name = self._generate_unique_name(original_name, "ss")
+                # --- پایان اصلاح ---
+
                 host, port = host_port.split(':')
 
                 return {
-                    'name': name,
+                    'name': unique_name,
                     'type': 'ss',
                     'server': host,
                     'port': int(port),
@@ -233,9 +269,16 @@ class V2RayExtractor:
         try:
             parsed = urlparse(hysteria_url)
             query = parse_qs(parsed.query)
+            
+            # --- اصلاح برای نام منحصر به فرد ---
+            original_name = parsed.fragment or ''
+            if not original_name:
+                 original_name = query.get('ps', [''])[0]
+            unique_name = self._generate_unique_name(original_name, "hysteria")
+            # --- پایان اصلاح ---
 
             return {
-                'name': parsed.fragment or f"hysteria-{str(uuid.uuid4())[:8]}",
+                'name': unique_name,
                 'type': 'hysteria',
                 'server': parsed.hostname,
                 'port': parsed.port or 443,
@@ -255,9 +298,16 @@ class V2RayExtractor:
         try:
             parsed = urlparse(tuic_url)
             query = parse_qs(parsed.query)
+            
+            # --- اصلاح برای نام منحصر به فرد ---
+            original_name = parsed.fragment or ''
+            if not original_name:
+                 original_name = query.get('ps', [''])[0]
+            unique_name = self._generate_unique_name(original_name, "tuic")
+            # --- پایان اصلاح ---
 
             return {
-                'name': parsed.fragment or f"tuic-{str(uuid.uuid4())[:8]}",
+                'name': unique_name,
                 'type': 'tuic',
                 'server': parsed.hostname,
                 'port': parsed.port or 443,
@@ -379,9 +429,7 @@ class V2RayExtractor:
         raw_configs_output_final = []
         for item in self.parsed_clash_configs:
             original_url = item['original_url']
-            # اینجا فقط original_url رو که از کانال اومده اضافه می‌کنیم.
-            # اگر کانال اون رو درست فرستاده باشه، فایل متنی هم درست خواهد بود.
-            raw_configs_output_final.append(original_url)
+            raw_configs_output_final.append(original_url) # اضافه کردن URL اصلی و خام پیدا شده از تلگرام
 
         try:
             with open(OUTPUT_TXT, "w", encoding="utf-8") as f:
@@ -395,7 +443,7 @@ class V2RayExtractor:
         for i, item in enumerate(self.parsed_clash_configs[:10], 1):
             config_info = item['clash_info']
             if config_info:
-                print(f"{i}. {config_info.get('name', 'N/A')} ({config_info.get('type', 'N/A')}) - {config_info.get('server', 'N/A')}:{config_info.get('port', 'N/A')}")
+                print(f"{i}. نام: {config_info.get('name', 'N/A')}, نوع: ({config_info.get('type', 'N/A')}), سرور: {config_info.get('server', 'N/A')}:{config_info.get('port', 'N/A')}")
             else:
                 print(f"{i}. (کانفیگ نامعتبر)")
 
