@@ -1,48 +1,56 @@
-name: Extract and Test VPN Configs (User Client)
+name: Extract VPN Configs (User Client) # نام Workflow
 
 on:
   schedule:
+    # زمان‌بندی اجرا در ساعت‌های 06:00، 14:00، 22:00 UTC هر روز
+    # برای مثال: 06:00 UTC = 09:30 IRT
+    # 14:00 UTC = 17:30 IRT
+    # 22:00 UTC = 01:30 IRT (روز بعد)
     - cron: '0 6,14,22 * * *'
-  workflow_dispatch:
+  workflow_dispatch: # اجازه اجرای دستی از رابط کاربری گیت‌هاب
 
 jobs:
   run-script:
-    runs-on: ubuntu-latest
-    permissions: # این بلاک را اضافه کنید
-      contents: write # این مجوز را اضافه کنید
-      # issues: write # اگر می‌خواهید Issues را هم مدیریت کنید (اختیاری)
-      # pull-requests: write # اگر می‌خواهید Pull Requests را هم مدیریت کنید (اختیاری)
+    runs-on: ubuntu-latest # سیستم عامل Runner
+    permissions:
+      contents: write # این مجوز برای push کردن تغییرات به مخزن ضروری است
 
     steps:
-      - name: Checkout repository
+      - name: Checkout repository # دانلود کد مخزن
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Set up Python # نصب پایتون
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: '3.10' # نسخه پایتون
 
-      - name: Install Python dependencies
+      - name: Install Python dependencies # نصب کتابخانه‌های پایتون از requirements.txt
+        run: pip install -r requirements.txt
+
+      - name: Set up Telegram API credentials and Session # تنظیم اطلاعات API تلگرام و ایجاد فایل سشن
         run: |
-          pip install -r requirements.txt
-          pip install tgcrypto
+          echo "API_ID=${{ secrets.API_ID }}" >> $GITHUB_ENV # تنظیم API_ID به عنوان متغیر محیطی
+          echo "API_HASH=${{ secrets.API_HASH }}" >> $GITHUB_ENV # تنظیم API_HASH به عنوان متغیر محیطی
+          # BOT_TOKEN را از اینجا حذف یا کامنت کنید، زیرا ما از User Client استفاده می‌کنیم.
+          # echo "BOT_TOKEN=${{ secrets.BOT_TOKEN }}" >> $GITHUB_ENV # این خط باید حذف یا کامنت شود
 
-      - name: Set up Telegram API credentials and Session
-        run: |
-          echo "API_ID=${{ secrets.API_ID }}" >> $GITHUB_ENV
-          echo "API_HASH=${{ secrets.API_HASH }}" >> $GITHUB_ENV
+          # Decode the Base64 session string and write to file
+          # رشته Base64 سشن رو decode کرده و در فایل v2rayTrack.session می‌نویسه
+          echo "${{ secrets.PYROGRAM_SESSION }}" | base64 --decode > v2rayTrack.session
+        env:
+          API_ID: ${{ secrets.API_ID }}
+          API_HASH: ${{ secrets.API_HASH }}
+          # BOT_TOKEN: ${{ secrets.BOT_TOKEN }} # این خط هم باید حذف یا کامنت شود
 
-          echo "${{ secrets.PYROGRAM_SESSION }}" | base64 --decode > v2rayTrack.session # نام فایل رو اینجا هم چک کنید
-
-      - name: Run main.py
+      - name: Run main.py # اجرای اسکریپت اصلی پایتون
         run: python main.py
 
-      - name: Commit and Push new configs
+      - name: Commit and Push new configs # کامیت و پوش کردن کانفیگ‌های جدید
         run: |
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
-          git add Config-jo.yaml Config_jo.txt
-          git diff --staged --quiet || git commit -m "Update VPN configs (GitHub Actions)"
-          git push
+          git config user.name "GitHub Actions" # تنظیم نام کاربری گیت
+          git config user.email "actions@github.com" # تنظیم ایمیل گیت
+          git add Config-jo.yaml Config_jo.txt # اضافه کردن فایل‌های خروجی برای کامیت
+          git diff --staged --quiet || git commit -m "Update VPN configs (GitHub Actions)" # فقط در صورت وجود تغییرات، کامیت کن
+          git push # پوش کردن تغییرات به مخزن گیت‌هاب
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # توکن برای اجازه پوش کردن
