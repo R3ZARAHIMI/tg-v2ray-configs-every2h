@@ -267,7 +267,7 @@ class V2RayExtractor:
             # از get_chat_history برای گرفتن پیام‌ها استفاده می‌کنیم.
             # چون این یک User Client است، باید به تاریخچه دسترسی داشته باشد.
             # limit=100 به معنای بررسی 100 پیام آخر است. می‌توانید آن را افزایش دهید.
-            async for message in self.client.get_chat_history(channel, limit=100):
+            async for message in self.client.get_chat_history(channel, limit=15):
                 if not message.text:
                     continue
 
