@@ -19,7 +19,7 @@ API_HASH = os.environ.get("API_HASH")
 
 # نام فایل سشن برای Pyrogram (باید با نامی که در GitHub Secret ذخیره کرده‌اید مطابقت داشته باشد)
 # این نام باید دقیقاً با نام فایل سشن محلی شما (مثلاً v2rayTrack.session) مطابقت داشته باشد، اما بدون پسوند .session
-SESSION_NAME = "v2rayTrack"
+SESSION_NAME = "my_account"
 
 # کانال‌هایی که باید اسکن شوند
 CHANNELS = [
