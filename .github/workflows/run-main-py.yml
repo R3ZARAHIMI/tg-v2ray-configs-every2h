@@ -2,48 +2,47 @@ name: Extract and Test VPN Configs (User Client)
 
 on:
   schedule:
-    - cron: '0 6,14,22 * * *' # زمان‌بندی اجرا در ساعت‌های 06:00، 14:00، 22:00 UTC
-  workflow_dispatch: # اجازه اجرای دستی از رابط کاربری گیت‌هاب
+    - cron: '0 6,14,22 * * *'
+  workflow_dispatch:
 
 jobs:
   run-script:
-    runs-on: ubuntu-latest # سیستم عامل Runner
+    runs-on: ubuntu-latest
+    permissions: # این بلاک را اضافه کنید
+      contents: write # این مجوز را اضافه کنید
+      # issues: write # اگر می‌خواهید Issues را هم مدیریت کنید (اختیاری)
+      # pull-requests: write # اگر می‌خواهید Pull Requests را هم مدیریت کنید (اختیاری)
 
     steps:
-      - name: Checkout repository # دانلود کد مخزن
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Python # نصب پایتون
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10' # نسخه پایتون
+          python-version: '3.10'
 
-      - name: Install Python dependencies # نصب کتابخانه‌های پایتون
+      - name: Install Python dependencies
         run: |
           pip install -r requirements.txt
-          pip install tgcrypto # برای بهبود سرعت، اختیاری اما توصیه می‌شود
+          pip install tgcrypto
 
-      - name: Set up Telegram API credentials and Session # تنظیم اطلاعات API تلگرام و سشن
+      - name: Set up Telegram API credentials and Session
         run: |
-          echo "API_ID=${{ secrets.API_ID }}" >> $GITHUB_ENV # تنظیم API_ID به عنوان متغیر محیطی
-          echo "API_HASH=${{ secrets.API_HASH }}" >> $GITHUB_ENV # تنظیم API_HASH به عنوان متغیر محیطی
+          echo "API_ID=${{ secrets.API_ID }}" >> $GITHUB_ENV
+          echo "API_HASH=${{ secrets.API_HASH }}" >> $GITHUB_ENV
 
-          # Decode the Base64 session string and write to file
-          # رشته Base64 سشن رو decode کرده و در فایل می‌نویسه
-          echo "${{ secrets.PYROGRAM_SESSION }}" | base64 --decode > my_account.session
-        env:
-          API_ID: ${{ secrets.API_ID }}
-          API_HASH: ${{ secrets.API_HASH }}
+          echo "${{ secrets.PYROGRAM_SESSION }}" | base64 --decode > v2rayTrack.session # نام فایل رو اینجا هم چک کنید
 
-      - name: Run main.py # اجرای اسکریپت اصلی پایتون
+      - name: Run main.py
         run: python main.py
 
-      - name: Commit and Push new configs # کامیت و پوش کردن کانفیگ‌های جدید
+      - name: Commit and Push new configs
         run: |
-          git config user.name "GitHub Actions" # تنظیم نام کاربری گیت
-          git config user.email "actions@github.com" # تنظیم ایمیل گیت
-          git add Config-jo.yaml Config_jo.txt # اضافه کردن فایل‌های خروجی برای کامیت
-          git diff --staged --quiet || git commit -m "Update VPN configs (GitHub Actions)" # فقط در صورت وجود تغییرات، کامیت کن
-          git push # پوش کردن تغییرات به مخزن گیت‌هاب
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add Config-jo.yaml Config_jo.txt
+          git diff --staged --quiet || git commit -m "Update VPN configs (GitHub Actions)"
+          git push
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # توکن برای اجازه پوش کردن
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
