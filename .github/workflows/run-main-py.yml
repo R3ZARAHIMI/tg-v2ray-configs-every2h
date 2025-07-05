@@ -1,13 +1,17 @@
-name: Extract and Test VPN Configs (User Client) # نام را تغییر دهید
+name: Extract and Test VPN Configs (User Client)
 
 on:
   schedule:
-    - cron: '0 6,14,22 * * *' # Run at 06:00, 14:00, 22:00 UTC
+    - cron: '0 6,14,22 * * *'
   workflow_dispatch:
 
 jobs:
   run-script:
     runs-on: ubuntu-latest
+    permissions: # این بلاک را اضافه کنید
+      contents: write # این مجوز را اضافه کنید
+      # issues: write # اگر می‌خواهید Issues را هم مدیریت کنید (اختیاری)
+      # pull-requests: write # اگر می‌خواهید Pull Requests را هم مدیریت کنید (اختیاری)
 
     steps:
       - name: Checkout repository
@@ -21,20 +25,14 @@ jobs:
       - name: Install Python dependencies
         run: |
           pip install -r requirements.txt
-          pip install tgcrypto # اضافه کردن این خط برای جلوگیری از هشدار سرعت
+          pip install tgcrypto
 
       - name: Set up Telegram API credentials and Session
         run: |
           echo "API_ID=${{ secrets.API_ID }}" >> $GITHUB_ENV
           echo "API_HASH=${{ secrets.API_HASH }}" >> $GITHUB_ENV
-          # Make sure BOT_TOKEN is NOT set if you are using User Client
 
-          # Create the session file from secret
-          echo "${{ secrets.PYROGRAM_SESSION }}" > my_account.session # ایجاد فایل سشن
-        env:
-          API_ID: ${{ secrets.API_ID }}
-          API_HASH: ${{ secrets.API_HASH }}
-          # BOT_TOKEN: ${{ secrets.BOT_TOKEN }} # این خط را حذف کنید اگر Client شما فقط User باشد
+          echo "${{ secrets.PYROGRAM_SESSION }}" | base64 --decode > v2rayTrack.session # نام فایل رو اینجا هم چک کنید
 
       - name: Run main.py
         run: python main.py
