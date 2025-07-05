@@ -5,21 +5,46 @@ import json
 import yaml
 import os
 import uuid
-from urllib.parse import urlparse, parse_qs, unquote # unquote قبلاً اضافه شده بود، خوبه
+from urllib.parse import urlparse, parse_qs, unquote
 
 # Pyrogram imports
 from pyrogram import Client
 from pyrogram.errors import FloodWait, RPCError
 
-# --- تنظیمات عمومی (همانند قبل) ---
-API_ID = int(os.environ.get("API_ID")) # فرض می‌کنیم مقادیر پیش‌فرض در GitHub Actions ست می‌شوند
-API_HASH = os.environ.get("API_HASH")
-SESSION_NAME = "my_account"
-CHANNELS = ["@SRCVPN", "@net0n3", "@Anty_Filter","@vpns","@mrsoulh","@Capoit","@v2ra_config"]
-OUTPUT_YAML = "Config-jo.yaml"
-OUTPUT_TXT = "Config_jo.txt"
+# --- تنظیمات عمومی ---
 
-# الگوهای شناسایی کانفیگ‌ها (همانند قبل)
+# اطلاعات API تلگرام (از GitHub Secrets خوانده می‌شود)
+API_ID = int(os.environ.get("API_ID"))
+API_HASH = os.environ.get("API_HASH")
+
+# نام فایل سشن برای Pyrogram
+SESSION_NAME = "my_account"
+
+# --- لیست کانال‌ها ---
+# کانال‌هایی که به صورت مستقیم (غیر Base64) کانفیگ ارسال می‌کنند
+NORMAL_CHANNELS = [
+    "@SRCVPN",
+    "@net0n3",
+    "@Anty_Filter",
+    "@vpns",
+    "@Capoit",
+    "@mrsoulh"
+]
+
+# کانال‌هایی که کانفیگ‌ها را به صورت Base64 شده ارسال می‌کنند
+BASE64_ENCODED_CHANNELS = [
+     # کانالی که مثالش را دادید
+    "@v2ra_config" # کانالی که کاربر مشخص کرد Base64 هست
+]
+
+# لیست کلی کانال‌ها که در حلقه استفاده می‌شود
+ALL_CHANNELS = NORMAL_CHANNELS + BASE64_ENCODED_CHANNELS
+
+# خروجی‌ها
+OUTPUT_YAML = "Config-jo.yaml"  # خروجی به فرمت YAML برای Clash
+OUTPUT_TXT = "Config_jo.txt"    # خروجی به فرمت متنی ساده
+
+# الگوهای شناسایی کانفیگ‌های مستقیم (URLها)
 V2RAY_PATTERNS = [
     re.compile(r"(vless://[^\s]+)"),
     re.compile(r"(vmess://[^\s]+)"),
@@ -30,48 +55,48 @@ V2RAY_PATTERNS = [
     re.compile(r"(tuic://[^\s]+)")
 ]
 
-# --- الگوی جدید برای رشته‌های Base64 شده ---
-# این الگو به دنبال رشته‌هایی می‌گردد که ممکن است Base64 باشند و حاوی URLهای کانفیگ باشند.
-# این الگو فرض می‌کند که رشته Base64 شده بدون هیچ پیشوند خاصی در متن وجود دارد.
-# ^[A-Za-z0-9+/=]{50,}(?:[=\n]|$) : به دنبال رشته‌های حداقل 50 کاراکتری Base64 می‌گردد.
-# (?:[=\n]|$) : مطمئن می‌شود که با = یا خط جدید یا انتهای خط تمام شود
-BASE64_PATTERN = re.compile(r"^[A-Za-z0-9+/=]{50,}(?:[=\n]|$)", re.MULTILINE)
+# الگوی جدید و اصلاح شده برای رشته‌های Base64 شده (پیدا کردن هر رشته طولانی Base64)
+BASE64_PATTERN = re.compile(r"([A-Za-z0-9+/=]{50,})", re.MULTILINE)
+# این الگو به دنبال هر رشته Base64 با حداقل 50 کاراکتر می‌گردد.
 
-
+# --- کلاس V2RayExtractor برای تعامل با تلگرام و ذخیره‌سازی ---
 class V2RayExtractor:
-    # --- بقیه کد همانند قبل ---
     def __init__(self):
         self.found_configs = set()
-        self.parsed_clash_configs = []
+        self.parsed_clash_configs = [] # هر آیتم شامل {'original_url': ..., 'clash_info': ...} است
+
         self.client = Client(
             SESSION_NAME,
             api_id=API_ID,
             api_hash=API_HASH
+            # GLOBAL_PROXY_SETTINGS را به صورت پیش‌فرض None قرار دادیم و نیازی به پاس دادن آن نیست.
         )
 
+    # تابع کمکی برای تولید نام منحصر به فرد
     def _generate_unique_name(self, original_name, prefix="config"):
         if not original_name:
             return f"{prefix}-{str(uuid.uuid4())[:8]}"
         
-        # پاک کردن کاراکترهای غیرمجاز (کاراکترهای فارسی و اموجی هم شامل می شود)
-        cleaned_name = re.sub(r'[^\w\s\-\_]', '', original_name)
+        # پاک کردن کاراکترهای غیرمجاز (شامل کاراکترهای فارسی و اموجی)
+        # \u0600-\u06FF برای تطابق با کاراکترهای فارسی است.
+        cleaned_name = re.sub(r'[^\w\s\-\_\u0600-\u06FF]', '', original_name)
         cleaned_name = cleaned_name.replace(' ', '_').strip('_-')
         
-        if not cleaned_name:
+        if not cleaned_name: # اگر بعد از تمیزکاری، نام خالی شد
             return f"{prefix}-{str(uuid.uuid4())[:8]}"
             
         return f"{cleaned_name}-{str(uuid.uuid4())[:8]}"
         
-
     def is_valid_config(self, config):
-        """بررسی معتبر بودن کانفیگ"""
+        """بررسی معتبر بودن ساختار اولیه کانفیگ برای Clash"""
         if not config or not isinstance(config, dict):
             return False
             
         required_fields = ['name', 'type', 'server', 'port']
-        if not all(field in config for field in required_fields):
+        if not all(field in config and config[field] is not None for field in required_fields):
             return False
             
+        # بررسی فیلدهای ضروری خاص هر نوع پروکسی
         proxy_type = config.get('type')
         if proxy_type == 'vmess':
             return 'uuid' in config and config.get('uuid')
@@ -81,10 +106,12 @@ class V2RayExtractor:
             return 'password' in config and config.get('password')
         elif proxy_type == 'ss':
             return 'password' in config and 'cipher' in config and config.get('password') and config.get('cipher')
-            
-        return True # برای سایر انواع (hysteria, tuic) فقط فیلدهای اصلی را بررسی می‌کنیم
+        elif proxy_type in ['hysteria', 'tuic']: # برای اینها، فیلدهای اصلی که چک شد کافی است
+            return True
+        return False # برای انواع ناشناخته
 
 
+    # توابع parse برای هر نوع کانفیگ (شامل اصلاح نام و cipher)
     def parse_vmess(self, vmess_url):
         try:
             encoded_data = vmess_url.replace('vmess://', '')
@@ -138,7 +165,7 @@ class V2RayExtractor:
             return clash_config if self.is_valid_config(clash_config) else None
             
         except Exception as e:
-            # print(f"❌ Error parsing VMess: {str(e)}") # برای کاهش لاگ‌ها
+            # print(f"❌ Error parsing VMess: {str(e)}")
             return None
 
     def parse_vless(self, vless_url):
@@ -209,7 +236,6 @@ class V2RayExtractor:
             return clash_config if self.is_valid_config(clash_config) else None
             
         except Exception as e:
-            # print(f"❌ Error parsing VLESS: {str(e)}") # برای کاهش لاگ‌ها
             return None
 
     def parse_trojan(self, trojan_url):
@@ -242,18 +268,16 @@ class V2RayExtractor:
             return clash_config if self.is_valid_config(clash_config) else None
             
         except Exception as e:
-            # print(f"❌ Error parsing Trojan: {str(e)}") # برای کاهش لاگ‌ها
             return None
 
     def parse_shadowsocks(self, ss_url):
-        """پارس کردن Shadowsocks URL - اصلاح شده"""
+        """پارس کردن Shadowsocks URL"""
         try:
             if '://' not in ss_url:
                 return None
                 
             parsed = urlparse(ss_url)
             
-            # روش اول: فرمت ss://method:password@server:port (Base64 نشده)
             if '@' in parsed.netloc and ':' in parsed.netloc:
                 if parsed.username and parsed.password:
                     cipher = parsed.username
@@ -261,7 +285,6 @@ class V2RayExtractor:
                     server = parsed.hostname
                     port = parsed.port or 443
                 elif parsed.username and not parsed.password:
-                    # احتمالاً base64 encoded است (ss://base64_auth@server:port)
                     try:
                         auth_part = parsed.username
                         padding = len(auth_part) % 4
@@ -273,13 +296,12 @@ class V2RayExtractor:
                             server = parsed.hostname
                             port = parsed.port or 443
                         else:
-                            return None # فرمت نامعتبر
+                            return None
                     except:
-                        return None # خطای decode
+                        return None
                 else:
-                    return None # فرمت نامعتبر
+                    return None
             else:
-                # روش دوم: فرمت ss://base64encoded#fragment (کل بخش بعد از ss:// Base64 شده)
                 try:
                     encoded_part = parsed.netloc
                     padding = len(encoded_part) % 4
@@ -295,17 +317,17 @@ class V2RayExtractor:
                         if ':' in method_pass:
                             cipher, password = method_pass.split(':', 1)
                         else:
-                            return None # فرمت نامعتبر
+                            return None
 
                         if ':' in server_port:
                             server, port = server_port.rsplit(':', 1)
                             port = int(port)
                         else:
-                            return None # فرمت نامعتبر
+                            return None
                     else:
-                        return None # فرمت نامعتبر
+                        return None
                 except:
-                    return None # خطای decode
+                    return None
 
             if not cipher or not password or not server:
                 return None
@@ -323,7 +345,6 @@ class V2RayExtractor:
             return clash_config if self.is_valid_config(clash_config) else None
             
         except Exception as e:
-            # print(f"❌ Error parsing Shadowsocks: {str(e)}") # برای کاهش لاگ‌ها
             return None
 
     def parse_hysteria(self, hysteria_url):
@@ -331,7 +352,7 @@ class V2RayExtractor:
             parsed = urlparse(hysteria_url)
             query = parse_qs(parsed.query)
             
-            if not parsed.hostname or not parsed.username: # hysteria auth_str is username
+            if not parsed.hostname or not parsed.username:
                 return None
 
             original_name = unquote(parsed.fragment) if parsed.fragment else ''
@@ -344,28 +365,24 @@ class V2RayExtractor:
                 'type': 'hysteria',
                 'server': parsed.hostname,
                 'port': parsed.port or 443,
-                'auth_str': parsed.username, # password in clash
+                'auth_str': parsed.username,
                 'udp': True,
-                'skip-cert-verify': True # default to true for convenience
+                'skip-cert-verify': True
             }
             
-            # SNI and ALPN
             if query.get('peer'):
                 clash_config['sni'] = query.get('peer')[0]
             if query.get('alpn'):
                 clash_config['alpn'] = query.get('alpn')[0].split(',')
 
-            # Obfuscation
-            if query.get('obfs'): # old hysteria
+            if query.get('obfs'):
                 clash_config['obfs'] = query.get('obfs')[0]
-            elif query.get('obfsParam'): # hysteria 2
-                clash_config['obfs'] = query.get('obfsParam')[0] # Assuming obfsParam maps to obfs
+            elif query.get('obfsParam'):
+                clash_config['obfs'] = query.get('obfsParam')[0]
             
-            # protocol
             if query.get('protocol'):
-                clash_config['protocol'] = query.get('protocol')[0] # 'udp' or 'webrtc'
+                clash_config['protocol'] = query.get('protocol')[0]
 
-            # bandwidth
             if query.get('upmbps'):
                 clash_config['up_mbps'] = int(query.get('upmbps')[0])
             if query.get('downmbps'):
@@ -374,7 +391,6 @@ class V2RayExtractor:
             return clash_config if self.is_valid_config(clash_config) else None
             
         except Exception as e:
-            # print(f"❌ Error parsing Hysteria: {str(e)}") # برای کاهش لاگ‌ها
             return None
 
     def parse_tuic(self, tuic_url):
@@ -382,7 +398,7 @@ class V2RayExtractor:
             parsed = urlparse(tuic_url)
             query = parse_qs(parsed.query)
             
-            if not parsed.hostname or not parsed.username: # tuic uuid is username
+            if not parsed.hostname or not parsed.username:
                 return None
 
             original_name = unquote(parsed.fragment) if parsed.fragment else ''
@@ -398,10 +414,9 @@ class V2RayExtractor:
                 'uuid': parsed.username,
                 'password': query.get('password', [''])[0],
                 'udp-relay-mode': query.get('udp-relay-mode', ['native'])[0],
-                'skip-cert-verify': True # default to true
+                'skip-cert-verify': True
             }
             
-            # SNI and ALPN
             if query.get('sni'):
                 clash_config['sni'] = query.get('sni')[0]
             if query.get('alpn'):
@@ -410,22 +425,18 @@ class V2RayExtractor:
             return clash_config if self.is_valid_config(clash_config) else None
             
         except Exception as e:
-            # print(f"❌ Error parsing TUIC: {str(e)}") # برای کاهش لاگ‌ها
             return None
 
     def clean_invalid_configs(self):
         """پاک کردن کانفیگ‌های نامعتبر"""
-        # این تابع تنها کانفیگ‌هایی را که parse_config نتوانسته به درستی تجزیه کند
-        # یا فیلدهای ضروری را نداشته باشد، حذف می‌کند.
-        # تست اتصال فعال نیست، بنابراین تنها بر اساس ساختار کانفیگ فیلتر می‌شود.
         valid_configs = []
         for config_data in self.parsed_clash_configs:
             config = config_data['clash_info']
-            if self.is_valid_config(config): # استفاده از تابع is_valid_config
+            if self.is_valid_config(config): # استفاده از تابع is_valid_config برای فیلتر نهایی
                 valid_configs.append(config_data)
             else:
                 # print(f"DEBUG: Config removed due to invalid structure: {config.get('name', 'N/A')}")
-                pass
+                pass # برای کاهش لاگ‌ها
         
         self.parsed_clash_configs = valid_configs
 
@@ -433,27 +444,45 @@ class V2RayExtractor:
         """بررسی کانال و استخراج کانفیگ‌ها"""
         try:
             print(f"🔍 Scanning channel {channel}...")
-            async for message in self.client.get_chat_history(channel, limit=5): # limit رو کم کردم برای تست سریع‌تر
+            # limit=100 مناسب‌تر است برای جستجوی کانفیگ‌ها در پیام‌های قدیمی‌تر
+            async for message in self.client.get_chat_history(channel, limit=100): 
                 if not message.text:
                     continue
 
-                # --- تغییرات جدید برای Base64 Decode ---
-                # ابتدا کل متن پیام را برای رشته‌های Base64 شده اسکن می‌کنیم
-                base64_matches = BASE64_PATTERN.findall(message.text)
-                processed_texts = [message.text] # متن اصلی هم باید اسکن شود
+                processed_texts = [message.text] # متن اصلی پیام همیشه باید اسکن شود
 
-                for b64_str in base64_matches:
-                    try:
-                        # حذف کاراکترهای newline و هر چیز غیر Base64
-                        cleaned_b64_str = b64_str.strip().replace('\n', '')
-                        decoded_text = base64.b64decode(cleaned_b64_str).decode('utf-8', errors='ignore')
-                        processed_texts.append(decoded_text)
-                        # print(f"DEBUG: Decoded Base64: {decoded_text[:100]}...") # برای دیباگ
-                    except Exception as e:
-                        # print(f"DEBUG: Failed to decode Base64 string: {e}") # برای دیباگ
-                        pass
-                # --- پایان تغییرات جدید برای Base64 Decode ---
+                # --- منطق Base64 Decode فقط برای کانال‌های مشخص شده ---
+                if channel in BASE64_ENCODED_CHANNELS:
+                    base64_matches = BASE64_PATTERN.findall(message.text)
+                    # print(f"DEBUG: Found {len(base64_matches)} potential Base64 strings in raw message from {channel}.")
 
+                    for b64_str_match in base64_matches:
+                        # Findall با گروه کپچر شده، تاپل برمی‌گرداند، اگر گروه کپچر نباشد رشته.
+                        b64_str = b64_str_match if isinstance(b64_str_match, str) else b64_str_match[0]
+
+                        try:
+                            cleaned_b64_str = b64_str.strip().replace('\n', '')
+                            # اضافه کردن padding قبل از decode برای رفع خطای Incorrect padding
+                            padding = len(cleaned_b64_str) % 4
+                            if padding:
+                                cleaned_b64_str += '=' * (4 - padding)
+
+                            # رمزگشایی با utf-8 و نادیده گرفتن خطاهای کاراکتر
+                            decoded_text = base64.b64decode(cleaned_b64_str).decode('utf-8', errors='ignore')
+                            
+                            # --- مهم: متن دی‌کد شده را خط به خط تقسیم کن ---
+                            # زیرا یک رشته Base64 شده ممکن است شامل چندین کانفیگ در خطوط مختلف باشد
+                            lines = decoded_text.splitlines()
+                            for line in lines:
+                                if line.strip(): # اگر خط خالی نبود
+                                    processed_texts.append(line.strip()) # هر خط را به لیست پردازشی اضافه کن
+                            
+                            # print(f"DEBUG: Successfully decoded Base64 from {channel}. Added {len(lines)} lines for scanning.")
+                        except Exception as e:
+                            print(f"DEBUG: Failed to decode Base64 string '{b64_str[:50]}...' from {channel}: {e}")
+                # --- پایان منطق Base64 Decode ---
+
+                # حالا تمام متن‌های (هم اصلی و هم دی‌کد شده) را برای الگوهای V2Ray اسکن می‌کنیم
                 for text_to_scan in processed_texts:
                     for pattern in V2RAY_PATTERNS:
                         matches = pattern.findall(text_to_scan)
@@ -464,30 +493,19 @@ class V2RayExtractor:
                                 
                                 parsed_config = None
                                 try:
-                                    if config_url.startswith('vmess://'):
-                                        parsed_config = self.parse_vmess(config_url)
-                                    elif config_url.startswith('vless://'):
-                                        parsed_config = self.parse_vless(config_url)
-                                    elif config_url.startswith('trojan://'):
-                                        parsed_config = self.parse_trojan(config_url)
-                                    elif config_url.startswith('ss://'):
-                                        parsed_config = self.parse_shadowsocks(config_url)
-                                    elif config_url.startswith('hy2://') or config_url.startswith('hysteria://'):
-                                        parsed_config = self.parse_hysteria(config_url)
-                                    elif config_url.startswith('tuic://'):
-                                        parsed_config = self.parse_tuic(config_url)
+                                    parsed_config = self.parse_config(config_url) # تلاش برای تجزیه کانفیگ
                                     
                                     if parsed_config:
                                         self.parsed_clash_configs.append({
                                             'original_url': config_url,
                                             'clash_info': parsed_config
                                         })
-                                        print(f"✅ Parsed config: {parsed_config['name']} ({parsed_config['type']})")
+                                        # print(f"✅ Parsed config: {parsed_config['name']} ({parsed_config['type']})")
                                     else:
-                                        print(f"❌ Failed to parse config: {config_url[:50]}...")
+                                        print(f"❌ Failed to parse config or invalid structure: {config_url[:50]}...")
                                         
                                 except Exception as e:
-                                    print(f"❌ Error during parsing/adding: {str(e)}")
+                                    print(f"❌ Error during parsing/adding: {str(e)} for URL: {config_url[:50]}...")
 
         except FloodWait as e:
             print(f"⏳ Waiting {e.value} seconds (Telegram limit) for {channel}")
@@ -499,15 +517,16 @@ class V2RayExtractor:
             print(f"❌ General error in {channel}: {str(e)}")
 
     async def extract_configs(self):
-        """استخراج کانفیگ‌ها از کانال‌ها"""
+        """اتصال به تلگرام و استخراج کانفیگ‌ها از تمام کانال‌ها"""
         print("🔗 Connecting to Telegram...")
         try:
             async with self.client:
                 print("✅ Connected successfully")
-                await asyncio.gather(*[self.check_channel(channel) for channel in CHANNELS])
+                # حلقه زدن روی ALL_CHANNELS برای بررسی همه کانال‌ها
+                await asyncio.gather(*[self.check_channel(channel) for channel in ALL_CHANNELS]) 
                 
                 print("🧹 Cleaning invalid configs...")
-                self.clean_invalid_configs()
+                self.clean_invalid_configs() # فیلتر نهایی بر اساس اعتبار ساختاری
                 
         except Exception as e:
             print(f"🔴 Connection error: {str(e)}")
@@ -515,9 +534,10 @@ class V2RayExtractor:
             self.parsed_clash_configs.clear()
 
     async def save_configs(self):
-        """ذخیره کانفیگ‌ها"""
+        """ذخیره کانفیگ‌ها در فرمت‌های YAML و TXT"""
         if not self.parsed_clash_configs:
-            print("⚠️ No valid configs found")
+            print("⚠️ No valid configs found after extraction and parsing.")
+            # ایجاد فایل‌های خالی برای جلوگیری از خطای "No such file or directory" در Git
             open(OUTPUT_YAML, "w").close()
             open(OUTPUT_TXT, "w").close()
             return
@@ -607,7 +627,7 @@ class V2RayExtractor:
         valid_configs_clash_format = [config['clash_info'] for config in self.parsed_clash_configs]
 
         if not valid_configs_clash_format:
-            print("⚠️ No valid configs after final filtering")
+            print("⚠️ No valid configs after final filtering. Output files will be empty.")
             open(OUTPUT_YAML, "w").close()
             open(OUTPUT_TXT, "w").close()
             return
@@ -651,8 +671,8 @@ async def main():
     await extractor.save_configs()
     
     print("✨ Extraction completed!")
-    print(f"📊 Total configs found: {len(extractor.found_configs)}")
-    print(f"✅ Valid configs (after parsing): {len(extractor.parsed_clash_configs)}")
+    print(f"📊 Total configs found (before parsing/cleaning): {len(extractor.found_configs)}")
+    print(f"✅ Valid configs (after parsing and cleaning): {len(extractor.parsed_clash_configs)}")
 
 if __name__ == "__main__":
     asyncio.run(main())
