@@ -433,7 +433,7 @@ class V2RayExtractor:
         """بررسی کانال و استخراج کانفیگ‌ها"""
         try:
             print(f"🔍 Scanning channel {channel}...")
-            async for message in self.client.get_chat_history(channel, limit=10): # limit رو کم کردم برای تست سریع‌تر
+            async for message in self.client.get_chat_history(channel, limit=5): # limit رو کم کردم برای تست سریع‌تر
                 if not message.text:
                     continue
 
