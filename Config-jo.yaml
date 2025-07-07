@@ -1,0 +1,81 @@
+mixed-port: 7890
+allow-lan: true
+bind-address: '*'
+mode: rule
+log-level: info
+external-controller: 127.0.0.1:9090
+dns:
+  enable: true
+  ipv6: false
+  default-nameserver:
+  - 223.5.5.5
+  - 8.8.8.8
+  enhanced-mode: fake-ip
+  fake-ip-range: 198.18.0.1/16
+  use-hosts: true
+  nameserver:
+  - https://doh.pub/dns-query
+  - https://dns.alidns.com/dns-query
+proxies:
+- name: چنل_عضو_شو_v2ra_config-41621c97
+  type: vless
+  server: run.fluxus.org
+  port: 2929
+  uuid: 2f9a1276-17f9-400b-a276-2c124de35605
+  udp: true
+  network: tcp
+proxy-groups:
+- name: 🚀 Proxy
+  type: select
+  proxies:
+  - ♻️ Auto
+  - 🔯 Fallback
+  - 🔮 LoadBalance
+  - DIRECT
+- name: ♻️ Auto
+  type: url-test
+  proxies: &id001
+  - چنل_عضو_شو_v2ra_config-41621c97
+  url: http://www.gstatic.com/generate_204
+  interval: 300
+  tolerance: 50
+- name: 🔯 Fallback
+  type: fallback
+  proxies: *id001
+  url: http://www.gstatic.com/generate_204
+  interval: 300
+- name: 🔮 LoadBalance
+  type: load-balance
+  strategy: consistent-hashing
+  proxies: *id001
+  url: http://www.gstatic.com/generate_204
+  interval: 300
+- name: 🌍 Global
+  type: select
+  proxies:
+  - 🚀 Proxy
+  - DIRECT
+- name: 🍃 Hijacking
+  type: select
+  proxies:
+  - REJECT
+  - DIRECT
+rules:
+- DOMAIN-SUFFIX,local,DIRECT
+- IP-CIDR,127.0.0.0/8,DIRECT
+- IP-CIDR,172.16.0.0/12,DIRECT
+- IP-CIDR,192.168.0.0/16,DIRECT
+- IP-CIDR,10.0.0.0/8,DIRECT
+- IP-CIDR,17.0.0.0/8,DIRECT
+- IP-CIDR,100.64.0.0/10,DIRECT
+- DOMAIN-SUFFIX,ir,DIRECT
+- GEOIP,IR,DIRECT
+- DOMAIN-KEYWORD,ads,🍃 Hijacking
+- DOMAIN-KEYWORD,analytics,🍃 Hijacking
+- DOMAIN-KEYWORD,facebook,🌍 Global
+- DOMAIN-KEYWORD,google,🌍 Global
+- DOMAIN-KEYWORD,instagram,🌍 Global
+- DOMAIN-KEYWORD,telegram,🌍 Global
+- DOMAIN-KEYWORD,twitter,🌍 Global
+- DOMAIN-KEYWORD,youtube,🌍 Global
+- MATCH,🚀 Proxy
