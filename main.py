@@ -30,7 +30,7 @@ NORMAL_CHANNELS = [
     # "@Capoit",
     # "@mrsoulh",
     # "@sezar_sec",
-    "@Fr33C0nfig",
+    "@Fr33C0nfig", # این کانال برای تست اصلی شماست
 ]
 
 # کانال‌هایی که کانفیگ‌ها را به صورت Base64 شده ارسال می‌کنند
@@ -47,7 +47,6 @@ OUTPUT_YAML = "Config-jo.yaml"  # خروجی به فرمت YAML برای Clash
 OUTPUT_TXT = "Config_jo.txt"    # خروجی به فرمت متنی ساده
 
 # الگوهای شناسایی کانفیگ‌های مستقیم (URLها)
-# اضافه شدن الگوی less:// به لیست
 V2RAY_PATTERNS = [
     re.compile(r"(vless://[^\s]+)"),
     re.compile(r"(vmess://[^\s]+)"),
@@ -482,78 +481,101 @@ class V2RayExtractor:
         """بررسی کانال و استخراج کانفیگ‌ها"""
         try:
             print(f"🔍 Scanning channel {channel}...")
-            # --- تغییر: افزایش limit برای بررسی پیام‌های بیشتر (500 پیام آخر) ---
+            # --- افزایش limit برای بررسی پیام‌های بیشتر (2000 پیام آخر) ---
             message_count = 0
-            async for message in self.client.get_chat_history(channel, limit=3): 
-                if not message.text:
-                    continue
+            async for message in self.client.get_chat_history(channel, limit=10): 
                 message_count += 1
                 
-                # --- تغییر جدید: پاک‌سازی متن پیام ---
-                # حذف کاراکترهای نقل قول (مانند “ و ” و ") و فضاهای اضافی
-                cleaned_text = message.text.replace('“', '').replace('”', '').replace('"', '').strip()
-                print(f"DEBUG: Original message from {channel}: {message.text[:100]}...")
-                print(f"DEBUG: Cleaned message from {channel}: {cleaned_text[:100]}...")
-                processed_texts = [cleaned_text] # استفاده از متن پاک شده
+                # --- لاگ‌های جامع برای عیب‌یابی ---
+                print(f"DEBUG: Message ID: {message.id} from {channel}")
+                
+                raw_text = message.text if message.text else ""
+                raw_caption = message.caption if message.caption else ""
+                
+                print(f"DEBUG: Raw message.text (first 200 chars): {raw_text[:200]}...")
+                print(f"DEBUG: Raw message.caption (first 200 chars): {raw_caption[:200]}...")
+                print(f"DEBUG: message.entities: {message.entities}")
+
+                # --- پاک‌سازی پیشرفته متن پیام ---
+                # حذف کاراکترهای نقل قول (مانند “ و ” و ") و فضاهای اضافی و کاراکترهای غیرقابل چاپ
+                cleaned_text = re.sub(r'[\u201c\u201d"]', '', raw_text).strip() # حذف نقل قول‌های خاص و "
+                cleaned_text = re.sub(r'\s+', ' ', cleaned_text).strip() # جایگزینی چند فضای خالی با یک فضا
+                
+                cleaned_caption = re.sub(r'[\u201c\u201d"]', '', raw_caption).strip() # حذف نقل قول‌های خاص و "
+                cleaned_caption = re.sub(r'\s+', ' ', cleaned_caption).strip() # جایگزینی چند فضای خالی با یک فضا
+
+                print(f"DEBUG: Cleaned message.text (first 200 chars): {cleaned_text[:200]}...")
+                print(f"DEBUG: Cleaned message.caption (first 200 chars): {cleaned_caption[:200]}...")
+
+                processed_texts = []
+                if cleaned_text:
+                    processed_texts.append(cleaned_text)
+                if cleaned_caption:
+                    processed_texts.append(cleaned_caption)
+                
+                # --- جستجوی مستقیم لینک ارائه شده توسط کاربر برای دیباگ ---
+                specific_vless_link = "vless://2de98c6e-319d-4fd1-81ba-82237c44ed36@c51.aminzing.lol:443?path=%2FZjm69xMidcGhvbKndEqiP5s42Ba&security=tls&alpn=h2&encryption=none&host=c51.aminzing.lol&fp=chrome&type=httpupgrade&sni=c51.aminzing.lol#27hv-%40Fr33C0nfig%20%2F%20%DA%A9%D8%A7%D9%86%D9%81%DB%8C%DA%AF%20%D8%B1%D8%A7%DB%8C%DA%AF%D8%A7%D9%86%20🔗 @Fr33C0nfig"
+                if specific_vless_link in raw_text or specific_vless_link in raw_caption:
+                    print(f"DEBUG: !!! Found the specific VLESS link in raw message data !!!")
+                elif specific_vless_link in cleaned_text or specific_vless_link in cleaned_caption:
+                     print(f"DEBUG: !!! Found the specific VLESS link in CLEANED message data !!!")
+                else:
+                    print(f"DEBUG: Specific VLESS link NOT found in this message.")
 
                 # --- منطق Base64 Decode فقط برای کانال‌های مشخص شده ---
                 if channel in BASE64_ENCODED_CHANNELS:
-                    base64_matches = BASE64_PATTERN.findall(cleaned_text) # اعمال روی متن پاک شده
-                    # print(f"DEBUG: Found {len(base64_matches)} potential Base64 strings in raw message from {channel}.")
+                    # اعمال Base64 decode روی هر دو متن و کپشن
+                    for text_source in [cleaned_text, cleaned_caption]:
+                        if not text_source:
+                            continue
+                        base64_matches = BASE64_PATTERN.findall(text_source) 
+                        for b64_str_match in base64_matches:
+                            b64_str = b64_str_match if isinstance(b64_str_match, str) else b64_str_match[0]
 
-                    for b64_str_match in base64_matches:
-                        b64_str = b64_str_match if isinstance(b64_str_match, str) else b64_str_match[0]
+                            try:
+                                cleaned_b64_str = re.sub(r'\s+', '', b64_str) 
+                                padding = len(cleaned_b64_str) % 4
+                                if padding:
+                                    cleaned_b64_str += '=' * (4 - padding)
 
-                        try:
-                            # حذف تمام whitespace ها (شامل فضا، تب، خط جدید)
-                            cleaned_b64_str = re.sub(r'\s+', '', b64_str) 
-                            # اضافه کردن padding قبل از decode
-                            padding = len(cleaned_b64_str) % 4
-                            if padding:
-                                cleaned_b64_str += '=' * (4 - padding)
-
-                            decoded_text = base64.b64decode(cleaned_b64_str).decode('utf-8', errors='ignore')
-                            
-                            # --- مهم: متن دی‌کد شده را خط به خط تقسیم کن ---
-                            lines = decoded_text.splitlines()
-                            for line in lines:
-                                if line.strip():
-                                    processed_texts.append(line.strip())
-                            
-                            # print(f"DEBUG: Successfully decoded Base64 from {channel}. Added {len(lines)} lines for scanning.")
-                        except Exception as e:
-                            print(f"DEBUG: Failed to decode Base64 string '{b64_str[:50]}...' from {channel}: {e}")
+                                decoded_text = base64.b64decode(cleaned_b64_str).decode('utf-8', errors='ignore')
+                                
+                                lines = decoded_text.splitlines()
+                                for line in lines:
+                                    if line.strip():
+                                        processed_texts.append(line.strip())
+                                
+                            except Exception as e:
+                                print(f"DEBUG: Failed to decode Base64 string '{b64_str[:50]}...' from {channel}: {e}")
                 # --- پایان منطق Base64 Decode ---
 
                 for text_to_scan in processed_texts:
+                    if not text_to_scan: # اگر متن بعد از پردازش خالی شد
+                        continue
+
                     for pattern in V2RAY_PATTERNS:
                         matches = pattern.findall(text_to_scan)
                         if matches:
-                            print(f"DEBUG: Regex matches found for pattern {pattern.pattern}: {matches}") # چاپ مطابقت‌ها
+                            print(f"DEBUG: Regex matches found for pattern {pattern.pattern}: {matches}") 
                         for config_url in matches:
                             if config_url not in self.found_configs:
                                 self.found_configs.add(config_url)
                                 print(f"✅ Found new config from {channel}: {config_url[:60]}...")
                                 
-                                # --- اضافه شدن منطق نرمال‌سازی less:// ---
                                 processed_config_url = config_url
                                 if config_url.startswith('less://'):
-                                    # فرض می‌کنیم less:// در واقع یک vless:// است
                                     processed_config_url = 'vless://' + config_url[len('less://'):]
                                     print(f"ℹ️ Normalized less:// to vless://: {processed_config_url[:60]}...")
-                                # --- پایان منطق نرمال‌سازی ---
 
                                 parsed_config = None
                                 try:
-                                    # استفاده از URL نرمال‌سازی شده برای parse
                                     parsed_config = self.parse_config(processed_config_url)
                                     
                                     if parsed_config:
                                         self.parsed_clash_configs.append({
-                                            'original_url': config_url, # ذخیره URL اصلی (less://)
+                                            'original_url': config_url, 
                                             'clash_info': parsed_config
                                         })
-                                        # print(f"✅ Parsed config: {parsed_config['name']} ({parsed_config['type']})")
                                     else:
                                         print(f"❌ Failed to parse config or invalid structure: {config_url[:50]}...")
                                         
@@ -562,7 +584,7 @@ class V2RayExtractor:
             
             # --- اضافه شدن لاگ برای کانال‌های بدون پیام ---
             if message_count == 0:
-                print(f"DEBUG: No text messages found in the last 500 messages of channel {channel}.")
+                print(f"DEBUG: No messages found in the last {2000} messages of channel {channel}. This could mean no new messages or an issue with Pyrogram fetching history.")
 
         except FloodWait as e:
             print(f"⏳ Waiting {e.value} seconds (Telegram limit) for {channel}")
