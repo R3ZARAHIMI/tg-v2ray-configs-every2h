@@ -23,13 +23,13 @@ SESSION_NAME = "my_account"
 # --- لیست کانال‌ها ---
 # کانال‌هایی که به صورت مستقیم (غیر Base64) کانفیگ ارسال می‌کنند
 NORMAL_CHANNELS = [
-    # "@SRCVPN",
-    # "@net0n3",
-    # "@xzjinx",
-    # "@vpns",
-    # "@Capoit",
-    # "@mrsoulh",
-    # "@sezar_sec",
+    "@SRCVPN",
+    "@net0n3",
+    "@xzjinx",
+    "@vpns",
+    "@Capoit",
+    "@mrsoulh",
+    "@sezar_sec",
     "@Fr33C0nfig",
 ]
 
@@ -476,141 +476,6 @@ class V2RayExtractor:
         self.parsed_clash_configs = valid_configs
 
     async def check_channel(self, channel):
-        """نسخه نهایی: بررسی متن، لینک دکمه و دیتای کالبک دکمه"""
-        try:
-            # این پرینت را برای اطمینان از اجرای تابع برای همه کانال‌ها نگه می‌داریم
-            print(f"🔍 Scanning channel {channel}...")
-            async for message in self.client.get_chat_history(channel, limit=100):
-                
-                raw_texts = []
-                if message.text:
-                    raw_texts.append(message.text)
-                if message.caption:
-                    raw_texts.append(message.caption)
-                
-                if message.reply_markup and hasattr(message.reply_markup, 'inline_keyboard'):
-                    for row in message.reply_markup.inline_keyboard:
-                        for button in row:
-                            # ۱. بررسی لینک مستقیم دکمه
-                            if button.url:
-                                raw_texts.append(button.url)
-                            # ۲. بررسی دیتای مخفی دکمه (تلاش هوشمندانه)
-                            if button.callback_data:
-                                try:
-                                    # دیتای کالبک به صورت بایت است، آن را به رشته تبدیل می‌کنیم
-                                    raw_texts.append(button.callback_data.decode('utf-8'))
-                                except:
-                                    pass # اگر تبدیل ناموفق بود، نادیده بگیر
-
-                # بقیه کد پردازش کانفیگ‌ها بدون تغییر باقی می‌ماند
-                for text_block in raw_texts:
-                    # ... (کد مربوط به پردازش Base64 و یافتن الگوها که قبلاً داشتید)
-                    list_to_check = []
-                    list_to_check.append(text_block)
-
-                    if channel in BASE64_ENCODED_CHANNELS:
-                        b64_matches = BASE64_PATTERN.findall(text_block)
-                        for b64_str in b64_matches:
-                            try:
-                                b64_str = b64_str.strip()
-                                padding = len(b64_str) % 4
-                                if padding: b64_str += '=' * (4 - padding)
-                                decoded_text = base64.b64decode(b64_str).decode('utf-8', errors='ignore')
-                                list_to_check.extend(decoded_text.splitlines())
-                            except Exception:
-                                pass
-                    
-                    for config_line in list_to_check:
-                        if not config_line.strip(): continue
-                        for pattern in V2RAY_PATTERNS:
-                            matches = pattern.findall(config_line)
-                            for config_url in matches:
-                                if config_url not in self.found_configs:
-                                    self.found_configs.add(config_url)
-                                    print(f"✅ Found new config from {channel}: {config_url[:60]}...")
-                                    # ... بقیه کد پارس کردن
-                                    parsed_config = self.parse_config(config_url)
-                                    if parsed_config:
-                                        self.parsed_clash_configs.append({
-                                            'original_url': config_url,
-                                            'clash_info': parsed_config
-                                        })
-                                    else:
-                                        print(f"❌ Failed to parse config from {channel}")
-
-        except Exception as e:
-            print(f"❌ General error in {channel}: {str(e)}")
-
-        """بررسی کانال با منطق اصلاح شده و قابل اطمینان"""
-        try:
-            print(f"🔍 Scanning channel {channel}...")
-            async for message in self.client.get_chat_history(channel, limit=100):
-                
-                # ۱. تمام متون خام را از پیام (شامل متن، کپشن و لینک دکمه) جمع‌آوری کن
-                raw_texts = []
-                if message.text:
-                    raw_texts.append(message.text)
-                if message.caption:
-                    raw_texts.append(message.caption)
-                if message.reply_markup and hasattr(message.reply_markup, 'inline_keyboard'):
-                    for row in message.reply_markup.inline_keyboard:
-                        for button in row:
-                            if button.url:
-                                raw_texts.append(button.url)
-
-                if not raw_texts:
-                    continue
-
-                # ۲. لیست نهایی برای بررسی را آماده کن
-                list_to_check = []
-                for text_block in raw_texts:
-                    # همیشه متن خام اولیه را به لیست بررسی اضافه کن
-                    list_to_check.append(text_block)
-
-                    # اگر کانال از نوع Base64 بود، متن دیکد شده را هم به لیست اضافه کن
-                    if channel in BASE64_ENCODED_CHANNELS:
-                        b64_matches = BASE64_PATTERN.findall(text_block)
-                        for b64_str in b64_matches:
-                            try:
-                                b64_str = b64_str.strip()
-                                padding = len(b64_str) % 4
-                                if padding:
-                                    b64_str += '=' * (4 - padding)
-                                
-                                decoded_text = base64.b64decode(b64_str).decode('utf-8', errors='ignore')
-                                list_to_check.extend(decoded_text.splitlines())
-                            except Exception:
-                                # در صورت خطا در دیکد کردن، به آرامی از آن بگذر
-                                pass
-                
-                # ۳. حالا لیست کامل شده را برای یافتن کانفیگ بررسی کن
-                for config_line in list_to_check:
-                    if not config_line.strip():
-                        continue
-                    for pattern in V2RAY_PATTERNS:
-                        matches = pattern.findall(config_line)
-                        for config_url in matches:
-                            if config_url not in self.found_configs:
-                                self.found_configs.add(config_url)
-                                print(f"✅ Found new config from {channel}: {config_url[:60]}...")
-                                
-                                parsed_config = self.parse_config(config_url)
-                                if parsed_config:
-                                    self.parsed_clash_configs.append({
-                                        'original_url': config_url,
-                                        'clash_info': parsed_config
-                                    })
-                                else:
-                                    print(f"❌ Failed to parse config or invalid structure: {config_url[:50]}...")
-
-        except FloodWait as e:
-            print(f"⏳ Waiting {e.value} seconds (Telegram limit) for {channel}")
-            await asyncio.sleep(e.value)
-            await self.check_channel(channel)
-        except RPCError as e:
-            print(f"❌ RPC error in {channel}: {e.MESSAGE} (Code: {e.CODE})")
-        except Exception as e:
-            print(f"❌ General error in {channel}: {str(e)}")
         """بررسی کانال و استخراج کانفیگ‌ها"""
         try:
             print(f"🔍 Scanning channel {channel}...")
@@ -684,27 +549,6 @@ class V2RayExtractor:
             print(f"❌ General error in {channel}: {str(e)}")
 
     async def extract_configs(self):
-        """استخراج کانفیگ‌ها از کانال‌ها (با اجرای سریالی و پایدار)"""
-        print("🔗 Connecting to Telegram...")
-        try:
-            async with self.client:
-                print("✅ Connected successfully")
-
-                # --- بخش اصلاح شده ---
-                # به جای اجرای همزمان، کانال‌ها را یکی یکی بررسی می‌کنیم
-                print("🔄 Starting to scan channels sequentially...")
-                for channel in ALL_CHANNELS:
-                    await self.check_channel(channel)
-                # --- پایان بخش اصلاح شده ---
-                
-                print("\n🧹 Cleaning invalid configs...")
-                self.clean_invalid_configs()
-                
-        except Exception as e:
-            print(f"🔴 Connection error: {str(e)}")
-            self.found_configs.clear()
-            self.parsed_clash_configs.clear()
-        
         """استخراج کانفیگ‌ها از کانال‌ها"""
         print("🔗 Connecting to Telegram...")
         try:
