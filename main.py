@@ -476,6 +476,63 @@ class V2RayExtractor:
         self.parsed_clash_configs = valid_configs
 
     async def check_channel(self, channel):
+        """بررسی کانال و استخراج کانفیگ‌ها (با پشتیبانی از دکمه‌های شیشه‌ای)"""
+        try:
+            print(f"🔍 Scanning channel {channel}...")
+            # تعداد پیام‌های بیشتری را بررسی می‌کنیم تا چیزی از دست نرود
+            async for message in self.client.get_chat_history(channel, limit=100):
+                
+                # لیستی برای نگهداری تمام متون و لینک‌های یافت شده در یک پیام
+                texts_to_process = []
+
+                # ۱. استخراج متن از بدنه و کپشن پیام
+                if message.text:
+                    texts_to_process.append(message.text)
+                if message.caption:
+                    texts_to_process.append(message.caption)
+
+                # ۲. استخراج لینک از دکمه‌های شیشه‌ای (Inline Buttons)
+                if message.reply_markup and hasattr(message.reply_markup, 'inline_keyboard'):
+                    for row in message.reply_markup.inline_keyboard:
+                        for button in row:
+                            if button.url:
+                                # اگر دکمه حاوی لینک بود، آن را به لیست اضافه می‌کنیم
+                                texts_to_process.append(button.url)
+
+                # اگر هیچ متن یا لینکی در پیام پیدا نشد، به پیام بعدی می‌رویم
+                if not texts_to_process:
+                    continue
+
+                # برای هر متن یا لینک پیدا شده، الگوها را اجرا می‌کنیم
+                for text_to_scan in texts_to_process:
+                    
+                    # اجرای الگوهای Regex برای پیدا کردن کانفیگ‌ها
+                    for pattern in V2RAY_PATTERNS:
+                        matches = pattern.findall(text_to_scan)
+                        for config_url in matches:
+                            if config_url not in self.found_configs:
+                                self.found_configs.add(config_url)
+                                print(f"✅ Found new config from {channel}: {config_url[:60]}...")
+                                
+                                parsed_config = self.parse_config(config_url)
+                                if parsed_config:
+                                    self.parsed_clash_configs.append({
+                                        'original_url': config_url,
+                                        'clash_info': parsed_config
+                                    })
+                                else:
+                                    print(f"❌ Failed to parse config or invalid structure: {config_url[:50]}...")
+        
+        # بخش مدیریت خطاها بدون تغییر باقی می‌ماند
+        except FloodWait as e:
+            print(f"⏳ Waiting {e.value} seconds (Telegram limit) for {channel}")
+            await asyncio.sleep(e.value)
+            await self.check_channel(channel)
+        except RPCError as e:
+            print(f"❌ RPC error in {channel}: {e.MESSAGE} (Code: {e.CODE})")
+        except Exception as e:
+            print(f"❌ General error in {channel}: {str(e)}")
+
         """بررسی کانال و استخراج کانفیگ‌ها (نسخه اصلاح شده و جامع)"""
         try:
             print(f"🔍 Scanning channel {channel}...")
