@@ -23,13 +23,13 @@ SESSION_NAME = "my_account"
 # --- لیست کانال‌ها ---
 # کانال‌هایی که به صورت مستقیم (غیر Base64) کانفیگ ارسال می‌کنند
 NORMAL_CHANNELS = [
-    "@SRCVPN",
-    "@net0n3",
-    "@xzjinx",
-    "@vpns",
-    "@Capoit",
-    "@mrsoulh",
-    "@sezar_sec",
+    # "@SRCVPN",
+    # "@net0n3",
+    # "@xzjinx",
+    # "@vpns",
+    # "@Capoit",
+    # "@mrsoulh",
+    # "@sezar_sec",
     "@Fr33C0nfig",
 ]
 
