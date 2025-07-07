@@ -480,7 +480,7 @@ class V2RayExtractor:
         try:
             print(f"🔍 Scanning channel {channel}...")
             # تعداد پیام‌های بیشتری را بررسی می‌کنیم تا چیزی از دست نرود
-            async for message in self.client.get_chat_history(channel, limit=100):
+            async for message in self.client.get_chat_history(channel, limit=1):
                 
                 # لیستی برای نگهداری تمام متون و لینک‌های یافت شده در یک پیام
                 texts_to_process = []
