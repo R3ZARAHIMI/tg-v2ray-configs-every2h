@@ -9,7 +9,7 @@ from urllib.parse import urlparse, parse_qs, unquote
 
 # Pyrogram imports
 from pyrogram import Client
-from pyrogram.errors import FloodWait, RPCError
+from pyrogram.errors import FloodWait, RPCError, ChannelInvalid, PeerIdInvalid, UsernameInvalid
 
 # --- تنظیمات عمومی ---
 
@@ -23,19 +23,11 @@ SESSION_NAME = "my_account"
 # --- لیست کانال‌ها ---
 # کانال‌هایی که به صورت مستقیم (غیر Base64) کانفیگ ارسال می‌کنند
 NORMAL_CHANNELS = [
-    # "@SRCVPN",
-    # "@net0n3",
-    # "@xzjinx",
-    # "@vpns",
-    # "@Capoit",
-    # "@mrsoulh",
-    # "@sezar_sec",
     "@Fr33C0nfig", # این کانال برای تست اصلی شماست
 ]
 
 # کانال‌هایی که کانفیگ‌ها را به صورت Base64 شده ارسال می‌کنند
 BASE64_ENCODED_CHANNELS = [
-    
     "@v2ra_config" # کانالی که کاربر مشخص کرد Base64 هست
 ]
 
@@ -72,7 +64,6 @@ class V2RayExtractor:
             SESSION_NAME,
             api_id=API_ID,
             api_hash=API_HASH
-            # GLOBAL_PROXY_SETTINGS را به صورت پیش‌فرض None قرار دادیم و نیازی به پاس دادن آن نیست.
         )
 
     # --- توابع کمکی ---
@@ -481,8 +472,73 @@ class V2RayExtractor:
         """بررسی کانال و استخراج کانفیگ‌ها"""
         try:
             print(f"🔍 Scanning channel {channel}...")
-            # --- افزایش limit برای بررسی پیام‌های بیشتر (2000 پیام آخر) ---
+            
+            # --- اضافه شدن منطق تست پیام خاص ---
+            if channel == "@Fr33C0nfig":
+                # !!! مهم: message_id پستی که حاوی لینک vless:// شماست را اینجا قرار دهید !!!
+                # می توانید با کلیک راست روی پیام در تلگرام دسکتاپ و انتخاب "Copy Message Link"
+                # و سپس استخراج عدد آخر لینک، message_id را پیدا کنید.
+                TARGET_MESSAGE_ID = 454 # این یک مثال است، لطفا آن را با ID صحیح جایگزین کنید.
+                
+                try:
+                    print(f"DEBUG: Attempting to fetch specific message ID {TARGET_MESSAGE_ID} from {channel}...")
+                    specific_message = await self.client.get_messages(channel, TARGET_MESSAGE_ID)
+                    
+                    if specific_message:
+                        print(f"DEBUG: Successfully fetched specific message ID {specific_message.id}.")
+                        print(f"DEBUG: Specific message raw text: {specific_message.text}")
+                        print(f"DEBUG: Specific message raw caption: {specific_message.caption}")
+                        print(f"DEBUG: Specific message entities: {specific_message.entities}")
+                        print(f"DEBUG: Specific message media: {specific_message.media}")
+                        
+                        # حالا این پیام را به لیست processed_texts اضافه می‌کنیم تا پردازش شود
+                        if specific_message.text:
+                            processed_texts_for_specific_message = [specific_message.text]
+                        elif specific_message.caption:
+                            processed_texts_for_specific_message = [specific_message.caption]
+                        else:
+                            processed_texts_for_specific_message = []
+
+                        # پاک‌سازی و پردازش پیام خاص
+                        for text_to_scan_specific in processed_texts_for_specific_message:
+                            cleaned_text_specific = re.sub(r'[\u201c\u201d"]', '', text_to_scan_specific).strip()
+                            cleaned_text_specific = re.sub(r'\s+', ' ', cleaned_text_specific).strip()
+                            print(f"DEBUG: Cleaned specific message text: {cleaned_text_specific[:200]}...")
+
+                            for pattern in V2RAY_PATTERNS:
+                                matches = pattern.findall(cleaned_text_specific)
+                                if matches:
+                                    print(f"DEBUG: Regex matches found in specific message for pattern {pattern.pattern}: {matches}")
+                                for config_url in matches:
+                                    if config_url not in self.found_configs:
+                                        self.found_configs.add(config_url)
+                                        print(f"✅ Found new config from specific message {specific_message.id}: {config_url[:60]}...")
+                                        
+                                        processed_config_url = config_url
+                                        if config_url.startswith('less://'):
+                                            processed_config_url = 'vless://' + config_url[len('less://'):]
+                                            print(f"ℹ️ Normalized less:// to vless://: {processed_config_url[:60]}...")
+
+                                        parsed_config = None
+                                        try:
+                                            parsed_config = self.parse_config(processed_config_url)
+                                            if parsed_config:
+                                                self.parsed_clash_configs.append({
+                                                    'original_url': config_url, 
+                                                    'clash_info': parsed_config
+                                                })
+                                            else:
+                                                print(f"❌ Failed to parse config or invalid structure from specific message: {config_url[:50]}...")
+                                        except Exception as e:
+                                            print(f"❌ Error during parsing/adding from specific message: {str(e)} for URL: {config_url[:50]}...")
+                    else:
+                        print(f"DEBUG: Specific message ID {TARGET_MESSAGE_ID} not found or accessible.")
+                except Exception as e:
+                    print(f"❌ Error fetching specific message ID {TARGET_MESSAGE_ID}: {str(e)}")
+            # --- پایان منطق تست پیام خاص ---
+
             message_count = 0
+            # limit را به 10 برگرداندیم طبق درخواست شما
             async for message in self.client.get_chat_history(channel, limit=10): 
                 message_count += 1
                 
@@ -492,8 +548,8 @@ class V2RayExtractor:
                 raw_text = message.text if message.text else ""
                 raw_caption = message.caption if message.caption else ""
                 
-                print(f"DEBUG: Raw message.text (first 200 chars): {raw_text[:200]}...")
-                print(f"DEBUG: Raw message.caption (first 200 chars): {raw_caption[:200]}...")
+                print(f"DEBUG: Raw message.text (first 200 chars): {raw_text[:200] if raw_text else 'EMPTY'}...")
+                print(f"DEBUG: Raw message.caption (first 200 chars): {raw_caption[:200] if raw_caption else 'EMPTY'}...")
                 print(f"DEBUG: message.entities: {message.entities}")
 
                 # --- پاک‌سازی پیشرفته متن پیام ---
@@ -504,8 +560,8 @@ class V2RayExtractor:
                 cleaned_caption = re.sub(r'[\u201c\u201d"]', '', raw_caption).strip() # حذف نقل قول‌های خاص و "
                 cleaned_caption = re.sub(r'\s+', ' ', cleaned_caption).strip() # جایگزینی چند فضای خالی با یک فضا
 
-                print(f"DEBUG: Cleaned message.text (first 200 chars): {cleaned_text[:200]}...")
-                print(f"DEBUG: Cleaned message.caption (first 200 chars): {cleaned_caption[:200]}...")
+                print(f"DEBUG: Cleaned message.text (first 200 chars): {cleaned_text[:200] if cleaned_text else 'EMPTY'}...")
+                print(f"DEBUG: Cleaned message.caption (first 200 chars): {cleaned_caption[:200] if cleaned_caption else 'EMPTY'}...")
 
                 processed_texts = []
                 if cleaned_text:
@@ -514,13 +570,13 @@ class V2RayExtractor:
                     processed_texts.append(cleaned_caption)
                 
                 # --- جستجوی مستقیم لینک ارائه شده توسط کاربر برای دیباگ ---
-                specific_vless_link = "vless://2de98c6e-319d-4fd1-81ba-82237c44ed36@c51.aminzing.lol:443?path=%2FZjm69xMidcGhvbKndEqiP5s42Ba&security=tls&alpn=h2&encryption=none&host=c51.aminzing.lol&fp=chrome&type=httpupgrade&sni=c51.aminzing.lol#27hv-%40Fr33C0nfig%20%2F%20%DA%A9%D8%A7%D9%86%D9%81%DB%8C%DA%AF%20%D8%B1%D8%A7%DB%8C%DA%AF%D8%A7%D9%86%20🔗 @Fr33C0nfig"
-                if specific_vless_link in raw_text or specific_vless_link in raw_caption:
-                    print(f"DEBUG: !!! Found the specific VLESS link in raw message data !!!")
-                elif specific_vless_link in cleaned_text or specific_vless_link in cleaned_caption:
-                     print(f"DEBUG: !!! Found the specific VLESS link in CLEANED message data !!!")
+                specific_vless_link_for_debug = "vless://2de98c6e-319d-4fd1-81ba-82237c44ed36@c51.aminzing.lol:443?path=%2FZjm69xMidcGhvbKndEqiP5s42Ba&security=tls&alpn=h2&encryption=none&host=c51.aminzing.lol&fp=chrome&type=httpupgrade&sni=c51.aminzing.lol#27hv-%40Fr33C0nfig%20%2F%20%DA%A9%D8%A7%D9%86%D9%81%DB%8C%DA%AF%20%D8%B1%D8%A7%DB%8C%DA%AF%D8%A7%D9%86%20🔗 @Fr33C0nfig"
+                if specific_vless_link_for_debug in raw_text or specific_vless_link_for_debug in raw_caption:
+                    print(f"DEBUG: !!! Found the specific VLESS link in raw message data (during history scan) !!!")
+                elif specific_vless_link_for_debug in cleaned_text or specific_vless_link_for_debug in cleaned_caption:
+                     print(f"DEBUG: !!! Found the specific VLESS link in CLEANED message data (during history scan) !!!")
                 else:
-                    print(f"DEBUG: Specific VLESS link NOT found in this message.")
+                    print(f"DEBUG: Specific VLESS link NOT found in this message (during history scan).")
 
                 # --- منطق Base64 Decode فقط برای کانال‌های مشخص شده ---
                 if channel in BASE64_ENCODED_CHANNELS:
@@ -584,7 +640,7 @@ class V2RayExtractor:
             
             # --- اضافه شدن لاگ برای کانال‌های بدون پیام ---
             if message_count == 0:
-                print(f"DEBUG: No messages found in the last {2000} messages of channel {channel}. This could mean no new messages or an issue with Pyrogram fetching history.")
+                print(f"DEBUG: No messages found in the last {10} messages of channel {channel}. This could mean no new messages or an issue with Pyrogram fetching history.")
 
         except FloodWait as e:
             print(f"⏳ Waiting {e.value} seconds (Telegram limit) for {channel}")
