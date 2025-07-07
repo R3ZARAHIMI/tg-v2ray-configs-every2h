@@ -23,13 +23,13 @@ SESSION_NAME = "my_account"
 # --- لیست کانال‌ها ---
 # کانال‌هایی که به صورت مستقیم (غیر Base64) کانفیگ ارسال می‌کنند
 NORMAL_CHANNELS = [
-    "@SRCVPN",
-    "@net0n3",
-    "@xzjinx",
-    "@vpns",
-    "@Capoit",
-    "@mrsoulh",
-    "@sezar_sec",
+    # "@SRCVPN",
+    # "@net0n3",
+    # "@xzjinx",
+    # "@vpns",
+    # "@Capoit",
+    # "@mrsoulh",
+    # "@sezar_sec",
     "@Fr33C0nfig",
 ]
 
@@ -476,6 +476,74 @@ class V2RayExtractor:
         self.parsed_clash_configs = valid_configs
 
     async def check_channel(self, channel):
+        """بررسی کانال و استخراج کانفیگ‌ها (نسخه اصلاح شده و جامع)"""
+        try:
+            print(f"🔍 Scanning channel {channel}...")
+            # limit=30 برای هر کانال (می‌توانید به دلخواه تغییر دهید)
+            async for message in self.client.get_chat_history(channel, limit=30):
+                
+                # --- بخش اصلاح شده برای استخراج متن ---
+                # متن پیام را از text و caption استخراج می‌کنیم
+                text_to_scan = ""
+                if message.text:
+                    text_to_scan += message.text + "\n"
+                if message.caption:
+                    text_to_scan += message.caption + "\n"
+
+                # اگر هیچ متنی پیدا نشد، پیام را نادیده بگیر
+                if not text_to_scan.strip():
+                    continue
+                # --- پایان بخش اصلاح شده ---
+
+                processed_texts = [text_to_scan]
+
+                # --- منطق Base64 Decode فقط برای کانال‌های مشخص شده ---
+                if channel in BASE64_ENCODED_CHANNELS:
+                    base64_matches = BASE64_PATTERN.findall(text_to_scan)
+                    for b64_str_match in base64_matches:
+                        b64_str = b64_str_match if isinstance(b64_str_match, str) else b64_str_match[0]
+                        try:
+                            cleaned_b64_str = re.sub(r'\s+', '', b64_str)
+                            padding = len(cleaned_b64_str) % 4
+                            if padding:
+                                cleaned_b64_str += '=' * (4 - padding)
+
+                            decoded_text = base64.b64decode(cleaned_b64_str).decode('utf-8', errors='ignore')
+                            
+                            lines = decoded_text.splitlines()
+                            for line in lines:
+                                if line.strip():
+                                    processed_texts.append(line.strip())
+                        except Exception:
+                            # در صورت بروز خطا در دیکد کردن، به آرامی رد شو
+                            pass
+                # --- پایان منطق Base64 Decode ---
+
+                for text in processed_texts:
+                    for pattern in V2RAY_PATTERNS:
+                        matches = pattern.findall(text)
+                        for config_url in matches:
+                            if config_url not in self.found_configs:
+                                self.found_configs.add(config_url)
+                                print(f"✅ Found new config from {channel}: {config_url[:60]}...")
+                                
+                                parsed_config = self.parse_config(config_url)
+                                if parsed_config:
+                                    self.parsed_clash_configs.append({
+                                        'original_url': config_url,
+                                        'clash_info': parsed_config
+                                    })
+                                else:
+                                    print(f"❌ Failed to parse config or invalid structure: {config_url[:50]}...")
+
+        except FloodWait as e:
+            print(f"⏳ Waiting {e.value} seconds (Telegram limit) for {channel}")
+            await asyncio.sleep(e.value)
+            await self.check_channel(channel)
+        except RPCError as e:
+            print(f"❌ RPC error in {channel}: {e.MESSAGE} (Code: {e.CODE})")
+        except Exception as e:
+            print(f"❌ General error in {channel}: {str(e)}")
         """بررسی کانال و استخراج کانفیگ‌ها"""
         try:
             print(f"🔍 Scanning channel {channel}...")
