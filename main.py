@@ -482,17 +482,23 @@ class V2RayExtractor:
         """بررسی کانال و استخراج کانفیگ‌ها"""
         try:
             print(f"🔍 Scanning channel {channel}...")
-            # --- تغییر: افزایش limit برای بررسی پیام‌های بیشتر (50 پیام آخر) ---
-            async for message in self.client.get_chat_history(channel, limit=5): 
+            # --- تغییر: افزایش limit برای بررسی پیام‌های بیشتر (500 پیام آخر) ---
+            message_count = 0
+            async for message in self.client.get_chat_history(channel, limit=3): 
                 if not message.text:
                     continue
-
-                print(f"DEBUG: Processing message from {channel}: {message.text[:100]}...") # چاپ بخشی از پیام
-                processed_texts = [message.text]
+                message_count += 1
+                
+                # --- تغییر جدید: پاک‌سازی متن پیام ---
+                # حذف کاراکترهای نقل قول (مانند “ و ” و ") و فضاهای اضافی
+                cleaned_text = message.text.replace('“', '').replace('”', '').replace('"', '').strip()
+                print(f"DEBUG: Original message from {channel}: {message.text[:100]}...")
+                print(f"DEBUG: Cleaned message from {channel}: {cleaned_text[:100]}...")
+                processed_texts = [cleaned_text] # استفاده از متن پاک شده
 
                 # --- منطق Base64 Decode فقط برای کانال‌های مشخص شده ---
                 if channel in BASE64_ENCODED_CHANNELS:
-                    base64_matches = BASE64_PATTERN.findall(message.text)
+                    base64_matches = BASE64_PATTERN.findall(cleaned_text) # اعمال روی متن پاک شده
                     # print(f"DEBUG: Found {len(base64_matches)} potential Base64 strings in raw message from {channel}.")
 
                     for b64_str_match in base64_matches:
@@ -553,6 +559,10 @@ class V2RayExtractor:
                                         
                                 except Exception as e:
                                     print(f"❌ Error during parsing/adding: {str(e)} for URL: {config_url[:50]}...")
+            
+            # --- اضافه شدن لاگ برای کانال‌های بدون پیام ---
+            if message_count == 0:
+                print(f"DEBUG: No text messages found in the last 500 messages of channel {channel}.")
 
         except FloodWait as e:
             print(f"⏳ Waiting {e.value} seconds (Telegram limit) for {channel}")
