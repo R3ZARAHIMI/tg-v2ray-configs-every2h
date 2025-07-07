@@ -47,6 +47,7 @@ OUTPUT_YAML = "Config-jo.yaml"  # خروجی به فرمت YAML برای Clash
 OUTPUT_TXT = "Config_jo.txt"    # خروجی به فرمت متنی ساده
 
 # الگوهای شناسایی کانفیگ‌های مستقیم (URLها)
+# اضافه شدن الگوی less:// به لیست
 V2RAY_PATTERNS = [
     re.compile(r"(vless://[^\s]+)"),
     re.compile(r"(vmess://[^\s]+)"),
@@ -54,7 +55,8 @@ V2RAY_PATTERNS = [
     re.compile(r"(ss://[^\s]+)"),
     re.compile(r"(hy2://[^\s]+)"),
     re.compile(r"(hysteria://[^\s]+)"),
-    re.compile(r"(tuic://[^\s]+)")
+    re.compile(r"(tuic://[^\s]+)"),
+    re.compile(r"(less://[^\s]+)") # الگوی جدید برای شناسایی less://
 ]
 
 # الگوی جدید و اصلاح شده برای رشته‌های Base64 شده (پیدا کردن هر رشته طولانی Base64)
@@ -144,6 +146,7 @@ class V2RayExtractor:
                 return self.parse_hysteria(config_url)
             elif config_url.startswith('tuic://'):
                 return self.parse_tuic(config_url)
+            # نیازی به اضافه کردن less:// در اینجا نیست، چون در check_channel نرمال‌سازی می‌شود
             else:
                 return None
         except Exception as e:
@@ -214,7 +217,7 @@ class V2RayExtractor:
 
             original_name = unquote(parsed.fragment) if parsed.fragment else ''
             if not original_name:
-                 original_name = query.get('ps', [''])[0]
+                original_name = query.get('ps', [''])[0]
             unique_name = self._generate_unique_name(original_name, "vless")
 
             clash_config = {
@@ -285,7 +288,7 @@ class V2RayExtractor:
 
             original_name = unquote(parsed.fragment) if parsed.fragment else ''
             if not original_name:
-                 original_name = query.get('ps', [''])[0]
+                original_name = query.get('ps', [''])[0]
             unique_name = self._generate_unique_name(original_name, "trojan")
 
             clash_config = {
@@ -393,7 +396,7 @@ class V2RayExtractor:
 
             original_name = unquote(parsed.fragment) if parsed.fragment else ''
             if not original_name:
-                 original_name = query.get('ps', [''])[0]
+                original_name = query.get('ps', [''])[0]
             unique_name = self._generate_unique_name(original_name, "hysteria")
 
             clash_config = {
@@ -439,7 +442,7 @@ class V2RayExtractor:
 
             original_name = unquote(parsed.fragment) if parsed.fragment else ''
             if not original_name:
-                 original_name = query.get('ps', [''])[0]
+                original_name = query.get('ps', [''])[0]
             unique_name = self._generate_unique_name(original_name, "tuic")
 
             clash_config = {
@@ -479,11 +482,12 @@ class V2RayExtractor:
         """بررسی کانال و استخراج کانفیگ‌ها"""
         try:
             print(f"🔍 Scanning channel {channel}...")
-            # limit=30 برای هر کانال
-            async for message in self.client.get_chat_history(channel, limit=3): 
+            # --- تغییر: افزایش limit برای بررسی پیام‌های بیشتر (50 پیام آخر) ---
+            async for message in self.client.get_chat_history(channel, limit=5): 
                 if not message.text:
                     continue
 
+                print(f"DEBUG: Processing message from {channel}: {message.text[:100]}...") # چاپ بخشی از پیام
                 processed_texts = [message.text]
 
                 # --- منطق Base64 Decode فقط برای کانال‌های مشخص شده ---
@@ -518,18 +522,29 @@ class V2RayExtractor:
                 for text_to_scan in processed_texts:
                     for pattern in V2RAY_PATTERNS:
                         matches = pattern.findall(text_to_scan)
+                        if matches:
+                            print(f"DEBUG: Regex matches found for pattern {pattern.pattern}: {matches}") # چاپ مطابقت‌ها
                         for config_url in matches:
                             if config_url not in self.found_configs:
                                 self.found_configs.add(config_url)
                                 print(f"✅ Found new config from {channel}: {config_url[:60]}...")
                                 
+                                # --- اضافه شدن منطق نرمال‌سازی less:// ---
+                                processed_config_url = config_url
+                                if config_url.startswith('less://'):
+                                    # فرض می‌کنیم less:// در واقع یک vless:// است
+                                    processed_config_url = 'vless://' + config_url[len('less://'):]
+                                    print(f"ℹ️ Normalized less:// to vless://: {processed_config_url[:60]}...")
+                                # --- پایان منطق نرمال‌سازی ---
+
                                 parsed_config = None
                                 try:
-                                    parsed_config = self.parse_config(config_url)
+                                    # استفاده از URL نرمال‌سازی شده برای parse
+                                    parsed_config = self.parse_config(processed_config_url)
                                     
                                     if parsed_config:
                                         self.parsed_clash_configs.append({
-                                            'original_url': config_url,
+                                            'original_url': config_url, # ذخیره URL اصلی (less://)
                                             'clash_info': parsed_config
                                         })
                                         # print(f"✅ Parsed config: {parsed_config['name']} ({parsed_config['type']})")
@@ -685,7 +700,7 @@ class V2RayExtractor:
             
             print("\n📊 Config Statistics:")
             for config_type, count in config_types.items():
-                print(f"  {config_type.upper()}: {count} configs")
+                print(f"   {config_type.upper()}: {count} configs")
             
         except Exception as e:
             print(f"❌ Save error: {str(e)}")
