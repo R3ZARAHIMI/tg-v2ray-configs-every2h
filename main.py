@@ -619,6 +619,27 @@ class V2RayExtractor:
             print(f"❌ General error in {channel}: {str(e)}")
 
     async def extract_configs(self):
+        """استخراج کانفیگ‌ها از کانال‌ها (با اجرای سریالی و پایدار)"""
+        print("🔗 Connecting to Telegram...")
+        try:
+            async with self.client:
+                print("✅ Connected successfully")
+
+                # --- بخش اصلاح شده ---
+                # به جای اجرای همزمان، کانال‌ها را یکی یکی بررسی می‌کنیم
+                print("🔄 Starting to scan channels sequentially...")
+                for channel in ALL_CHANNELS:
+                    await self.check_channel(channel)
+                # --- پایان بخش اصلاح شده ---
+                
+                print("\n🧹 Cleaning invalid configs...")
+                self.clean_invalid_configs()
+                
+        except Exception as e:
+            print(f"🔴 Connection error: {str(e)}")
+            self.found_configs.clear()
+            self.parsed_clash_configs.clear()
+        
         """استخراج کانفیگ‌ها از کانال‌ها"""
         print("🔗 Connecting to Telegram...")
         try:
