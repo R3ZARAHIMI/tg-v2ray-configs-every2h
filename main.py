@@ -29,7 +29,8 @@ NORMAL_CHANNELS = [
     "@vpns",
     "@Capoit",
     "@mrsoulh",
-    "@sezar_sec"
+    "@sezar_sec",
+    "@Fr33C0nfig",
 ]
 
 # کانال‌هایی که کانفیگ‌ها را به صورت Base64 شده ارسال می‌کنند
@@ -479,7 +480,7 @@ class V2RayExtractor:
         try:
             print(f"🔍 Scanning channel {channel}...")
             # limit=30 برای هر کانال
-            async for message in self.client.get_chat_history(channel, limit=8): 
+            async for message in self.client.get_chat_history(channel, limit=3): 
                 if not message.text:
                     continue
 
