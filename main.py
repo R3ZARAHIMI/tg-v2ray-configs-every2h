@@ -476,6 +476,81 @@ class V2RayExtractor:
         self.parsed_clash_configs = valid_configs
 
     async def check_channel(self, channel):
+        """بررسی کانال و استخراج کانفیگ‌ها (نهایی: پشتیبانی از دکمه و Base64 چند خطی)"""
+        try:
+            print(f"🔍 Scanning channel {channel}...")
+            async for message in self.client.get_chat_history(channel, limit=100):
+                
+                # ۱. تمام متون ممکن را از پیام استخراج می‌کنیم (شامل لینک دکمه‌ها)
+                raw_texts = []
+                if message.text:
+                    raw_texts.append(message.text)
+                if message.caption:
+                    raw_texts.append(message.caption)
+                if message.reply_markup and hasattr(message.reply_markup, 'inline_keyboard'):
+                    for row in message.reply_markup.inline_keyboard:
+                        for button in row:
+                            if button.url:
+                                raw_texts.append(button.url)
+
+                if not raw_texts:
+                    continue
+
+                # ۲. هر متن خام استخراج شده را پردازش می‌کنیم
+                for text_block in raw_texts:
+                    
+                    # لیستی برای نگهداری کانفیگ‌های نهایی جهت بررسی
+                    final_configs_to_check = []
+
+                    # ۳. اگر کانال از نوع Base64 بود، متن را دیکد می‌کنیم
+                    if channel in BASE64_ENCODED_CHANNELS:
+                        b64_matches = BASE64_PATTERN.findall(text_block)
+                        for b64_str in b64_matches:
+                            try:
+                                # افزودن padding در صورت نیاز
+                                b64_str = b64_str.strip()
+                                padding = len(b64_str) % 4
+                                if padding:
+                                    b64_str += '=' * (4 - padding)
+                                
+                                decoded_text = base64.b64decode(b64_str).decode('utf-8', errors='ignore')
+                                # مهم: متن دیکد شده را خط به خط به لیست اضافه می‌کنیم
+                                final_configs_to_check.extend(decoded_text.splitlines())
+                            except Exception:
+                                # اگر دیکد ناموفق بود، شاید خود متن اصلی یک کانفیگ باشد
+                                final_configs_to_check.append(b64_str)
+                    else:
+                        # برای کانال‌های عادی، خود متن را به لیست اضافه می‌کنیم
+                        final_configs_to_check.append(text_block)
+
+                    # ۴. در نهایت، هر خط را برای یافتن الگوهای کانفیگ بررسی می‌کنیم
+                    for config_line in final_configs_to_check:
+                        if not config_line.strip():
+                            continue
+                        for pattern in V2RAY_PATTERNS:
+                            matches = pattern.findall(config_line)
+                            for config_url in matches:
+                                if config_url not in self.found_configs:
+                                    self.found_configs.add(config_url)
+                                    print(f"✅ Found new config from {channel}: {config_url[:60]}...")
+                                    
+                                    parsed_config = self.parse_config(config_url)
+                                    if parsed_config:
+                                        self.parsed_clash_configs.append({
+                                            'original_url': config_url,
+                                            'clash_info': parsed_config
+                                        })
+                                    else:
+                                        print(f"❌ Failed to parse config or invalid structure: {config_url[:50]}...")
+
+        except FloodWait as e:
+            print(f"⏳ Waiting {e.value} seconds (Telegram limit) for {channel}")
+            await asyncio.sleep(e.value)
+            await self.check_channel(channel)
+        except RPCError as e:
+            print(f"❌ RPC error in {channel}: {e.MESSAGE} (Code: {e.CODE})")
+        except Exception as e:
+            print(f"❌ General error in {channel}: {str(e)}")
         """بررسی کانال و استخراج کانفیگ‌ها (با پشتیبانی از دکمه‌های شیشه‌ای)"""
         try:
             print(f"🔍 Scanning channel {channel}...")
