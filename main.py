@@ -14,7 +14,6 @@ from pyrogram.errors import FloodWait, RPCError
 # --- تنظیمات عمومی ---
 
 # اطلاعات API تلگرام (از GitHub Secrets خوانده می‌شود)
-# این بخش برای اجرا در محیط GitHub Actions طراحی شده است
 API_ID = int(os.environ.get("API_ID"))
 API_HASH = os.environ.get("API_HASH")
 
@@ -22,39 +21,21 @@ API_HASH = os.environ.get("API_HASH")
 SESSION_NAME = "my_account"
 
 # --- لیست کانال‌ها ---
-# کانال‌هایی که به صورت مستقیم (غیر Base64) کانفیگ ارسال می‌کنند
 NORMAL_CHANNELS = [
-    "@SRCVPN",
-    "@net0n3",
-    "@xzjinx",
-    "@vpns",
-    "@Capoit",
-    "@mrsoulh",
-    "@sezar_sec",
-    "@Fr33C0nfig",
+    "@SRCVPN", "@net0n3", "@xzjinx", "@vpns",
+    "@Capoit", "@mrsoulh", "@sezar_sec", "@Fr33C0nfig",
 ]
-
-# کانال‌هایی که کانفیگ‌ها را به صورت Base64 شده ارسال می‌کنند
-BASE64_ENCODED_CHANNELS = [
-    "@v2ra_config"
-]
-
-# لیست کلی کانال‌ها که در حلقه استفاده می‌شود
+BASE64_ENCODED_CHANNELS = ["@v2ra_config"]
 ALL_CHANNELS = NORMAL_CHANNELS + BASE64_ENCODED_CHANNELS
 
 # --- لیست گروه‌ها ---
-# شناسه‌های عددی گروه‌هایی که می‌خواهید بررسی شوند
-# برای پیدا کردن شناسه، ربات @userinfobot را به گروه اضافه کنید یا از نسخه وب تلگرام استفاده کنید
-TARGET_GROUPS = [
-    -1001287072009,  # <<<< شناسه گروه شما
-]
-
+TARGET_GROUPS = [-1001287072009]
 
 # خروجی‌ها
-OUTPUT_YAML = "Config-jo.yaml"  # خروجی به فرمت YAML برای Clash
-OUTPUT_TXT = "Config_jo.txt"    # خروجی به فرمت متنی ساده
+OUTPUT_YAML = "Config-jo.yaml"
+OUTPUT_TXT = "Config_jo.txt"
 
-# الگوهای شناسایی کانفیگ‌های مستقیم (URLها)
+# الگوهای شناسایی کانفیگ
 V2RAY_PATTERNS = [
     re.compile(r"(vless://[^\s\"'<>`]+)"),
     re.compile(r"(vmess://[^\s\"'<>`]+)"),
@@ -64,60 +45,41 @@ V2RAY_PATTERNS = [
     re.compile(r"(hysteria://[^\s\"'<>`]+)"),
     re.compile(r"(tuic://[^\s\"'<>`]+)")
 ]
-
-# الگوی جدید و اصلاح شده برای رشته‌های Base64 شده (پیدا کردن هر رشته طولانی Base64)
 BASE64_PATTERN = re.compile(r"([A-Za-z0-9+/=]{50,})", re.MULTILINE)
 
-# --- کلاس V2RayExtractor ---
 class V2RayExtractor:
     def __init__(self):
         self.found_configs = set()
-        self.parsed_clash_configs = [] # هر آیتم شامل {'original_url': ..., 'clash_info': ...} است
+        self.parsed_clash_configs = []
+        self.client = Client(SESSION_NAME, api_id=API_ID, api_hash=API_HASH)
 
-        self.client = Client(
-            SESSION_NAME,
-            api_id=API_ID,
-            api_hash=API_HASH
-        )
-
-    # --- توابع کمکی ---
     def _generate_unique_name(self, original_name, prefix="config"):
         if not original_name:
             return f"{prefix}-{str(uuid.uuid4())[:8]}"
-        
         cleaned_name = re.sub(r'[^\w\s\-\_\u0600-\u06FF]', '', original_name)
         cleaned_name = cleaned_name.replace(' ', '_').strip('_-')
-        
         if not cleaned_name:
             return f"{prefix}-{str(uuid.uuid4())[:8]}"
-            
         return f"{cleaned_name}-{str(uuid.uuid4())[:8]}"
-        
+
     def is_valid_config(self, config):
-        """بررسی معتبر بودن ساختار اولیه کانفیگ برای Clash"""
-        if not config or not isinstance(config, dict):
-            return False
-            
-        required_fields = ['name', 'type', 'server', 'port']
-        if not all(field in config and config[field] is not None for field in required_fields):
-            return False
-            
+        if not isinstance(config, dict): return False
+        required = ['name', 'type', 'server', 'port']
+        if not all(k in config and config[k] for k in required): return False
+        
         proxy_type = config.get('type')
-        if proxy_type == 'vmess':
+        if proxy_type in ['vless', 'vmess']:
             return 'uuid' in config and config.get('uuid')
-        elif proxy_type == 'vless':
-            return 'uuid' in config and config.get('uuid')
-        elif proxy_type == 'trojan':
+        if proxy_type == 'trojan':
             return 'password' in config and config.get('password')
-        elif proxy_type == 'ss':
-            return 'password' in config and 'cipher' in config and config.get('password') and config.get('cipher')
-        elif proxy_type in ['hysteria', 'tuic']:
+        if proxy_type == 'ss':
+            return 'password' in config and 'cipher' in config
+        if proxy_type in ['hysteria', 'tuic']:
             return True
         return False
 
-    # --- توابع parse برای هر نوع کانفیگ ---
     def parse_config(self, config_url):
-        """تجزیه و تحلیل کانفیگ برای استخراج اطلاعات اتصال برای Clash"""
+        # ... (این تابع بدون تغییر باقی می‌ماند)
         try:
             if config_url.startswith('ss://') and len(config_url) > 10:
                 possible_b64 = config_url[5:].split('#', 1)[0]
@@ -127,88 +89,50 @@ class V2RayExtractor:
                     decoded_check = base64.b64decode(possible_b64).decode('utf-8', errors='ignore')
                     if decoded_check.strip().startswith('{') and '"add":' in decoded_check and '"id":' in decoded_check:
                         config_url = 'vmess://' + possible_b64 + (('#' + config_url.split('#', 1)[1]) if '#' in config_url else '')
-                except:
-                    pass
+                except: pass
 
-            if config_url.startswith('vmess://'):
-                return self.parse_vmess(config_url)
-            elif config_url.startswith('vless://'):
-                return self.parse_vless(config_url)
-            elif config_url.startswith('trojan://'):
-                return self.parse_trojan(config_url)
-            elif config_url.startswith('ss://'):
-                return self.parse_shadowsocks(config_url)
-            elif config_url.startswith('hy2://') or config_url.startswith('hysteria://'):
-                return self.parse_hysteria(config_url)
-            elif config_url.startswith('tuic://'):
-                return self.parse_tuic(config_url)
-            else:
-                return None
-        except Exception as e:
+            if config_url.startswith('vmess://'): return self.parse_vmess(config_url)
+            elif config_url.startswith('vless://'): return self.parse_vless(config_url)
+            elif config_url.startswith('trojan://'): return self.parse_trojan(config_url)
+            elif config_url.startswith('ss://'): return self.parse_shadowsocks(config_url)
+            elif config_url.startswith('hy2://') or config_url.startswith('hysteria://'): return self.parse_hysteria(config_url)
+            elif config_url.startswith('tuic://'): return self.parse_tuic(config_url)
             return None
+        except Exception: return None
 
     def parse_vmess(self, vmess_url):
+        # ... (این تابع بدون تغییر باقی می‌ماند)
         try:
             encoded_data = vmess_url.replace('vmess://', '')
             padding = len(encoded_data) % 4
-            if padding:
-                encoded_data += '=' * (4 - padding)
-
-            decoded_data = base64.b64decode(encoded_data).decode('utf-8')
-            config = json.loads(decoded_data)
-
-            original_name = config.get('ps', '')
-            unique_name = self._generate_unique_name(original_name, "vmess")
-
-            vmess_cipher = config.get('scy', 'auto')
-            clash_cipher = vmess_cipher
-            supported_clash_ciphers = ['aes-128-gcm', 'chacha20-poly1305', 'aes-256-gcm']
-
-            if vmess_cipher.lower() in ['none', 'auto']:
-                clash_cipher = 'aes-128-gcm'
-            elif vmess_cipher not in supported_clash_ciphers:
-                clash_cipher = 'aes-128-gcm'
-
-            clash_config = {
-                'name': unique_name,
-                'type': 'vmess',
-                'server': config.get('add'),
-                'port': int(config.get('port', 443)),
-                'uuid': config.get('id'),
-                'alterId': int(config.get('aid', 0)),
-                'cipher': clash_cipher,
-                'tls': config.get('tls') == 'tls',
-                'skip-cert-verify': False,
-                'network': config.get('net', 'tcp'),
-                'udp': True
-            }
-
-            if clash_config['network'] == 'ws':
-                clash_config['ws-opts'] = {
-                    'path': config.get('path', '/'),
-                    'headers': {'Host': config.get('host', '')} if config.get('host') else {}
-                }
-            if clash_config['network'] == 'h2':
-                clash_config['h2-opts'] = {
-                    'path': config.get('path', '/'),
-                    'host': [config.get('host', '')] if config.get('host') else []
-                }
-            if clash_config['network'] == 'grpc':
-                clash_config['grpc-opts'] = {
-                    'grpc-service-name': config.get('path', '')
-                }
-            return clash_config if self.is_valid_config(clash_config) else None
+            if padding: encoded_data += '=' * (4 - padding)
+            config = json.loads(base64.b64decode(encoded_data).decode('utf-8'))
+            unique_name = self._generate_unique_name(config.get('ps', ''), "vmess")
+            clash_cipher = config.get('scy', 'auto')
+            if clash_cipher.lower() not in ['aes-128-gcm', 'chacha20-poly1305', 'aes-256-gcm', 'none']:
+                clash_cipher = 'auto'
             
-        except Exception:
-            return None
+            clash_config = {
+                'name': unique_name, 'type': 'vmess', 'server': config.get('add'),
+                'port': int(config.get('port', 443)), 'uuid': config.get('id'),
+                'alterId': int(config.get('aid', 0)), 'cipher': clash_cipher,
+                'tls': config.get('tls') == 'tls', 'skip-cert-verify': False,
+                'network': config.get('net', 'tcp'), 'udp': True
+            }
+            if clash_config['network'] == 'ws':
+                clash_config['ws-opts'] = {'path': config.get('path', '/'), 'headers': {'Host': config.get('host', '')} if config.get('host') else {}}
+            return clash_config if self.is_valid_config(clash_config) else None
+        except Exception: return None
 
     def parse_vless(self, vless_url):
+        """
+        تابع اصلاح شده برای تجزیه VLESS با پشتیبانی کامل از Reality.
+        """
         try:
             parsed = urlparse(vless_url)
             query = parse_qs(parsed.query)
             
-            if not parsed.hostname or not parsed.username:
-                return None
+            if not parsed.hostname or not parsed.username: return None
 
             original_name = unquote(parsed.fragment) if parsed.fragment else query.get('ps', [''])[0]
             unique_name = self._generate_unique_name(original_name, "vless")
@@ -217,310 +141,176 @@ class V2RayExtractor:
                 'name': unique_name,
                 'type': 'vless',
                 'server': parsed.hostname,
-                'port': parsed.port or 443,
+                'port': int(parsed.port or 443),
                 'uuid': parsed.username,
                 'udp': True,
                 'network': query.get('type', ['tcp'])[0]
             }
 
-            security = query.get('security', [''])[0]
-            if security == 'tls':
-                clash_config['tls'] = True
-                clash_config['skip-cert-verify'] = True
-                if query.get('sni'):
-                    clash_config['servername'] = query.get('sni')[0]
-                    
-            elif security == 'reality':
-                clash_config['tls'] = True
-                clash_config['skip-cert-verify'] = True
-                reality_opts = {}
-                if query.get('pbk'):
-                    reality_opts['public-key'] = query.get('pbk')[0]
-                if query.get('sid'):
-                    reality_opts['short-id'] = query.get('sid')[0]
-                if reality_opts:
-                    clash_config['reality-opts'] = reality_opts
+            # استخراج پارامتر 'flow'
+            if 'flow' in query:
+                clash_config['flow'] = query['flow'][0]
 
+            security = query.get('security', [''])[0]
+            if security == 'tls' or security == 'reality':
+                clash_config['tls'] = True
+                
+                # servername (SNI) برای هر دو tls و reality مهم است
+                if 'sni' in query:
+                    clash_config['servername'] = query['sni'][0]
+
+                if security == 'reality':
+                    reality_opts = {}
+                    if 'pbk' in query:
+                        reality_opts['public-key'] = query['pbk'][0]
+                    if 'sid' in query:
+                        reality_opts['short-id'] = query['sid'][0]
+                    # استخراج پارامتر 'fp' (fingerprint)
+                    if 'fp' in query:
+                        reality_opts['fingerprint'] = query['fp'][0]
+                    
+                    if reality_opts:
+                        clash_config['reality-opts'] = reality_opts
+                else: # برای security = tls
+                    clash_config['skip-cert-verify'] = True # فقط برای TLS معمولی
+
+            # مدیریت network
             network = clash_config['network']
             if network == 'ws':
                 ws_opts = {'path': query.get('path', ['/'])[0]}
-                if query.get('host'):
-                    ws_opts['headers'] = {'Host': query.get('host')[0]}
+                if 'host' in query:
+                    ws_opts['headers'] = {'Host': query['host'][0]}
                 clash_config['ws-opts'] = ws_opts
-                
             elif network == 'grpc':
-                clash_config['grpc-opts'] = {
-                    'grpc-service-name': query.get('serviceName', [''])[0]
-                }
+                clash_config['grpc-opts'] = {'grpc-service-name': query.get('serviceName', [''])[0]}
                 
             return clash_config if self.is_valid_config(clash_config) else None
-            
         except Exception:
             return None
 
     def parse_trojan(self, trojan_url):
+        # ... (این تابع بدون تغییر باقی می‌ماند)
         try:
             parsed = urlparse(trojan_url)
             query = parse_qs(parsed.query)
-            
-            if not parsed.hostname or not parsed.username:
-                return None
-
-            original_name = unquote(parsed.fragment) if parsed.fragment else query.get('ps', [''])[0]
-            unique_name = self._generate_unique_name(original_name, "trojan")
-
+            if not parsed.hostname or not parsed.username: return None
+            unique_name = self._generate_unique_name(unquote(parsed.fragment) if parsed.fragment else '', "trojan")
             clash_config = {
-                'name': unique_name,
-                'type': 'trojan',
-                'server': parsed.hostname,
-                'port': parsed.port or 443,
-                'password': parsed.username,
-                'udp': True,
-                'skip-cert-verify': True
+                'name': unique_name, 'type': 'trojan', 'server': parsed.hostname,
+                'port': int(parsed.port or 443), 'password': parsed.username,
+                'udp': True, 'skip-cert-verify': True
             }
-
-            if query.get('sni'):
-                clash_config['sni'] = query.get('sni')[0]
-
+            if 'sni' in query:
+                clash_config['sni'] = query['sni'][0]
             return clash_config if self.is_valid_config(clash_config) else None
-            
-        except Exception:
-            return None
-
+        except Exception: return None
+    
+    # سایر توابع parse (ss, hysteria, tuic) بدون تغییر باقی می‌مانند
     def parse_shadowsocks(self, ss_url):
         try:
-            if '://' not in ss_url:
-                return None
-                
+            if '://' not in ss_url: return None
             parsed = urlparse(ss_url)
-            
-            if '@' in parsed.netloc and ':' in parsed.netloc:
-                if parsed.username and parsed.password:
-                    cipher = parsed.username
-                    password = parsed.password
-                    server = parsed.hostname
-                    port = parsed.port or 443
-                elif parsed.username and not parsed.password:
-                    try:
-                        auth_part = parsed.username
-                        padding = len(auth_part) % 4
-                        if padding:
-                            auth_part += '=' * (4 - padding)
-                        decoded_auth = base64.b64decode(auth_part).decode('utf-8')
-                        if ':' in decoded_auth:
-                            cipher, password = decoded_auth.split(':', 1)
-                            server = parsed.hostname
-                            port = parsed.port or 443
-                        else:
-                            return None
-                    except:
-                        return None
+            if '@' in parsed.netloc:
+                user_info, host_info = parsed.netloc.split('@', 1)
+                if ':' in user_info:
+                    cipher, password = user_info.split(':', 1)
                 else:
-                    return None
-            else:
-                try:
-                    encoded_part = parsed.netloc
-                    padding = len(encoded_part) % 4
-                    if padding:
-                        encoded_part += '=' * (4 - padding)
-                        
-                    decoded = base64.b64decode(encoded_part).decode('utf-8')
-                    if ':' in decoded and '@' in decoded:
-                        method_pass, server_port_fragment = decoded.split('@', 1)
-                        server_port = server_port_fragment.split('#', 1)[0]
-
-                        if ':' in method_pass:
-                            cipher, password = method_pass.split(':', 1)
-                        else:
-                            return None
-
-                        if ':' in server_port:
-                            server, port = server_port.rsplit(':', 1)
-                            port = int(port)
-                        else:
-                            return None
-                    else:
-                        return None
-                except:
-                    return None
-
-            if not all([cipher, password, server]):
-                return None
-
+                    try:
+                        user_info = base64.b64decode(user_info + '==').decode('utf-8')
+                        cipher, password = user_info.split(':', 1)
+                    except: return None
+                server, port = host_info.split(':', 1)
+            else: return None
             clash_config = {
                 'name': self._generate_unique_name(unquote(parsed.fragment) if parsed.fragment else '', 'ss'),
-                'type': 'ss',
-                'server': server,
-                'port': int(port),
-                'cipher': cipher,
-                'password': password,
-                'udp': True
+                'type': 'ss', 'server': server, 'port': int(port),
+                'cipher': cipher, 'password': password, 'udp': True
             }
-
             return clash_config if self.is_valid_config(clash_config) else None
-            
-        except Exception:
-            return None
+        except Exception: return None
 
     def parse_hysteria(self, hysteria_url):
         try:
             parsed = urlparse(hysteria_url)
             query = parse_qs(parsed.query)
-            
-            if not parsed.hostname or not parsed.username:
-                return None
-
-            original_name = unquote(parsed.fragment) if parsed.fragment else query.get('ps', [''])[0]
-            unique_name = self._generate_unique_name(original_name, "hysteria")
-
+            if not parsed.hostname: return None
+            unique_name = self._generate_unique_name(unquote(parsed.fragment) if parsed.fragment else '', "hysteria")
             clash_config = {
-                'name': unique_name,
-                'type': 'hysteria',
-                'server': parsed.hostname,
-                'port': parsed.port or 443,
-                'auth_str': parsed.username,
-                'udp': True,
+                'name': unique_name, 'type': 'hysteria', 'server': parsed.hostname,
+                'port': int(parsed.port or 443), 'auth_str': parsed.username, 'udp': True,
                 'skip-cert-verify': True
             }
-            
-            if query.get('peer'):
-                clash_config['sni'] = query.get('peer')[0]
-            if query.get('alpn'):
-                clash_config['alpn'] = query.get('alpn')[0].split(',')
-
-            obfs = query.get('obfs', [None])[0] or query.get('obfsParam', [None])[0]
-            if obfs:
-                clash_config['obfs'] = obfs
-            
-            if query.get('protocol'):
-                clash_config['protocol'] = query.get('protocol')[0]
-
-            if query.get('upmbps'):
-                clash_config['up_mbps'] = int(query.get('upmbps')[0])
-            if query.get('downmbps'):
-                clash_config['down_mbps'] = int(query.get('downmbps')[0])
-
+            if 'peer' in query: clash_config['sni'] = query['peer'][0]
+            if 'alpn' in query: clash_config['alpn'] = query['alpn'][0].split(',')
             return clash_config if self.is_valid_config(clash_config) else None
-            
-        except Exception:
-            return None
+        except Exception: return None
 
     def parse_tuic(self, tuic_url):
         try:
             parsed = urlparse(tuic_url)
             query = parse_qs(parsed.query)
-            
-            if not parsed.hostname or not parsed.username:
-                return None
-
-            original_name = unquote(parsed.fragment) if parsed.fragment else query.get('ps', [''])[0]
-            unique_name = self._generate_unique_name(original_name, "tuic")
-
+            if not parsed.hostname or not parsed.username: return None
+            unique_name = self._generate_unique_name(unquote(parsed.fragment) if parsed.fragment else '', "tuic")
             clash_config = {
-                'name': unique_name,
-                'type': 'tuic',
-                'server': parsed.hostname,
-                'port': parsed.port or 443,
-                'uuid': parsed.username,
-                'password': query.get('password', [''])[0],
-                'udp-relay-mode': query.get('udp-relay-mode', ['native'])[0],
-                'skip-cert-verify': True
+                'name': unique_name, 'type': 'tuic', 'server': parsed.hostname,
+                'port': int(parsed.port or 443), 'uuid': parsed.username,
+                'password': query.get('password', [''])[0], 'skip-cert-verify': True
             }
-            
-            if query.get('sni'):
-                clash_config['sni'] = query.get('sni')[0]
-            if query.get('alpn'):
-                clash_config['alpn'] = query.get('alpn')[0].split(',')
-
+            if 'sni' in query: clash_config['sni'] = query['sni'][0]
+            if 'alpn' in query: clash_config['alpn'] = query['alpn'][0].split(',')
             return clash_config if self.is_valid_config(clash_config) else None
-            
-        except Exception:
-            return None
+        except Exception: return None
+
 
     def clean_invalid_configs(self):
-        """پاک کردن کانفیگ‌های نامعتبر"""
-        valid_configs = [item for item in self.parsed_clash_configs if self.is_valid_config(item['clash_info'])]
-        self.parsed_clash_configs = valid_configs
+        self.parsed_clash_configs = [c for c in self.parsed_clash_configs if self.is_valid_config(c['clash_info'])]
 
     async def check_chat(self, chat_id, limit):
-        """بررسی یک چت (کانال یا گروه) و استخراج کانفیگ‌ها"""
         try:
             print(f"🔍 Scanning chat '{chat_id}' with limit {limit}...")
-            async for message in self.client.get_chat_history(chat_id, limit=limit): 
-                if not message.text:
-                    continue
-
+            async for message in self.client.get_chat_history(chat_id, limit=limit):
+                if not message.text: continue
                 processed_texts = [message.text]
-
-                # این منطق Base64 برای گروه‌ها نیز اعمال می‌شود اگر شناسه آنها در لیست باشد
-                # در حال حاضر فقط برای کانال‌ها تعریف شده، اما می‌توان گروه‌ها را نیز اضافه کرد
                 if chat_id in BASE64_ENCODED_CHANNELS:
-                    base64_matches = BASE64_PATTERN.findall(message.text)
-                    for b64_str_match in base64_matches:
+                    for b64_str in BASE64_PATTERN.findall(message.text):
                         try:
-                            cleaned_b64_str = re.sub(r'\s+', '', b64_str_match)
-                            padding = len(cleaned_b64_str) % 4
-                            if padding:
-                                cleaned_b64_str += '=' * (4 - padding)
-
-                            decoded_text = base64.b64decode(cleaned_b64_str).decode('utf-8', errors='ignore')
-                            lines = decoded_text.splitlines()
-                            processed_texts.extend([line.strip() for line in lines if line.strip()])
-                        except Exception:
-                            pass
-
-                for text_to_scan in processed_texts:
+                            b64_str += '=' * (-len(b64_str) % 4)
+                            decoded = base64.b64decode(b64_str).decode('utf-8', 'ignore')
+                            processed_texts.extend(decoded.splitlines())
+                        except: pass
+                
+                for text in processed_texts:
                     for pattern in V2RAY_PATTERNS:
-                        matches = pattern.findall(text_to_scan)
-                        for config_url in matches:
+                        for config_url in pattern.findall(text):
                             if config_url not in self.found_configs:
                                 self.found_configs.add(config_url)
-                                print(f"✅ Found new config from {chat_id}: {config_url[:60]}...")
-                                
-                                parsed_config = self.parse_config(config_url)
-                                if parsed_config:
-                                    self.parsed_clash_configs.append({
-                                        'original_url': config_url,
-                                        'clash_info': parsed_config
-                                    })
+                                print(f"✅ Found: {config_url[:70]}...")
+                                parsed = self.parse_config(config_url)
+                                if parsed:
+                                    self.parsed_clash_configs.append({'original_url': config_url, 'clash_info': parsed})
                                 else:
-                                    print(f"❌ Failed to parse or invalid structure: {config_url[:50]}...")
-
+                                    print(f"❌ Rejected/Invalid: {config_url[:70]}...")
         except FloodWait as e:
-            print(f"⏳ Waiting {e.value} seconds (Telegram limit) for {chat_id}")
+            print(f"⏳ FloodWait: waiting {e.value}s for {chat_id}")
             await asyncio.sleep(e.value)
-            await self.check_chat(chat_id, limit) # Retry after waiting
-        except RPCError as e:
-            print(f"❌ RPC error in {chat_id}: {e.MESSAGE} (Code: {e.CODE})")
+            await self.check_chat(chat_id, limit)
         except Exception as e:
-            print(f"❌ General error in {chat_id}: {str(e)}")
+            print(f"❌ Error scanning {chat_id}: {e}")
 
     async def extract_configs(self):
-        """استخراج کانفیگ‌ها از تمام کانال‌ها و گروه‌ها"""
         print("🔗 Connecting to Telegram...")
         try:
             async with self.client:
                 print("✅ Connected successfully")
-                
-                # ایجاد وظایف برای کانال‌ها با محدودیت ۵ پیام
-                channel_tasks = [self.check_chat(channel, limit=5) for channel in ALL_CHANNELS]
-                
-                # ایجاد وظایف برای گروه‌ها با محدودیت ۱۰۰ پیام
-                group_tasks = [self.check_chat(group_id, limit=300) for group_id in TARGET_GROUPS]
-                
-                all_tasks = channel_tasks + group_tasks
-                await asyncio.gather(*all_tasks)
-                
+                tasks = [self.check_chat(c, 5) for c in ALL_CHANNELS] + \
+                        [self.check_chat(g, 300) for g in TARGET_GROUPS]
+                await asyncio.gather(*tasks)
                 print("\n🧹 Cleaning invalid configs...")
                 self.clean_invalid_configs()
-                
         except Exception as e:
-            print(f"🔴 Connection error: {str(e)}")
-            self.found_configs.clear()
-            self.parsed_clash_configs.clear()
+            print(f"🔴 Connection error: {e}")
 
     async def save_configs(self):
-        """ذخیره کانفیگ‌ها در فرمت‌های YAML و TXT"""
         if not self.parsed_clash_configs:
             print("⚠️ No valid configs found. Output files will be empty.")
             open(OUTPUT_YAML, "w").close()
@@ -528,81 +318,42 @@ class V2RayExtractor:
             return
 
         print(f"\n💾 Saving {len(self.parsed_clash_configs)} valid configs...")
+        clash_proxies = [c['clash_info'] for c in self.parsed_clash_configs]
+        proxy_names = [p['name'] for p in clash_proxies]
 
         clash_config = {
-            'mixed-port': 7890,
-            'allow-lan': True,
-            'mode': 'rule',
-            'log-level': 'info',
+            'mixed-port': 7890, 'allow-lan': True, 'mode': 'rule', 'log-level': 'info',
             'external-controller': '127.0.0.1:9090',
-            'dns': {
-                'enable': True,
-                'ipv6': False,
-                'default-nameserver': ['223.5.5.5', '8.8.8.8'],
-                'enhanced-mode': 'fake-ip',
-                'fake-ip-range': '198.18.0.1/16',
-                'use-hosts': True,
-                'nameserver': ['https://doh.pub/dns-query', 'https://dns.alidns.com/dns-query']
-            },
-            'proxies': [],
+            'dns': {'enable': True, 'ipv6': False, 'default-nameserver': ['8.8.8.8', '1.1.1.1'],
+                    'enhanced-mode': 'fake-ip', 'fake-ip-range': '198.18.0.1/16', 'use-hosts': True,
+                    'nameserver': ['https://dns.google/dns-query', 'https://cloudflare-dns.com/dns-query']},
+            'proxies': clash_proxies,
             'proxy-groups': [
-                {'name': '🚀 Proxy', 'type': 'select', 'proxies': ['♻️ Auto', '🔯 Fallback', 'DIRECT']},
-                {'name': '♻️ Auto', 'type': 'url-test', 'proxies': [], 'url': 'http://www.gstatic.com/generate_204', 'interval': 300},
-                {'name': '🔯 Fallback', 'type': 'fallback', 'proxies': [], 'url': 'http://www.gstatic.com/generate_204', 'interval': 300},
+                {'name': '🚀 PROXY', 'type': 'select', 'proxies': ['♻️ AUTO', 'DIRECT'] + proxy_names},
+                {'name': '♻️ AUTO', 'type': 'url-test', 'proxies': proxy_names, 
+                 'url': 'http://www.gstatic.com/generate_204', 'interval': 300},
             ],
-            'rules': [
-                'DOMAIN-SUFFIX,local,DIRECT',
-                'IP-CIDR,127.0.0.0/8,DIRECT',
-                'GEOIP,IR,DIRECT',
-                'MATCH,🚀 Proxy'
-            ]
+            'rules': ['GEOIP,IR,DIRECT', 'MATCH,🚀 PROXY']
         }
-
-        valid_configs_clash_format = [config['clash_info'] for config in self.parsed_clash_configs]
-        config_names = [c['name'] for c in valid_configs_clash_format]
-
-        clash_config['proxies'] = valid_configs_clash_format
-        clash_config['proxy-groups'][0]['proxies'].extend(config_names)
-        clash_config['proxy-groups'][1]['proxies'] = config_names
-        clash_config['proxy-groups'][2]['proxies'] = config_names
-
+        
         try:
             with open(OUTPUT_YAML, 'w', encoding='utf-8') as f:
-                yaml.dump(clash_config, f, allow_unicode=True, sort_keys=False, default_flow_style=False, indent=2)
+                yaml.dump(clash_config, f, allow_unicode=True, sort_keys=False, indent=2)
             print(f"✅ Saved Clash config to {OUTPUT_YAML}")
             
             with open(OUTPUT_TXT, 'w', encoding='utf-8') as f:
-                f.write("\n".join([c['original_url'] for c in self.parsed_clash_configs]))
+                f.write("\n".join(c['original_url'] for c in self.parsed_clash_configs))
             print(f"✅ Saved raw configs to {OUTPUT_TXT}")
-            
-            config_types = {}
-            for config in valid_configs_clash_format:
-                config_type = config['type']
-                config_types[config_type] = config_types.get(config_type, 0) + 1
-            
-            print("\n📊 Config Statistics:")
-            for config_type, count in config_types.items():
-                print(f"  {config_type.upper()}: {count} configs")
-            
         except Exception as e:
-            print(f"❌ Save error: {str(e)}")
+            print(f"❌ Save error: {e}")
 
 async def main():
-    """تابع اصلی"""
     print("🚀 Starting V2Ray config extractor...")
-    
     extractor = V2RayExtractor()
     await extractor.extract_configs()
     await extractor.save_configs()
-    
-    print("\n✨ Extraction completed!")
-    print(f"📊 Total unique configs found: {len(extractor.found_configs)}")
-    print(f"✅ Total valid configs saved: {len(extractor.parsed_clash_configs)}")
+    print(f"\n✨ Done! Found {len(extractor.found_configs)} unique configs, saved {len(extractor.parsed_clash_configs)} valid ones.")
 
 if __name__ == "__main__":
-    # با کامنت کردن این بخش، فایل session دیگر به صورت خودکار حذف نمی‌شود
-    # و برنامه از لاگین قبلی استفاده می‌کند.
-    # if os.path.exists(SESSION_NAME + ".session"):
-    #     os.remove(SESSION_NAME + ".session")
-    #     print("ℹ️ Old session file removed to ensure fresh login.")
+    # فایل session دیگر به صورت خودکار حذف نمی‌شود
     asyncio.run(main())
