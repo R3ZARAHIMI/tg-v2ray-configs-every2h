@@ -196,6 +196,19 @@ class V2RayExtractor:
             query = parse_qs(parsed.query)
             if not parsed.hostname or not parsed.username:
                 return None
+
+            # --- تغییر کلیدی: اعتبارسنجی فرمت UUID ---
+            # در کانفیگ VLESS، بخش username باید یک UUID معتبر باشد.
+            try:
+                # این دستور اگر فرمت اشتباه باشد خطا (ValueError) می‌دهد.
+                uuid.UUID(parsed.username)
+            except ValueError:
+                # اگر معتبر نبود، کانفیگ برای Clash نامعتبر است.
+                # یک هشدار چاپ کرده و از این کانفیگ صرف نظر می‌کنیم.
+                print(f"⚠️ Skipping invalid VLESS config: 'username' part is not a valid UUID. URL: {vless_url[:70]}...")
+                return None
+            # --- پایان تغییر ---
+
             original_name = unquote(parsed.fragment) if parsed.fragment else query.get('ps', [''])[0]
             unique_name = self._generate_unique_name(original_name, "vless")
             clash_config = {
@@ -410,7 +423,7 @@ class V2RayExtractor:
         """بررسی کانال و استخراج کانفیگ‌ها"""
         try:
             print(f"🔍 Scanning channel {channel}...")
-            async for message in self.client.get_chat_history(channel, limit=5): 
+            async for message in self.client.get_chat_history(channel, limit=30): 
                 if not message.text:
                     continue
                 
