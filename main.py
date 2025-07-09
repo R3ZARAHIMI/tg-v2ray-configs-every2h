@@ -73,14 +73,21 @@ class V2RayExtractor:
         if proxy_type == 'trojan':
             return 'password' in config and config.get('password')
         if proxy_type == 'ss':
-            return 'password' in config and 'cipher' in config
+            return 'password' in config and 'cipher' in config and config.get('password') and config.get('cipher')
         if proxy_type in ['hysteria', 'tuic']:
             return True
         return False
 
     def parse_config(self, config_url):
-        # ... (این تابع بدون تغییر باقی می‌ماند)
+        """
+        تابع اصلی تجزیه کانفیگ با پیش-بررسی برای لینک های معیوب.
+        """
         try:
+            # بهبود: پیش-بررسی برای رد کردن لینک‌های ss:// که مشخصا معیوب هستند
+            if config_url.startswith('ss://') and ('security=' in config_url or 'type=' in config_url or 'flow=' in config_url):
+                return None # اینها پارامترهای VLESS هستند و لینک SS را نامعتبر می‌کنند. بصورت خاموش رد می‌شود.
+
+            # بررسی برای vmess که به اشتباه با ss:// شروع شده
             if config_url.startswith('ss://') and len(config_url) > 10:
                 possible_b64 = config_url[5:].split('#', 1)[0]
                 if len(possible_b64) % 4 != 0:
@@ -101,7 +108,6 @@ class V2RayExtractor:
         except Exception: return None
 
     def parse_vmess(self, vmess_url):
-        # ... (این تابع بدون تغییر باقی می‌ماند)
         try:
             encoded_data = vmess_url.replace('vmess://', '')
             padding = len(encoded_data) % 4
@@ -125,9 +131,6 @@ class V2RayExtractor:
         except Exception: return None
 
     def parse_vless(self, vless_url):
-        """
-        تابع اصلاح شده برای تجزیه VLESS با پشتیبانی کامل از Reality.
-        """
         try:
             parsed = urlparse(vless_url)
             query = parse_qs(parsed.query)
@@ -147,7 +150,6 @@ class V2RayExtractor:
                 'network': query.get('type', ['tcp'])[0]
             }
 
-            # استخراج پارامتر 'flow'
             if 'flow' in query:
                 clash_config['flow'] = query['flow'][0]
 
@@ -155,31 +157,22 @@ class V2RayExtractor:
             if security == 'tls' or security == 'reality':
                 clash_config['tls'] = True
                 
-                # servername (SNI) برای هر دو tls و reality مهم است
                 if 'sni' in query:
                     clash_config['servername'] = query['sni'][0]
 
                 if security == 'reality':
                     reality_opts = {}
-                    if 'pbk' in query:
-                        reality_opts['public-key'] = query['pbk'][0]
-                    if 'sid' in query:
-                        reality_opts['short-id'] = query['sid'][0]
-                    # استخراج پارامتر 'fp' (fingerprint)
-                    if 'fp' in query:
-                        reality_opts['fingerprint'] = query['fp'][0]
-                    
-                    if reality_opts:
-                        clash_config['reality-opts'] = reality_opts
-                else: # برای security = tls
-                    clash_config['skip-cert-verify'] = True # فقط برای TLS معمولی
+                    if 'pbk' in query: reality_opts['public-key'] = query['pbk'][0]
+                    if 'sid' in query: reality_opts['short-id'] = query['sid'][0]
+                    if 'fp' in query: reality_opts['fingerprint'] = query['fp'][0]
+                    if reality_opts: clash_config['reality-opts'] = reality_opts
+                else:
+                    clash_config['skip-cert-verify'] = True
 
-            # مدیریت network
             network = clash_config['network']
             if network == 'ws':
                 ws_opts = {'path': query.get('path', ['/'])[0]}
-                if 'host' in query:
-                    ws_opts['headers'] = {'Host': query['host'][0]}
+                if 'host' in query: ws_opts['headers'] = {'Host': query['host'][0]}
                 clash_config['ws-opts'] = ws_opts
             elif network == 'grpc':
                 clash_config['grpc-opts'] = {'grpc-service-name': query.get('serviceName', [''])[0]}
@@ -189,7 +182,6 @@ class V2RayExtractor:
             return None
 
     def parse_trojan(self, trojan_url):
-        # ... (این تابع بدون تغییر باقی می‌ماند)
         try:
             parsed = urlparse(trojan_url)
             query = parse_qs(parsed.query)
@@ -205,22 +197,45 @@ class V2RayExtractor:
             return clash_config if self.is_valid_config(clash_config) else None
         except Exception: return None
     
-    # سایر توابع parse (ss, hysteria, tuic) بدون تغییر باقی می‌مانند
     def parse_shadowsocks(self, ss_url):
+        """
+        تابع بازنویسی شده و قوی برای تجزیه فرمت های مختلف Shadowsocks.
+        """
         try:
-            if '://' not in ss_url: return None
             parsed = urlparse(ss_url)
-            if '@' in parsed.netloc:
-                user_info, host_info = parsed.netloc.split('@', 1)
-                if ':' in user_info:
-                    cipher, password = user_info.split(':', 1)
-                else:
+            
+            # فرمت: ss://base64(method:password@host:port)
+            if not parsed.username and '@' not in parsed.netloc:
+                 try:
+                    b64_part = parsed.netloc.split('#')[0]
+                    b64_part += '=' * (-len(b64_part) % 4)
+                    decoded_part = base64.b64decode(b64_part).decode('utf-8')
+                    if '@' not in decoded_part: return None
+                    auth_part, host_part = decoded_part.split('@', 1)
+                    if ':' not in auth_part or ':' not in host_part: return None
+                    cipher, password = auth_part.split(':', 1)
+                    server, port_str = host_part.split(':', 1)
+                    port = int(port_str)
+                 except Exception: return None
+            # فرمت: ss://method:password@host:port یا ss://base64(method:password)@host:port
+            else:
+                if parsed.username and parsed.password:
+                    cipher = unquote(parsed.username)
+                    password = unquote(parsed.password)
+                elif parsed.username:
                     try:
-                        user_info = base64.b64decode(user_info + '==').decode('utf-8')
-                        cipher, password = user_info.split(':', 1)
-                    except: return None
-                server, port = host_info.split(':', 1)
-            else: return None
+                        b64_part = unquote(parsed.username)
+                        b64_part += '=' * (-len(b64_part) % 4)
+                        decoded_part = base64.b64decode(b64_part).decode('utf-8')
+                        if ':' not in decoded_part: return None
+                        cipher, password = decoded_part.split(':', 1)
+                    except Exception: return None
+                else: return None
+                server = parsed.hostname
+                port = parsed.port
+
+            if not all([cipher, password, server, port]): return None
+
             clash_config = {
                 'name': self._generate_unique_name(unquote(parsed.fragment) if parsed.fragment else '', 'ss'),
                 'type': 'ss', 'server': server, 'port': int(port),
@@ -261,7 +276,6 @@ class V2RayExtractor:
             return clash_config if self.is_valid_config(clash_config) else None
         except Exception: return None
 
-
     def clean_invalid_configs(self):
         self.parsed_clash_configs = [c for c in self.parsed_clash_configs if self.is_valid_config(c['clash_info'])]
 
@@ -288,7 +302,7 @@ class V2RayExtractor:
                                 parsed = self.parse_config(config_url)
                                 if parsed:
                                     self.parsed_clash_configs.append({'original_url': config_url, 'clash_info': parsed})
-                                else:
+                                elif not (config_url.startswith('ss://') and ('security=' in config_url or 'type=' in config_url)):
                                     print(f"❌ Rejected/Invalid: {config_url[:70]}...")
         except FloodWait as e:
             print(f"⏳ FloodWait: waiting {e.value}s for {chat_id}")
