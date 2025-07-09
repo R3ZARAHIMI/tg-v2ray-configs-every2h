@@ -131,11 +131,15 @@ class V2RayExtractor:
         except Exception: return None
 
     def parse_vless(self, vless_url):
+        """
+        تابع بازنویسی شده و قوی برای تجزیه VLESS با پشتیبانی کامل از Reality.
+        """
         try:
             parsed = urlparse(vless_url)
             query = parse_qs(parsed.query)
             
-            if not parsed.hostname or not parsed.username: return None
+            if not parsed.hostname or not parsed.username:
+                return None
 
             original_name = unquote(parsed.fragment) if parsed.fragment else query.get('ps', [''])[0]
             unique_name = self._generate_unique_name(original_name, "vless")
@@ -150,32 +154,47 @@ class V2RayExtractor:
                 'network': query.get('type', ['tcp'])[0]
             }
 
-            if 'flow' in query:
-                clash_config['flow'] = query['flow'][0]
+            # Use .get() for single values to avoid exceptions
+            flow = query.get('flow', [None])[0]
+            if flow:
+                clash_config['flow'] = flow
 
-            security = query.get('security', [''])[0]
-            if security == 'tls' or security == 'reality':
+            security = query.get('security', [None])[0]
+            if security in ['tls', 'reality']:
                 clash_config['tls'] = True
                 
-                if 'sni' in query:
-                    clash_config['servername'] = query['sni'][0]
+                sni = query.get('sni', [None])[0]
+                if sni:
+                    clash_config['servername'] = sni
 
                 if security == 'reality':
                     reality_opts = {}
-                    if 'pbk' in query: reality_opts['public-key'] = query['pbk'][0]
-                    if 'sid' in query: reality_opts['short-id'] = query['sid'][0]
-                    if 'fp' in query: reality_opts['fingerprint'] = query['fp'][0]
-                    if reality_opts: clash_config['reality-opts'] = reality_opts
-                else:
+                    pbk = query.get('pbk', [None])[0]
+                    sid = query.get('sid', [None])[0]
+                    fp = query.get('fp', [None])[0]
+                    
+                    if pbk: reality_opts['public-key'] = pbk
+                    if sid: reality_opts['short-id'] = sid
+                    if fp: reality_opts['fingerprint'] = fp
+                    
+                    # REALITY must have a public key
+                    if 'public-key' in reality_opts:
+                        clash_config['reality-opts'] = reality_opts
+                    else:
+                        return None # Reject REALITY config without public key
+                else: # security == 'tls'
                     clash_config['skip-cert-verify'] = True
 
-            network = clash_config['network']
+            network = clash_config.get('network')
             if network == 'ws':
                 ws_opts = {'path': query.get('path', ['/'])[0]}
-                if 'host' in query: ws_opts['headers'] = {'Host': query['host'][0]}
+                host = query.get('host', [None])[0]
+                if host:
+                    ws_opts['headers'] = {'Host': host}
                 clash_config['ws-opts'] = ws_opts
             elif network == 'grpc':
-                clash_config['grpc-opts'] = {'grpc-service-name': query.get('serviceName', [''])[0]}
+                service_name = query.get('serviceName', [''])[0]
+                clash_config['grpc-opts'] = {'grpc-service-name': service_name}
                 
             return clash_config if self.is_valid_config(clash_config) else None
         except Exception:
