@@ -1,5 +1,6 @@
 mixed-port: 7890
 allow-lan: true
+bind-address: '*'
 mode: rule
 log-level: info
 external-controller: 127.0.0.1:9090
@@ -7,51 +8,125 @@ dns:
   enable: true
   ipv6: false
   default-nameserver:
+  - 223.5.5.5
   - 8.8.8.8
-  - 1.1.1.1
   enhanced-mode: fake-ip
   fake-ip-range: 198.18.0.1/16
   use-hosts: true
   nameserver:
-  - https://dns.google/dns-query
-  - https://cloudflare-dns.com/dns-query
+  - https://doh.pub/dns-query
+  - https://dns.alidns.com/dns-query
 proxies:
-- name: vless-a8a6b7bc
+- name: vless-ff7c9838
+  type: vless
+  server: 91.99.176.57
+  port: 2025
+  uuid: Telegram--SRCVPN-SRCVPN
+  udp: true
+  network: tcp
+  tls: true
+  skip-cert-verify: true
+  reality-opts:
+    public-key: ZYOJiXfnupbX7P2IG8VmWZrZCA9QOY39GYYiTyZ21UE
+    short-id: 85decdebbcf6c7bb
+- name: vless-b7f3d847
+  type: vless
+  server: 91.99.176.57
+  port: 2026
+  uuid: Telegram--SRCVPN-SRCVPN
+  udp: true
+  network: tcp
+  tls: true
+  skip-cert-verify: true
+  reality-opts:
+    public-key: ZYOJiXfnupbX7P2IG8VmWZrZCA9QOY39GYYiTyZ21UE
+    short-id: 85decdebbcf6c7bb
+- name: vless-ec61c609
+  type: vless
+  server: 91.99.176.57
+  port: 2025
+  uuid: Telegram--SRCVPN--SRCVPN
+  udp: true
+  network: tcp
+  tls: true
+  skip-cert-verify: true
+  reality-opts:
+    public-key: ZYOJiXfnupbX7P2IG8VmWZrZCA9QOY39GYYiTyZ21UE
+    short-id: 85decdebbcf6c7bb
+- name: vless-2b3b2f1c
+  type: vless
+  server: 91.99.176.57
+  port: 2026
+  uuid: Telegram--SRCVPN--SRCVPN
+  udp: true
+  network: tcp
+  tls: true
+  skip-cert-verify: true
+  reality-opts:
+    public-key: ZYOJiXfnupbX7P2IG8VmWZrZCA9QOY39GYYiTyZ21UE
+    short-id: 85decdebbcf6c7bb
+- name: vless-ee7d577d
+  type: vless
+  server: 91.99.176.57
+  port: 2025
+  uuid: Telegram--SRCVPN--SRCVPN--
+  udp: true
+  network: tcp
+  tls: true
+  skip-cert-verify: true
+  reality-opts:
+    public-key: ZYOJiXfnupbX7P2IG8VmWZrZCA9QOY39GYYiTyZ21UE
+    short-id: 85decdebbcf6c7bb
+- name: vless-5250a9a8
+  type: vless
+  server: 91.99.176.57
+  port: 2026
+  uuid: Telegram--SRCVPN--SRCVPN--
+  udp: true
+  network: tcp
+  tls: true
+  skip-cert-verify: true
+  reality-opts:
+    public-key: ZYOJiXfnupbX7P2IG8VmWZrZCA9QOY39GYYiTyZ21UE
+    short-id: 85decdebbcf6c7bb
+- name: vless-14eab48f
   type: vless
   server: vpconnect.ahadbala.ir
   port: 80
   uuid: 3f0c3cef-75c0-4253-a62e-d89f5a45dcc1
   udp: true
   network: tcp
-- name: vless-95240502
+- name: vless-f7600adb
   type: vless
   server: fastlyeeeeee.fast.hosting-ip.com
   port: 80
   uuid: cdnfastlycash
   udp: true
-  network: xhttp
-- name: vless-72172fa0
+  network: ws
+  ws-opts:
+    path: /
+    headers:
+      Host: cdnfastlycash.io
+- name: vless-e0b48d2f
   type: vless
   server: de1.cowjuice.me
   port: 443
   uuid: 955827fc-c729-4a1e-ba6c-d85754c8e937
   udp: true
   network: tcp
-  flow: xtls-rprx-vision
   tls: true
-  servername: thelocal.de
+  skip-cert-verify: true
   reality-opts:
     public-key: O9DMPpwicRcMofaplcvpQStNRogPS_HJY0s5_4EaKQc
     short-id: aabbccdd
-    fingerprint: chrome
-- name: vless-4b10dcf9
+- name: vless-79ac3c81
   type: vless
   server: de6.razercompany.com
   port: 33200
   uuid: c4389c70-1e5a-4bd2-934f-44fb2e62ccf5
   udp: true
   network: tcp
-- name: vless-fe52f00b
+- name: vless-43a0e69d
   type: vless
   server: real-all3.sdcards.ir
   port: 8501
@@ -59,12 +134,11 @@ proxies:
   udp: true
   network: tcp
   tls: true
-  servername: tgju.org
+  skip-cert-verify: true
   reality-opts:
     public-key: OJ0wA5wp55uZdD16dutlTZvx1x-rbMMXmiO9D_MMCHI
     short-id: e701a013553059ba
-    fingerprint: firefox
-- name: vless-bb559e5b
+- name: vless-27335e99
   type: vless
   server: 104.18.26.90
   port: 443
@@ -77,7 +151,7 @@ proxies:
     path: /?ed=2560
     headers:
       Host: barayeiranmahsang.mahmoodchitooz.dpdns.org
-- name: vless-a8210ab0
+- name: vless-687e4ded
   type: vless
   server: 162.159.129.11
   port: 2053
@@ -90,7 +164,7 @@ proxies:
     path: /zula.ir
     headers:
       Host: sub.divib.dynv6.net
-- name: vless-f6693150
+- name: vless-35fbb753
   type: vless
   server: 172.67.92.147
   port: 443
@@ -103,118 +177,58 @@ proxies:
     path: /assets
     headers:
       Host: nginx.nscl.ir
-- name: vless-a36d2418
+- name: vless-7c6b08e0
   type: vless
   server: compose.fast.hosting-ip.com
   port: 80
   uuid: ab80613b-e04b-4af5-bad9-9ca5c448266e
   udp: true
-  network: xhttp
-- name: vless-28e00e2a
-  type: vless
-  server: 91.99.176.57
-  port: 2025
-  uuid: Telegram--SRCVPN-SRCVPN
-  udp: true
+  network: ws
+  ws-opts:
+    path: /GoodLuck?ed=2560
+    headers:
+      Host: Mastercloud.global.ssl.fastly.net.
+- name: نیم_ساعت_دیگه_قطع_میکنم_قطع_شدی_بیا_چنل_proxygodratmand-9201c807
+  type: vmess
+  server: gr1.nspay.top
+  port: 35600
+  uuid: 60bcea81-b98f-4319-9e0b-58318d9f46b0
+  alterId: 0
+  cipher: aes-128-gcm
+  tls: false
+  skip-cert-verify: false
   network: tcp
-  flow: xtls-rprx-vision
-  tls: true
-  servername: yahoo.com
-  reality-opts:
-    public-key: ZYOJiXfnupbX7P2IG8VmWZrZCA9QOY39GYYiTyZ21UE
-    short-id: 85decdebbcf6c7bb
-    fingerprint: chrome
-- name: vless-9c7860b2
-  type: vless
-  server: 91.99.176.57
-  port: 2026
-  uuid: Telegram--SRCVPN-SRCVPN
   udp: true
+- name: نیم_ساعت_دیگه_قطع_میکنم_قطع_شدی_بیا_چنل_proxygodratmand-aacf4181
+  type: vmess
+  server: gr1.nspay.top
+  port: 35600
+  uuid: 60bcea81-b98f-4319-9e0b-58318d9f46b0
+  alterId: 0
+  cipher: aes-128-gcm
+  tls: false
+  skip-cert-verify: false
   network: tcp
-  flow: xtls-rprx-vision
-  tls: true
-  servername: stripe.com
-  reality-opts:
-    public-key: ZYOJiXfnupbX7P2IG8VmWZrZCA9QOY39GYYiTyZ21UE
-    short-id: 85decdebbcf6c7bb
-    fingerprint: chrome
-- name: vless-f2457a69
-  type: vless
-  server: 91.99.176.57
-  port: 2025
-  uuid: Telegram--SRCVPN--SRCVPN
   udp: true
-  network: tcp
-  flow: xtls-rprx-vision
-  tls: true
-  servername: yahoo.com
-  reality-opts:
-    public-key: ZYOJiXfnupbX7P2IG8VmWZrZCA9QOY39GYYiTyZ21UE
-    short-id: 85decdebbcf6c7bb
-    fingerprint: chrome
-- name: vless-62b06533
-  type: vless
-  server: 91.99.176.57
-  port: 2026
-  uuid: Telegram--SRCVPN--SRCVPN
-  udp: true
-  network: tcp
-  flow: xtls-rprx-vision
-  tls: true
-  servername: stripe.com
-  reality-opts:
-    public-key: ZYOJiXfnupbX7P2IG8VmWZrZCA9QOY39GYYiTyZ21UE
-    short-id: 85decdebbcf6c7bb
-    fingerprint: chrome
-- name: vless-036f78b1
-  type: vless
-  server: 91.99.176.57
-  port: 2025
-  uuid: Telegram--SRCVPN--SRCVPN--
-  udp: true
-  network: tcp
-  flow: xtls-rprx-vision
-  tls: true
-  servername: yahoo.com
-  reality-opts:
-    public-key: ZYOJiXfnupbX7P2IG8VmWZrZCA9QOY39GYYiTyZ21UE
-    short-id: 85decdebbcf6c7bb
-    fingerprint: chrome
-- name: vless-d3511a3f
-  type: vless
-  server: 91.99.176.57
-  port: 2026
-  uuid: Telegram--SRCVPN--SRCVPN--
-  udp: true
-  network: tcp
-  flow: xtls-rprx-vision
-  tls: true
-  servername: stripe.com
-  reality-opts:
-    public-key: ZYOJiXfnupbX7P2IG8VmWZrZCA9QOY39GYYiTyZ21UE
-    short-id: 85decdebbcf6c7bb
-    fingerprint: chrome
-- name: Sezar_sec-8cd94b4c
+- name: Sezar_sec-378bfd1e
   type: vless
   server: 92.60.78.221
   port: 443
   uuid: 6897c181-24b1-4880-8660-e6c5c7ee13c7
   udp: true
   network: tcp
-  flow: xtls-rprx-vision
   tls: true
-  servername: www.tradingview.com
+  skip-cert-verify: true
   reality-opts:
     public-key: pkIWxbuPAasjatPaHnAaTnCxVj1RkDFsJEWpLUTOcWY
     short-id: 9917d2350096
-    fingerprint: chrome
-- name: Sezar_sec-b0758cae
+- name: Sezar_sec-50edad49
   type: vmess
   server: 107.148.6.67
   port: 30001
   uuid: 418048af-a293-4b99-9b0c-98ca3580dd24
   alterId: 0
-  cipher: auto
+  cipher: aes-128-gcm
   tls: true
   skip-cert-verify: false
   network: ws
@@ -223,238 +237,172 @@ proxies:
     path: /path/170733132233
     headers:
       Host: www.53865734.xyz
-- name: Sezar_sec-dab881b9
+- name: Sezar_sec-e35abcc7
   type: trojan
   server: 155.117.228.70
   port: 26193
   password: 7367d04e-4c59-4dff-a50e-12e730a09891
   udp: true
   skip-cert-verify: true
-- name: نیم_ساعت_دیگه_قطع_میکنم_قطع_شدی_بیا_چنل_proxygodratmand-b99c4349
+- name: Sezar_sec-9d9cfa08
   type: vmess
-  server: gr1.nspay.top
-  port: 35600
-  uuid: 60bcea81-b98f-4319-9e0b-58318d9f46b0
+  server: 107.148.6.67
+  port: 30001
+  uuid: 418048af-a293-4b99-9b0c-98ca3580dd24
   alterId: 0
-  cipher: auto
-  tls: false
+  cipher: aes-128-gcm
+  tls: true
   skip-cert-verify: false
-  network: tcp
+  network: ws
   udp: true
-- name: NETMelliAnti_جوین_بزن-7a52453d
-  type: vless
-  server: speedtest.net
-  port: 80
-  uuid: bf3c99e7-68b4-4bad-b110-ebaf2ecab772
-  udp: true
-  network: xhttp
-- name: NETMelliAnti_سرورجدید_داخل_چنل-9afad508
-  type: vless
-  server: it.panelmarzban.com
-  port: 3037
-  uuid: a0a3e34d-87e4-4ff3-b04a-875c85325d62
-  udp: true
-  network: tcp
-  tls: true
-  servername: refersion.com
-  reality-opts:
-    public-key: 21V_VkMUD2XRbyRDg7hjpblUAwxHvlLmbarATdhhJQI
-    fingerprint: firefox
-- name: NETMelliAnti__چنل_کانفیگ-68da4be3
-  type: vless
-  server: pl.panelmarzban.com
-  port: 3038
-  uuid: a0a3e34d-87e4-4ff3-b04a-875c85325d62
-  udp: true
-  network: tcp
-  tls: true
-  servername: refersion.com
-  reality-opts:
-    public-key: 21V_VkMUD2XRbyRDg7hjpblUAwxHvlLmbarATdhhJQI
-    fingerprint: firefox
-- name: مشتی_جوین_بده_ناموصا__xzjinx-36cedd34
+  ws-opts:
+    path: /path/170733132233
+    headers:
+      Host: www.53865734.xyz
+- name: مشتی_جوین_بده_ناموصا__xzjinx-bb56ce8a
   type: vless
   server: 37.202.226.148
   port: 443
   uuid: e6daaeba-5a7c-4933-89b0-0078c14c50f1
   udp: true
   network: tcp
-- name: مشتی_جوین_بده_ناموصا__xzjinx-c2a7c6ba
+- name: مشتی_جوین_بده_ناموصا__xzjinx-8ef52f4b
   type: vless
   server: 37.202.226.148
   port: 443
   uuid: b54eaa6b-d4fc-4bb3-b3c6-9d0b61da00f7
   udp: true
   network: tcp
-- name: مشتی_جوین_بده_ناموصا__xzjinx-f3f58331
+- name: مشتی_جوین_بده_ناموصا__xzjinx-5760cfd9
   type: vless
   server: 94.182.136.184
   port: 80
   uuid: 3d9e229a-e6b6-48a3-9336-4c88d1bff82e
   udp: true
   network: tcp
-- name: V2rayNG_x__همه_اپراتورها-de7e8eee
-  type: vless
-  server: 142.132.227.65
-  port: 42580
-  uuid: f5df7e8d-c5a5-48f6-a2a3-35ed6e4eea20
-  udp: true
-  network: tcp
-- name: V2rayNG_x__همه_اپراتورها-499e5e58
-  type: vless
-  server: www.venzo.com.tr
-  port: 2095
-  uuid: 84d8437c-5b21-4250-974b-ca849aedfb7d
-  udp: true
-  network: httpupgrade
-- name: V2rayNG_x__همه_اپراتورها-466e72a5
-  type: vless
-  server: 104.18.26.90
-  port: 80
-  uuid: 92f481b6-ad92-43e4-a683-2bb0aeaa9846
-  udp: true
-  network: ws
-  ws-opts:
-    path: /?ed=2590
-    headers:
-      Host: dw.alibichareh.dpdns.org
-- name: V2rayNG_x__همه_اپراتورها-68f89cb2
-  type: vless
-  server: 142.132.227.65
-  port: 42580
-  uuid: 535047ee-3cf2-40da-b3b1-8e8b504fbfc8
-  udp: true
-  network: tcp
-- name: V2rayNG_x__همه_اپراتورها-12e0ff15
-  type: vless
-  server: 104.18.26.90
-  port: 80
-  uuid: 6f690965-3be3-43bb-9331-3ead6efb20aa
-  udp: true
-  network: ws
-  ws-opts:
-    path: /config-proxy-free--Telegram--config-proxy-free--Telegram--config-proxy-free--Telegram--config-proxy-free--Telegram--config-proxy-free--Telegram--config-proxy-free?ed=2560
-    headers:
-      Host: sib.sibzamini.dpdns.org
-- name: V2rayNG_x__همه_اپراتورها-14431770
-  type: vless
-  server: 104.18.26.90
-  port: 80
-  uuid: 6f690965-3be3-43bb-9331-3ead6efb20aa
-  udp: true
-  network: ws
-  ws-opts:
-    path: /?ed=2560
-    headers:
-      Host: sib.sibzamini.dpdns.org
-- name: V2rayNG_x__همه_اپراتورها-b9362451
-  type: vless
-  server: 91.99.237.10
-  port: 443
-  uuid: 15398933-070d-4ea2-9697-5fcd79793c97
-  udp: true
-  network: tcp
-- name: V2rayNG_x__همه_اپراتورها-ca6cf6af
-  type: vmess
-  server: 142.132.227.65
-  port: 48247
-  uuid: b488260d-0cb2-4b3c-ab27-545b39e081bf
-  alterId: 0
-  cipher: auto
-  tls: false
-  skip-cert-verify: false
-  network: tcp
-  udp: true
-- name: V2rayNG_x__همه_اپراتورها-7625ba92
-  type: vmess
-  server: 142.132.227.65
-  port: 48247
-  uuid: dd4b7eb9-4309-4c8d-84e4-975c96ece094
-  alterId: 0
-  cipher: auto
-  tls: false
-  skip-cert-verify: false
-  network: tcp
-  udp: true
 proxy-groups:
-- name: 🚀 PROXY
+- name: 🚀 Proxy
   type: select
   proxies:
-  - ♻️ AUTO
+  - ♻️ Auto
+  - 🔯 Fallback
+  - 🔮 LoadBalance
   - DIRECT
-  - vless-a8a6b7bc
-  - vless-95240502
-  - vless-72172fa0
-  - vless-4b10dcf9
-  - vless-fe52f00b
-  - vless-bb559e5b
-  - vless-a8210ab0
-  - vless-f6693150
-  - vless-a36d2418
-  - vless-28e00e2a
-  - vless-9c7860b2
-  - vless-f2457a69
-  - vless-62b06533
-  - vless-036f78b1
-  - vless-d3511a3f
-  - Sezar_sec-8cd94b4c
-  - Sezar_sec-b0758cae
-  - Sezar_sec-dab881b9
-  - نیم_ساعت_دیگه_قطع_میکنم_قطع_شدی_بیا_چنل_proxygodratmand-b99c4349
-  - NETMelliAnti_جوین_بزن-7a52453d
-  - NETMelliAnti_سرورجدید_داخل_چنل-9afad508
-  - NETMelliAnti__چنل_کانفیگ-68da4be3
-  - مشتی_جوین_بده_ناموصا__xzjinx-36cedd34
-  - مشتی_جوین_بده_ناموصا__xzjinx-c2a7c6ba
-  - مشتی_جوین_بده_ناموصا__xzjinx-f3f58331
-  - V2rayNG_x__همه_اپراتورها-de7e8eee
-  - V2rayNG_x__همه_اپراتورها-499e5e58
-  - V2rayNG_x__همه_اپراتورها-466e72a5
-  - V2rayNG_x__همه_اپراتورها-68f89cb2
-  - V2rayNG_x__همه_اپراتورها-12e0ff15
-  - V2rayNG_x__همه_اپراتورها-14431770
-  - V2rayNG_x__همه_اپراتورها-b9362451
-  - V2rayNG_x__همه_اپراتورها-ca6cf6af
-  - V2rayNG_x__همه_اپراتورها-7625ba92
-- name: ♻️ AUTO
+- name: ♻️ Auto
   type: url-test
   proxies:
-  - vless-a8a6b7bc
-  - vless-95240502
-  - vless-72172fa0
-  - vless-4b10dcf9
-  - vless-fe52f00b
-  - vless-bb559e5b
-  - vless-a8210ab0
-  - vless-f6693150
-  - vless-a36d2418
-  - vless-28e00e2a
-  - vless-9c7860b2
-  - vless-f2457a69
-  - vless-62b06533
-  - vless-036f78b1
-  - vless-d3511a3f
-  - Sezar_sec-8cd94b4c
-  - Sezar_sec-b0758cae
-  - Sezar_sec-dab881b9
-  - نیم_ساعت_دیگه_قطع_میکنم_قطع_شدی_بیا_چنل_proxygodratmand-b99c4349
-  - NETMelliAnti_جوین_بزن-7a52453d
-  - NETMelliAnti_سرورجدید_داخل_چنل-9afad508
-  - NETMelliAnti__چنل_کانفیگ-68da4be3
-  - مشتی_جوین_بده_ناموصا__xzjinx-36cedd34
-  - مشتی_جوین_بده_ناموصا__xzjinx-c2a7c6ba
-  - مشتی_جوین_بده_ناموصا__xzjinx-f3f58331
-  - V2rayNG_x__همه_اپراتورها-de7e8eee
-  - V2rayNG_x__همه_اپراتورها-499e5e58
-  - V2rayNG_x__همه_اپراتورها-466e72a5
-  - V2rayNG_x__همه_اپراتورها-68f89cb2
-  - V2rayNG_x__همه_اپراتورها-12e0ff15
-  - V2rayNG_x__همه_اپراتورها-14431770
-  - V2rayNG_x__همه_اپراتورها-b9362451
-  - V2rayNG_x__همه_اپراتورها-ca6cf6af
-  - V2rayNG_x__همه_اپراتورها-7625ba92
+  - vless-ff7c9838
+  - vless-b7f3d847
+  - vless-ec61c609
+  - vless-2b3b2f1c
+  - vless-ee7d577d
+  - vless-5250a9a8
+  - vless-14eab48f
+  - vless-f7600adb
+  - vless-e0b48d2f
+  - vless-79ac3c81
+  - vless-43a0e69d
+  - vless-27335e99
+  - vless-687e4ded
+  - vless-35fbb753
+  - vless-7c6b08e0
+  - نیم_ساعت_دیگه_قطع_میکنم_قطع_شدی_بیا_چنل_proxygodratmand-9201c807
+  - نیم_ساعت_دیگه_قطع_میکنم_قطع_شدی_بیا_چنل_proxygodratmand-aacf4181
+  - Sezar_sec-378bfd1e
+  - Sezar_sec-50edad49
+  - Sezar_sec-e35abcc7
+  - Sezar_sec-9d9cfa08
+  - مشتی_جوین_بده_ناموصا__xzjinx-bb56ce8a
+  - مشتی_جوین_بده_ناموصا__xzjinx-8ef52f4b
+  - مشتی_جوین_بده_ناموصا__xzjinx-5760cfd9
   url: http://www.gstatic.com/generate_204
   interval: 300
+  tolerance: 50
+- name: 🔯 Fallback
+  type: fallback
+  proxies:
+  - vless-ff7c9838
+  - vless-b7f3d847
+  - vless-ec61c609
+  - vless-2b3b2f1c
+  - vless-ee7d577d
+  - vless-5250a9a8
+  - vless-14eab48f
+  - vless-f7600adb
+  - vless-e0b48d2f
+  - vless-79ac3c81
+  - vless-43a0e69d
+  - vless-27335e99
+  - vless-687e4ded
+  - vless-35fbb753
+  - vless-7c6b08e0
+  - نیم_ساعت_دیگه_قطع_میکنم_قطع_شدی_بیا_چنل_proxygodratmand-9201c807
+  - نیم_ساعت_دیگه_قطع_میکنم_قطع_شدی_بیا_چنل_proxygodratmand-aacf4181
+  - Sezar_sec-378bfd1e
+  - Sezar_sec-50edad49
+  - Sezar_sec-e35abcc7
+  - Sezar_sec-9d9cfa08
+  - مشتی_جوین_بده_ناموصا__xzjinx-bb56ce8a
+  - مشتی_جوین_بده_ناموصا__xzjinx-8ef52f4b
+  - مشتی_جوین_بده_ناموصا__xzjinx-5760cfd9
+  url: http://www.gstatic.com/generate_204
+  interval: 300
+- name: 🔮 LoadBalance
+  type: load-balance
+  strategy: consistent-hashing
+  proxies:
+  - vless-ff7c9838
+  - vless-b7f3d847
+  - vless-ec61c609
+  - vless-2b3b2f1c
+  - vless-ee7d577d
+  - vless-5250a9a8
+  - vless-14eab48f
+  - vless-f7600adb
+  - vless-e0b48d2f
+  - vless-79ac3c81
+  - vless-43a0e69d
+  - vless-27335e99
+  - vless-687e4ded
+  - vless-35fbb753
+  - vless-7c6b08e0
+  - نیم_ساعت_دیگه_قطع_میکنم_قطع_شدی_بیا_چنل_proxygodratmand-9201c807
+  - نیم_ساعت_دیگه_قطع_میکنم_قطع_شدی_بیا_چنل_proxygodratmand-aacf4181
+  - Sezar_sec-378bfd1e
+  - Sezar_sec-50edad49
+  - Sezar_sec-e35abcc7
+  - Sezar_sec-9d9cfa08
+  - مشتی_جوین_بده_ناموصا__xzjinx-bb56ce8a
+  - مشتی_جوین_بده_ناموصا__xzjinx-8ef52f4b
+  - مشتی_جوین_بده_ناموصا__xzjinx-5760cfd9
+  url: http://www.gstatic.com/generate_204
+  interval: 300
+- name: 🌍 Global
+  type: select
+  proxies:
+  - 🚀 Proxy
+  - DIRECT
+- name: 🍃 Hijacking
+  type: select
+  proxies:
+  - REJECT
+  - DIRECT
 rules:
+- DOMAIN-SUFFIX,local,DIRECT
+- IP-CIDR,127.0.0.0/8,DIRECT
+- IP-CIDR,172.16.0.0/12,DIRECT
+- IP-CIDR,192.168.0.0/16,DIRECT
+- IP-CIDR,10.0.0.0/8,DIRECT
+- IP-CIDR,17.0.0.0/8,DIRECT
+- IP-CIDR,100.64.0.0/10,DIRECT
+- DOMAIN-SUFFIX,ir,DIRECT
 - GEOIP,IR,DIRECT
-- MATCH,🚀 PROXY
+- DOMAIN-KEYWORD,ads,🍃 Hijacking
+- DOMAIN-KEYWORD,analytics,🍃 Hijacking
+- DOMAIN-KEYWORD,facebook,🌍 Global
+- DOMAIN-KEYWORD,google,🌍 Global
+- DOMAIN-KEYWORD,instagram,🌍 Global
+- DOMAIN-KEYWORD,telegram,🌍 Global
+- DOMAIN-KEYWORD,twitter,🌍 Global
+- DOMAIN-KEYWORD,youtube,🌍 Global
+- MATCH,🚀 Proxy
