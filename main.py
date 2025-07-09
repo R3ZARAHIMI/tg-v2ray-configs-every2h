@@ -12,11 +12,8 @@ from pyrogram import Client
 from pyrogram.errors import FloodWait, RPCError
 
 # --- تنظیمات عمومی ---
-# اطلاعات API تلگرام (از GitHub Secrets خوانده می‌شود)
 API_ID = int(os.environ.get("API_ID"))
 API_HASH = os.environ.get("API_HASH")
-
-# نام فایل سشن برای Pyrogram
 SESSION_NAME = "my_account"
 
 # --- لیست کانال‌ها ---
@@ -24,9 +21,7 @@ NORMAL_CHANNELS = [
     "@SRCVPN", "@net0n3", "@xzjinx", "@vpns",
     "@Capoit", "@mrsoulh", "@sezar_sec", "@Fr33C0nfig",
 ]
-
 BASE64_ENCODED_CHANNELS = ["@v2ra_config"]
-
 ALL_CHANNELS = NORMAL_CHANNELS + BASE64_ENCODED_CHANNELS
 
 # --- لیست گروه‌ها ---
@@ -83,30 +78,12 @@ class V2RayExtractor:
         return False
 
     def parse_config(self, config_url):
-        """
-        تابع اصلی تجزیه کانفیگ با پیش-بررسی برای لینک های معیوب.
-        """
         try:
-            # بهبود: پیش-بررسی برای رد کردن لینک‌های ss:// که مشخصا معیوب هستند
-            if config_url.startswith('ss://') and ('security=' in config_url or 'type=' in config_url or 'flow=' in config_url):
-                return None # اینها پارامترهای VLESS هستند و لینک SS را نامعتبر می‌کنند. بصورت خاموش رد می‌شود.
-
-            # بررسی برای vmess که به اشتباه با ss:// شروع شده
-            if config_url.startswith('ss://') and len(config_url) > 10:
-                possible_b64 = config_url[5:].split('#', 1)[0]
-                if len(possible_b64) % 4 != 0:
-                    possible_b64 += '=' * (4 - (len(possible_b64) % 4))
-                try:
-                    decoded_check = base64.b64decode(possible_b64).decode('utf-8', errors='ignore')
-                    if decoded_check.strip().startswith('{') and '"add":' in decoded_check and '"id":' in decoded_check:
-                        config_url = 'vmess://' + possible_b64 + (('#' + config_url.split('#', 1)[1]) if '#' in config_url else '')
-                except:
-                    pass
-
-            if config_url.startswith('vmess://'):
-                return self.parse_vmess(config_url)
-            elif config_url.startswith('vless://'):
+            # بررسی مستقیم برای پروتکل‌ها
+            if config_url.startswith('vless://'):
                 return self.parse_vless(config_url)
+            elif config_url.startswith('vmess://'):
+                return self.parse_vmess(config_url)
             elif config_url.startswith('trojan://'):
                 return self.parse_trojan(config_url)
             elif config_url.startswith('ss://'):
@@ -115,8 +92,18 @@ class V2RayExtractor:
                 return self.parse_hysteria(config_url)
             elif config_url.startswith('tuic://'):
                 return self.parse_tuic(config_url)
+
+            # بررسی برای لینک‌های Base64
+            if re.match(r"^[A-Za-z0-9+/=]+$", config_url):
+                try:
+                    decoded = base64.b64decode(config_url).decode('utf-8')
+                    return self.parse_config(decoded)
+                except:
+                    pass
+
             return None
-        except Exception:
+        except Exception as e:
+            print(f"Error parsing config: {e}")
             return None
 
     def parse_vmess(self, vmess_url):
@@ -128,6 +115,7 @@ class V2RayExtractor:
             config = json.loads(base64.b64decode(encoded_data).decode('utf-8'))
             unique_name = self._generate_unique_name(config.get('ps', ''), "vmess")
             clash_cipher = config.get('scy', 'auto')
+
             if clash_cipher.lower() not in ['aes-128-gcm', 'chacha20-poly1305', 'aes-256-gcm', 'none']:
                 clash_cipher = 'auto'
 
@@ -144,19 +132,19 @@ class V2RayExtractor:
                 'network': config.get('net', 'tcp'),
                 'udp': True
             }
+
             if clash_config['network'] == 'ws':
                 clash_config['ws-opts'] = {
                     'path': config.get('path', '/'),
                     'headers': {'Host': config.get('host', '')} if config.get('host') else {}
                 }
+
             return clash_config if self.is_valid_config(clash_config) else None
-        except Exception:
+        except Exception as e:
+            print(f"Error parsing VMESS config: {e}")
             return None
 
     def parse_vless(self, vless_url):
-        """
-        تابع بازنویسی شده و قوی برای تجزیه VLESS با پشتیبانی کامل از Reality.
-        """
         try:
             parsed = urlparse(vless_url)
             query = parse_qs(parsed.query)
@@ -177,7 +165,6 @@ class V2RayExtractor:
                 'network': query.get('type', ['tcp'])[0]
             }
 
-            # Use .get() for single values to avoid exceptions
             flow = query.get('flow', [None])[0]
             if flow:
                 clash_config['flow'] = flow
@@ -185,7 +172,6 @@ class V2RayExtractor:
             security = query.get('security', [None])[0]
             if security in ['tls', 'reality']:
                 clash_config['tls'] = True
-
                 sni = query.get('sni', [None])[0]
                 if sni:
                     clash_config['servername'] = sni
@@ -203,12 +189,11 @@ class V2RayExtractor:
                     if fp:
                         reality_opts['fingerprint'] = fp
 
-                    # REALITY must have a public key
                     if 'public-key' in reality_opts:
                         clash_config['reality-opts'] = reality_opts
                     else:
-                        return None  # Reject REALITY config without public key
-                else:  # security == 'tls'
+                        return None
+                else:
                     clash_config['skip-cert-verify'] = True
 
             network = clash_config.get('network')
@@ -223,15 +208,18 @@ class V2RayExtractor:
                 clash_config['grpc-opts'] = {'grpc-service-name': service_name}
 
             return clash_config if self.is_valid_config(clash_config) else None
-        except Exception:
+        except Exception as e:
+            print(f"Error parsing VLESS config: {e}")
             return None
 
     def parse_trojan(self, trojan_url):
         try:
             parsed = urlparse(trojan_url)
             query = parse_qs(parsed.query)
+
             if not parsed.hostname or not parsed.username:
                 return None
+
             unique_name = self._generate_unique_name(unquote(parsed.fragment) if parsed.fragment else '', "trojan")
             clash_config = {
                 'name': unique_name,
@@ -242,20 +230,19 @@ class V2RayExtractor:
                 'udp': True,
                 'skip-cert-verify': True
             }
+
             if 'sni' in query:
                 clash_config['sni'] = query['sni'][0]
+
             return clash_config if self.is_valid_config(clash_config) else None
-        except Exception:
+        except Exception as e:
+            print(f"Error parsing Trojan config: {e}")
             return None
 
     def parse_shadowsocks(self, ss_url):
-        """
-        تابع بازنویسی شده و قوی برای تجزیه فرمت های مختلف Shadowsocks.
-        """
         try:
             parsed = urlparse(ss_url)
 
-            # فرمت: ss://base64(method:password@host:port)
             if not parsed.username and '@' not in parsed.netloc:
                 try:
                     b64_part = parsed.netloc.split('#')[0]
@@ -269,9 +256,9 @@ class V2RayExtractor:
                     cipher, password = auth_part.split(':', 1)
                     server, port_str = host_part.split(':', 1)
                     port = int(port_str)
-                except Exception:
+                except Exception as e:
+                    print(f"Error decoding SS base64: {e}")
                     return None
-            # فرمت: ss://method:password@host:port یا ss://base64(method:password)@host:port
             else:
                 if parsed.username and parsed.password:
                     cipher = unquote(parsed.username)
@@ -284,14 +271,21 @@ class V2RayExtractor:
                         if ':' not in decoded_part:
                             return None
                         cipher, password = decoded_part.split(':', 1)
-                    except Exception:
+                    except Exception as e:
+                        print(f"Error decoding SS username: {e}")
                         return None
                 else:
                     return None
                 server = parsed.hostname
                 port = parsed.port
+
             if not all([cipher, password, server, port]):
                 return None
+
+            query = parse_qs(parsed.query)
+            plugin = query.get('plugin', [None])[0]
+            plugin_opts = query.get('plugin-opts', [None])[0]
+
             clash_config = {
                 'name': self._generate_unique_name(unquote(parsed.fragment) if parsed.fragment else '', 'ss'),
                 'type': 'ss',
@@ -301,16 +295,25 @@ class V2RayExtractor:
                 'password': password,
                 'udp': True
             }
+
+            if plugin:
+                clash_config['plugin'] = plugin
+            if plugin_opts:
+                clash_config['plugin-opts'] = plugin_opts
+
             return clash_config if self.is_valid_config(clash_config) else None
-        except Exception:
+        except Exception as e:
+            print(f"Error parsing Shadowsocks config: {e}")
             return None
 
     def parse_hysteria(self, hysteria_url):
         try:
             parsed = urlparse(hysteria_url)
             query = parse_qs(parsed.query)
+
             if not parsed.hostname:
                 return None
+
             unique_name = self._generate_unique_name(unquote(parsed.fragment) if parsed.fragment else '', "hysteria")
             clash_config = {
                 'name': unique_name,
@@ -321,20 +324,25 @@ class V2RayExtractor:
                 'udp': True,
                 'skip-cert-verify': True
             }
+
             if 'peer' in query:
                 clash_config['sni'] = query['peer'][0]
             if 'alpn' in query:
                 clash_config['alpn'] = query['alpn'][0].split(',')
+
             return clash_config if self.is_valid_config(clash_config) else None
-        except Exception:
+        except Exception as e:
+            print(f"Error parsing Hysteria config: {e}")
             return None
 
     def parse_tuic(self, tuic_url):
         try:
             parsed = urlparse(tuic_url)
             query = parse_qs(parsed.query)
+
             if not parsed.hostname or not parsed.username:
                 return None
+
             unique_name = self._generate_unique_name(unquote(parsed.fragment) if parsed.fragment else '', "tuic")
             clash_config = {
                 'name': unique_name,
@@ -345,12 +353,15 @@ class V2RayExtractor:
                 'password': query.get('password', [''])[0],
                 'skip-cert-verify': True
             }
+
             if 'sni' in query:
                 clash_config['sni'] = query['sni'][0]
             if 'alpn' in query:
                 clash_config['alpn'] = query['alpn'][0].split(',')
+
             return clash_config if self.is_valid_config(clash_config) else None
-        except Exception:
+        except Exception as e:
+            print(f"Error parsing TUIC config: {e}")
             return None
 
     def clean_invalid_configs(self):
@@ -407,10 +418,12 @@ class V2RayExtractor:
     async def save_configs(self):
         print(f"\n💾 Saving configs...")
         try:
+            # ذخیره تمام لینک‌های یافت شده در فایل تکست
             with open(OUTPUT_TXT, 'w', encoding='utf-8') as f:
                 f.write("\n".join(self.found_configs))
-            print(f"✅ Saved raw configs to {OUTPUT_TXT}")
+            print(f"✅ Saved {len(self.found_configs)} raw configs to {OUTPUT_TXT}")
 
+            # ذخیره کانفیگ‌های معتبر در فایل YAML
             if not self.parsed_clash_configs:
                 print("⚠️ No valid configs found. Clash output file will be empty.")
                 open(OUTPUT_YAML, "w").close()
@@ -468,5 +481,4 @@ async def main():
     print(f"\n✨ Done! Found {len(extractor.found_configs)} unique configs, saved {len(extractor.parsed_clash_configs)} valid ones.")
 
 if __name__ == "__main__":
-    # فایل session دیگر به صورت خودکار حذف نمی‌شود
     asyncio.run(main())
