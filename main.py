@@ -506,7 +506,7 @@ class V2RayExtractor:
                 channel_tasks = [self.check_chat(channel, limit=5) for channel in ALL_CHANNELS]
                 
                 # ایجاد وظایف برای گروه‌ها با محدودیت ۱۰۰ پیام
-                group_tasks = [self.check_chat(group_id, limit=100) for group_id in TARGET_GROUPS]
+                group_tasks = [self.check_chat(group_id, limit=300) for group_id in TARGET_GROUPS]
                 
                 all_tasks = channel_tasks + group_tasks
                 await asyncio.gather(*all_tasks)
