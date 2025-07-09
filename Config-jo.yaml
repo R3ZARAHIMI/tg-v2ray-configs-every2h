@@ -7,16 +7,37 @@ dns:
   enable: true
   ipv6: false
   default-nameserver:
-  - 223.5.5.5
   - 8.8.8.8
+  - 1.1.1.1
   enhanced-mode: fake-ip
   fake-ip-range: 198.18.0.1/16
   use-hosts: true
   nameserver:
-  - https://doh.pub/dns-query
-  - https://dns.alidns.com/dns-query
+  - https://dns.google/dns-query
+  - https://cloudflare-dns.com/dns-query
 proxies:
-- name: Mahdi2000_m_ql_2535-a242c1b8
+- name: parsproxy_ir-77f77065
+  type: vless
+  server: test.fast.hosting-ip.com
+  port: 80
+  uuid: 0c594034-4210-49c0-99ab-b52ec0df0f6c
+  udp: true
+  network: xhttp
+- name: D986DB8CD98520D8B3D8A7D8B9D8AA20D8AFDB8CDAAFD98720D982D8B7D8B920D985DB8CDAA9D986D98520D982D8B7D8B920D8B4D8AFDB8C20D8A8DB8CD8A720DA86D986D98420proxygodratmand40-b04279c7
+  type: vless
+  server: 162.159.129.11
+  port: 2053
+  uuid: b1a8ceea-6601-45b5-a674-7e5b64ab6f6f
+  udp: true
+  network: ws
+  tls: true
+  servername: sub.divib.dynv6.net
+  skip-cert-verify: true
+  ws-opts:
+    path: /?ed=2560
+    headers:
+      Host: sub.divib.dynv6.net
+- name: Mahdi2000_m_ql_2535-c459a2fc
   type: vless
   server: 104.16.243.59
   port: 443
@@ -24,55 +45,27 @@ proxies:
   udp: true
   network: ws
   tls: true
-  skip-cert-verify: true
   servername: NGINX.NSCl.IR
+  skip-cert-verify: true
   ws-opts:
     path: /assets
     headers:
       Host: NGINX.NSCl.IR
-- name: Mahdi2000_m_ql_5281-c6cc8a30
-  type: vless
-  server: 154.92.9.151
-  port: 443
-  uuid: ec8a65ad-aafc-4095-9b8c-ea10890ca629
-  udp: true
-  network: ws
-  tls: true
-  skip-cert-verify: true
-  servername: simorgh.hpcode.ir
-  ws-opts:
-    path: /Javid-SHAH-KingRezaPahlavi/?ed=2560
-    headers:
-      Host: simorgh.hpcode.ir
-- name: Mahdi2000_m_ql_5283-a2ba626d
-  type: vless
-  server: 154.92.9.176
-  port: 443
-  uuid: ec8a65ad-aafc-4095-9b8c-ea10890ca629
-  udp: true
-  network: ws
-  tls: true
-  skip-cert-verify: true
-  servername: simorgh.hpcode.ir
-  ws-opts:
-    path: /Javid-SHAH-KingRezaPahlavi/?ed
-    headers:
-      Host: simorgh.hpcode.ir
-- name: vless-3aab9799
+- name: vless-a1298fba
   type: vless
   server: hell.dl101movis.ir
   port: 80
   uuid: d601250a-e54f-46fe-a984-fb0f1d6d48ce
   udp: true
   network: xhttp
-- name: vless-9ed01d07
+- name: vless-7b8f2836
   type: vless
   server: marz.querenciavib.xyz
   port: 8443
   uuid: 5c087b17-c044-42c3-8ff4-615dc53feee1
   udp: true
   network: tcp
-- name: vless-061111d5
+- name: vless-a39c339c
   type: vless
   server: 172.67.92.147
   port: 443
@@ -80,13 +73,13 @@ proxies:
   udp: true
   network: ws
   tls: true
-  skip-cert-verify: true
   servername: NGINX.NSCl.IR
+  skip-cert-verify: true
   ws-opts:
     path: /assets
     headers:
       Host: nginx.nscl.ir
-- name: vless-9f7b3648
+- name: vless-25a31f31
   type: vless
   server: 172.67.92.147
   port: 443
@@ -94,20 +87,20 @@ proxies:
   udp: true
   network: ws
   tls: true
-  skip-cert-verify: true
   servername: NGINX.NSCl.IR
+  skip-cert-verify: true
   ws-opts:
     path: /assets
     headers:
       Host: nginx.nscl.ir
-- name: net0n3_281-1e4039fa
+- name: net0n3_281-dc5808b4
   type: ss
   server: 131.145.123.5
   port: 443
   cipher: chacha20-ietf-poly1305
   password: mps3FwmDjLrWaOVg
   udp: true
-- name: vless-0c5be179
+- name: vless-f74d8347
   type: vless
   server: 104.16.243.59
   port: 443
@@ -115,20 +108,20 @@ proxies:
   udp: true
   network: ws
   tls: true
-  skip-cert-verify: true
   servername: nginx.nscl.ir
+  skip-cert-verify: true
   ws-opts:
     path: /assets
     headers:
       Host: nginx.nscl.ir
-- name: net0n3_276-d511c9eb
+- name: net0n3_276-37edd6d0
   type: ss
   server: h110vpnnl.outlinekeys.net
   port: 52571
   cipher: chacha20-ietf-poly1305
   password: 2nvtG6pl4Om1G0cWlnyXHl
   udp: true
-- name: vless-3c7e2068
+- name: vless-6f753a44
   type: vless
   server: 104.18.26.90
   port: 80
@@ -139,105 +132,220 @@ proxies:
     path: /zula.ir
     headers:
       Host: dw.alibichareh.dpdns.org
-- name: vless-81ba8769
+- name: vless-8d71d800
   type: vless
   server: 300232332.webnama.com.tr
   port: 1517
   uuid: 3d554bba-9c77-499f-9055-1eb42058ed00
   udp: true
   network: tcp
-- name: net0n3_274-c97a5181
-  type: ss
-  server: 131.145.123.5
+- name: Sezar_sec-fc67a857
+  type: vless
+  server: 92.60.78.221
   port: 443
-  cipher: chacha20-ietf-poly1305
-  password: mps3FwmDjLrWaOVg
+  uuid: 6897c181-24b1-4880-8660-e6c5c7ee13c7
   udp: true
-- name: vless-c8ef9329
+  network: tcp
+  flow: xtls-rprx-vision
+  tls: true
+  servername: www.tradingview.com
+  reality-opts:
+    public-key: pkIWxbuPAasjatPaHnAaTnCxVj1RkDFsJEWpLUTOcWY
+    short-id: 9917d2350096
+    fingerprint: chrome
+- name: Sezar_sec-3315feaa
+  type: vmess
+  server: 107.148.6.67
+  port: 30001
+  uuid: 418048af-a293-4b99-9b0c-98ca3580dd24
+  alterId: 0
+  cipher: auto
+  tls: true
+  skip-cert-verify: false
+  network: ws
+  udp: true
+  ws-opts:
+    path: /path/170733132233
+    headers:
+      Host: www.53865734.xyz
+- name: Sezar_sec-3763e311
+  type: trojan
+  server: 155.117.228.70
+  port: 26193
+  password: 7367d04e-4c59-4dff-a50e-12e730a09891
+  udp: true
+  skip-cert-verify: true
+- name: Sezar_sec-334801fe
+  type: vmess
+  server: 107.148.6.67
+  port: 30001
+  uuid: 418048af-a293-4b99-9b0c-98ca3580dd24
+  alterId: 0
+  cipher: auto
+  tls: true
+  skip-cert-verify: false
+  network: ws
+  udp: true
+  ws-opts:
+    path: /path/170733132233
+    headers:
+      Host: www.53865734.xyz
+- name: Sezar_Sec-8931ea81
+  type: vless
+  server: 3bd9.55dca.e048.f8-fef1f.yfjcs.com
+  port: 443
+  uuid: 627712cf-d0e1-4545-81fb-241e7fda0284
+  udp: true
+  network: tcp
+  flow: xtls-rprx-vision
+  tls: true
+  servername: yfsg-1.xn--4gq62f52gppi29k.com
+  skip-cert-verify: true
+- name: Sezar_Sec-fc59a7c1
+  type: vless
+  server: 3bd9.55dca.e048.f9-fef1f.yfjcs.com
+  port: 443
+  uuid: 627712cf-d0e1-4545-81fb-241e7fda0284
+  udp: true
+  network: tcp
+  flow: xtls-rprx-vision
+  tls: true
+  servername: yfsg-1.xn--4gq62f52gppi29k.com
+  skip-cert-verify: true
+- name: Sezar_Sec-89ab1fc8
+  type: vless
+  server: 104.16.243.59
+  port: 443
+  uuid: 75fde681-ec64-4654-86fa-30732e8e179c
+  udp: true
+  network: ws
+  tls: true
+  servername: NGINX.NSCl.IR
+  skip-cert-verify: true
+  ws-opts:
+    path: /assets
+    headers:
+      Host: nginx.nscl.ir
+- name: Sezar_Sec-48799fc3
+  type: vless
+  server: 162.159.129.11
+  port: 2053
+  uuid: b1a8ceea-6601-45b5-a674-7e5b64ab6f6f
+  udp: true
+  network: ws
+  tls: true
+  servername: sub.divib.dynv6.net
+  skip-cert-verify: true
+  ws-opts:
+    path: /Telegram@mtmvpn?ed=2560
+    headers:
+      Host: sub.divib.dynv6.net
+- name: Sezar_Sec-ec2d545b
+  type: vless
+  server: 91.99.187.13
+  port: 443
+  uuid: 7a66b8ef-9713-4b69-b839-6bb45070af35
+  udp: true
+  network: tcp
+- name: vless-b154280c
   type: vless
   server: 91.99.176.57
   port: 2025
   uuid: Telegram--SRCVPN--SRCVPN
   udp: true
   network: tcp
+  flow: xtls-rprx-vision
   tls: true
-  skip-cert-verify: true
+  servername: yahoo.com
   reality-opts:
     public-key: ZYOJiXfnupbX7P2IG8VmWZrZCA9QOY39GYYiTyZ21UE
     short-id: 85decdebbcf6c7bb
-- name: vless-11196069
+    fingerprint: chrome
+- name: vless-cc945057
   type: vless
   server: 91.99.176.57
   port: 2026
   uuid: Telegram--SRCVPN--SRCVPN
   udp: true
   network: tcp
+  flow: xtls-rprx-vision
   tls: true
-  skip-cert-verify: true
+  servername: stripe.com
   reality-opts:
     public-key: ZYOJiXfnupbX7P2IG8VmWZrZCA9QOY39GYYiTyZ21UE
     short-id: 85decdebbcf6c7bb
-- name: vless-5831a7e0
+    fingerprint: chrome
+- name: vless-507de0c6
   type: vless
   server: 91.99.176.57
   port: 2025
   uuid: Telegram--SRCVPN--SRCVPN--
   udp: true
   network: tcp
+  flow: xtls-rprx-vision
   tls: true
-  skip-cert-verify: true
+  servername: yahoo.com
   reality-opts:
     public-key: ZYOJiXfnupbX7P2IG8VmWZrZCA9QOY39GYYiTyZ21UE
     short-id: 85decdebbcf6c7bb
-- name: vless-1748f3c3
+    fingerprint: chrome
+- name: vless-a5531692
   type: vless
   server: 91.99.176.57
   port: 2026
   uuid: Telegram--SRCVPN--SRCVPN--
   udp: true
   network: tcp
+  flow: xtls-rprx-vision
   tls: true
-  skip-cert-verify: true
+  servername: stripe.com
   reality-opts:
     public-key: ZYOJiXfnupbX7P2IG8VmWZrZCA9QOY39GYYiTyZ21UE
     short-id: 85decdebbcf6c7bb
-- name: vless-2cd17b92
+    fingerprint: chrome
+- name: vless-67518819
   type: vless
   server: 91.99.176.57
   port: 2025
   uuid: Telegram--SRCVPN--SRCVPN-
   udp: true
   network: tcp
+  flow: xtls-rprx-vision
   tls: true
-  skip-cert-verify: true
+  servername: yahoo.com
   reality-opts:
     public-key: ZYOJiXfnupbX7P2IG8VmWZrZCA9QOY39GYYiTyZ21UE
     short-id: 85decdebbcf6c7bb
-- name: vless-e80d1263
+    fingerprint: chrome
+- name: vless-95af52c9
   type: vless
   server: 91.99.176.57
   port: 2026
   uuid: Telegram--SRCVPN--SRCVPN-
   udp: true
   network: tcp
+  flow: xtls-rprx-vision
   tls: true
-  skip-cert-verify: true
+  servername: stripe.com
   reality-opts:
     public-key: ZYOJiXfnupbX7P2IG8VmWZrZCA9QOY39GYYiTyZ21UE
     short-id: 85decdebbcf6c7bb
-- name: vless-6c8a5e98
+    fingerprint: chrome
+- name: vless-0747e8d1
   type: vless
   server: 91.99.176.57
   port: 2025
   uuid: Telegram-SRCVPN--SRCVPN
   udp: true
   network: tcp
+  flow: xtls-rprx-vision
   tls: true
-  skip-cert-verify: true
+  servername: yahoo.com
   reality-opts:
     public-key: ZYOJiXfnupbX7P2IG8VmWZrZCA9QOY39GYYiTyZ21UE
     short-id: 85decdebbcf6c7bb
-- name: vless-abdc54bf
+    fingerprint: chrome
+- name: vless-27917c13
   type: vless
   server: 91.99.176.57
   port: 2060
@@ -246,132 +354,28 @@ proxies:
   network: ws
   ws-opts:
     path: /-@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN---@SRCVPN
-- name: Sezar_sec-13457667
-  type: vless
-  server: 92.60.78.221
-  port: 443
-  uuid: 6897c181-24b1-4880-8660-e6c5c7ee13c7
-  udp: true
-  network: tcp
-  tls: true
-  skip-cert-verify: true
-  reality-opts:
-    public-key: pkIWxbuPAasjatPaHnAaTnCxVj1RkDFsJEWpLUTOcWY
-    short-id: 9917d2350096
-- name: Sezar_sec-e88c8243
-  type: vmess
-  server: 107.148.6.67
-  port: 30001
-  uuid: 418048af-a293-4b99-9b0c-98ca3580dd24
-  alterId: 0
-  cipher: aes-128-gcm
-  tls: true
-  skip-cert-verify: false
-  network: ws
-  udp: true
-  ws-opts:
-    path: /path/170733132233
-    headers:
-      Host: www.53865734.xyz
-- name: Sezar_sec-ccf14adf
-  type: trojan
-  server: 155.117.228.70
-  port: 26193
-  password: 7367d04e-4c59-4dff-a50e-12e730a09891
-  udp: true
-  skip-cert-verify: true
-- name: Sezar_sec-62841ff8
-  type: vmess
-  server: 107.148.6.67
-  port: 30001
-  uuid: 418048af-a293-4b99-9b0c-98ca3580dd24
-  alterId: 0
-  cipher: aes-128-gcm
-  tls: true
-  skip-cert-verify: false
-  network: ws
-  udp: true
-  ws-opts:
-    path: /path/170733132233
-    headers:
-      Host: www.53865734.xyz
-- name: Sezar_Sec-018fda3b
-  type: vless
-  server: 3bd9.55dca.e048.f8-fef1f.yfjcs.com
-  port: 443
-  uuid: 627712cf-d0e1-4545-81fb-241e7fda0284
-  udp: true
-  network: tcp
-  tls: true
-  skip-cert-verify: true
-  servername: yfsg-1.xn--4gq62f52gppi29k.com
-- name: Sezar_Sec-ee45750f
-  type: vless
-  server: 3bd9.55dca.e048.f9-fef1f.yfjcs.com
-  port: 443
-  uuid: 627712cf-d0e1-4545-81fb-241e7fda0284
-  udp: true
-  network: tcp
-  tls: true
-  skip-cert-verify: true
-  servername: yfsg-1.xn--4gq62f52gppi29k.com
-- name: Sezar_Sec-3dc9ff4f
-  type: vless
-  server: 104.16.243.59
-  port: 443
-  uuid: 75fde681-ec64-4654-86fa-30732e8e179c
-  udp: true
-  network: ws
-  tls: true
-  skip-cert-verify: true
-  servername: NGINX.NSCl.IR
-  ws-opts:
-    path: /assets
-    headers:
-      Host: nginx.nscl.ir
-- name: Sezar_Sec-51ca69a0
-  type: vless
-  server: 162.159.129.11
-  port: 2053
-  uuid: b1a8ceea-6601-45b5-a674-7e5b64ab6f6f
-  udp: true
-  network: ws
-  tls: true
-  skip-cert-verify: true
-  servername: sub.divib.dynv6.net
-  ws-opts:
-    path: /Telegram@mtmvpn?ed=2560
-    headers:
-      Host: sub.divib.dynv6.net
-- name: Sezar_Sec-dabbf569
-  type: vless
-  server: 91.99.187.13
-  port: 443
-  uuid: 7a66b8ef-9713-4b69-b839-6bb45070af35
-  udp: true
-  network: tcp
-- name: مشتی_جوین_بده_ناموصا__xzjinx-419cf1f7
+- name: مشتی_جوین_بده_ناموصا__xzjinx-11f66f9b
   type: vless
   server: 94.182.136.184
   port: 80
   uuid: 3d9e229a-e6b6-48a3-9336-4c88d1bff82e
   udp: true
   network: tcp
-- name: مشتی_جوین_بده_ناموصا__xzjinx-cd7b0397
+- name: مشتی_جوین_بده_ناموصا__xzjinx-56fc672f
   type: vless
   server: 94.182.136.184
   port: 159
   uuid: 0af94a54-f5d8-43dd-8544-77a56559ea1c
   udp: true
   network: tcp
-- name: مشتی_جوین_بده_ناموصا__xzjinx-84a12ed9
+- name: مشتی_جوین_بده_ناموصا__xzjinx-e2c441e7
   type: vless
   server: 31.47.45.173
   port: 777
   uuid: ce55d3ed-618b-45b7-d879-368fbb465efd
   udp: true
   network: tcp
-- name: G0Dv2ray-946fe425
+- name: G0Dv2ray-5c08a165
   type: vless
   server: 172.66.137.85
   port: 80
@@ -382,7 +386,7 @@ proxies:
     path: /?ed=2560
     headers:
       Host: fggerlad.gerald81.dpdns.org
-- name: V2ray1_Ng-4ffb976e
+- name: V2ray1_Ng-f0f841e0
   type: vless
   server: 45.131.208.130
   port: 80
@@ -393,7 +397,7 @@ proxies:
     path: Telegram@V2ray_Alpha/?ed=2560
     headers:
       Host: uuhUHYygEsdFGH.UYHJHGvgFcjGUJhbUIlbVFDxDxM.xyz
-- name: V2ray1_Ng-e16257ea
+- name: V2ray1_Ng-cd9473e0
   type: vless
   server: 104.16.0.113
   port: 80
@@ -404,14 +408,14 @@ proxies:
     path: /?ed=2560/?JOKERRVPN
     headers:
       Host: barayeiran.nastaranh.dpdns.org
-- name: G0Dv2ray-720042b1
+- name: G0Dv2ray-e9183d45
   type: vless
   server: 99823232.webnama.com.tr
   port: 1517
   uuid: 3d554bba-9c77-499f-9055-1eb42058ed00
   udp: true
   network: tcp
-- name: FreeV2BoxBot-56df5c0b
+- name: FreeV2BoxBot-57ec3adb
   type: vless
   server: 104.19.245.206
   port: 443
@@ -419,13 +423,13 @@ proxies:
   udp: true
   network: ws
   tls: true
-  skip-cert-verify: true
   servername: kawaiifreevpn-7ds.pages.dev
+  skip-cert-verify: true
   ws-opts:
     path: /?ed=2560
     headers:
       Host: kawaiifreevpn-7ds.pages.dev
-- name: FreeV2BoxBot-912f53e7
+- name: FreeV2BoxBot-e8682873
   type: vless
   server: 104.18.26.90
   port: 443
@@ -433,109 +437,99 @@ proxies:
   udp: true
   network: ws
   tls: true
-  skip-cert-verify: true
   servername: pages.dev
+  skip-cert-verify: true
   ws-opts:
     path: /?ed=2048
     headers:
       Host: tfs733.pages.dev
 proxy-groups:
-- name: 🚀 Proxy
+- name: 🚀 PROXY
   type: select
   proxies:
-  - ♻️ Auto
-  - 🔯 Fallback
+  - ♻️ AUTO
   - DIRECT
-  - Mahdi2000_m_ql_2535-a242c1b8
-  - Mahdi2000_m_ql_5281-c6cc8a30
-  - Mahdi2000_m_ql_5283-a2ba626d
-  - vless-3aab9799
-  - vless-9ed01d07
-  - vless-061111d5
-  - vless-9f7b3648
-  - net0n3_281-1e4039fa
-  - vless-0c5be179
-  - net0n3_276-d511c9eb
-  - vless-3c7e2068
-  - vless-81ba8769
-  - net0n3_274-c97a5181
-  - vless-c8ef9329
-  - vless-11196069
-  - vless-5831a7e0
-  - vless-1748f3c3
-  - vless-2cd17b92
-  - vless-e80d1263
-  - vless-6c8a5e98
-  - vless-abdc54bf
-  - Sezar_sec-13457667
-  - Sezar_sec-e88c8243
-  - Sezar_sec-ccf14adf
-  - Sezar_sec-62841ff8
-  - Sezar_Sec-018fda3b
-  - Sezar_Sec-ee45750f
-  - Sezar_Sec-3dc9ff4f
-  - Sezar_Sec-51ca69a0
-  - Sezar_Sec-dabbf569
-  - مشتی_جوین_بده_ناموصا__xzjinx-419cf1f7
-  - مشتی_جوین_بده_ناموصا__xzjinx-cd7b0397
-  - مشتی_جوین_بده_ناموصا__xzjinx-84a12ed9
-  - G0Dv2ray-946fe425
-  - V2ray1_Ng-4ffb976e
-  - V2ray1_Ng-e16257ea
-  - G0Dv2ray-720042b1
-  - FreeV2BoxBot-56df5c0b
-  - FreeV2BoxBot-912f53e7
-- name: ♻️ Auto
+  - parsproxy_ir-77f77065
+  - D986DB8CD98520D8B3D8A7D8B9D8AA20D8AFDB8CDAAFD98720D982D8B7D8B920D985DB8CDAA9D986D98520D982D8B7D8B920D8B4D8AFDB8C20D8A8DB8CD8A720DA86D986D98420proxygodratmand40-b04279c7
+  - Mahdi2000_m_ql_2535-c459a2fc
+  - vless-a1298fba
+  - vless-7b8f2836
+  - vless-a39c339c
+  - vless-25a31f31
+  - net0n3_281-dc5808b4
+  - vless-f74d8347
+  - net0n3_276-37edd6d0
+  - vless-6f753a44
+  - vless-8d71d800
+  - Sezar_sec-fc67a857
+  - Sezar_sec-3315feaa
+  - Sezar_sec-3763e311
+  - Sezar_sec-334801fe
+  - Sezar_Sec-8931ea81
+  - Sezar_Sec-fc59a7c1
+  - Sezar_Sec-89ab1fc8
+  - Sezar_Sec-48799fc3
+  - Sezar_Sec-ec2d545b
+  - vless-b154280c
+  - vless-cc945057
+  - vless-507de0c6
+  - vless-a5531692
+  - vless-67518819
+  - vless-95af52c9
+  - vless-0747e8d1
+  - vless-27917c13
+  - مشتی_جوین_بده_ناموصا__xzjinx-11f66f9b
+  - مشتی_جوین_بده_ناموصا__xzjinx-56fc672f
+  - مشتی_جوین_بده_ناموصا__xzjinx-e2c441e7
+  - G0Dv2ray-5c08a165
+  - V2ray1_Ng-f0f841e0
+  - V2ray1_Ng-cd9473e0
+  - G0Dv2ray-e9183d45
+  - FreeV2BoxBot-57ec3adb
+  - FreeV2BoxBot-e8682873
+- name: ♻️ AUTO
   type: url-test
-  proxies: &id001
-  - Mahdi2000_m_ql_2535-a242c1b8
-  - Mahdi2000_m_ql_5281-c6cc8a30
-  - Mahdi2000_m_ql_5283-a2ba626d
-  - vless-3aab9799
-  - vless-9ed01d07
-  - vless-061111d5
-  - vless-9f7b3648
-  - net0n3_281-1e4039fa
-  - vless-0c5be179
-  - net0n3_276-d511c9eb
-  - vless-3c7e2068
-  - vless-81ba8769
-  - net0n3_274-c97a5181
-  - vless-c8ef9329
-  - vless-11196069
-  - vless-5831a7e0
-  - vless-1748f3c3
-  - vless-2cd17b92
-  - vless-e80d1263
-  - vless-6c8a5e98
-  - vless-abdc54bf
-  - Sezar_sec-13457667
-  - Sezar_sec-e88c8243
-  - Sezar_sec-ccf14adf
-  - Sezar_sec-62841ff8
-  - Sezar_Sec-018fda3b
-  - Sezar_Sec-ee45750f
-  - Sezar_Sec-3dc9ff4f
-  - Sezar_Sec-51ca69a0
-  - Sezar_Sec-dabbf569
-  - مشتی_جوین_بده_ناموصا__xzjinx-419cf1f7
-  - مشتی_جوین_بده_ناموصا__xzjinx-cd7b0397
-  - مشتی_جوین_بده_ناموصا__xzjinx-84a12ed9
-  - G0Dv2ray-946fe425
-  - V2ray1_Ng-4ffb976e
-  - V2ray1_Ng-e16257ea
-  - G0Dv2ray-720042b1
-  - FreeV2BoxBot-56df5c0b
-  - FreeV2BoxBot-912f53e7
-  url: http://www.gstatic.com/generate_204
-  interval: 300
-- name: 🔯 Fallback
-  type: fallback
-  proxies: *id001
+  proxies:
+  - parsproxy_ir-77f77065
+  - D986DB8CD98520D8B3D8A7D8B9D8AA20D8AFDB8CDAAFD98720D982D8B7D8B920D985DB8CDAA9D986D98520D982D8B7D8B920D8B4D8AFDB8C20D8A8DB8CD8A720DA86D986D98420proxygodratmand40-b04279c7
+  - Mahdi2000_m_ql_2535-c459a2fc
+  - vless-a1298fba
+  - vless-7b8f2836
+  - vless-a39c339c
+  - vless-25a31f31
+  - net0n3_281-dc5808b4
+  - vless-f74d8347
+  - net0n3_276-37edd6d0
+  - vless-6f753a44
+  - vless-8d71d800
+  - Sezar_sec-fc67a857
+  - Sezar_sec-3315feaa
+  - Sezar_sec-3763e311
+  - Sezar_sec-334801fe
+  - Sezar_Sec-8931ea81
+  - Sezar_Sec-fc59a7c1
+  - Sezar_Sec-89ab1fc8
+  - Sezar_Sec-48799fc3
+  - Sezar_Sec-ec2d545b
+  - vless-b154280c
+  - vless-cc945057
+  - vless-507de0c6
+  - vless-a5531692
+  - vless-67518819
+  - vless-95af52c9
+  - vless-0747e8d1
+  - vless-27917c13
+  - مشتی_جوین_بده_ناموصا__xzjinx-11f66f9b
+  - مشتی_جوین_بده_ناموصا__xzjinx-56fc672f
+  - مشتی_جوین_بده_ناموصا__xzjinx-e2c441e7
+  - G0Dv2ray-5c08a165
+  - V2ray1_Ng-f0f841e0
+  - V2ray1_Ng-cd9473e0
+  - G0Dv2ray-e9183d45
+  - FreeV2BoxBot-57ec3adb
+  - FreeV2BoxBot-e8682873
   url: http://www.gstatic.com/generate_204
   interval: 300
 rules:
-- DOMAIN-SUFFIX,local,DIRECT
-- IP-CIDR,127.0.0.0/8,DIRECT
 - GEOIP,IR,DIRECT
-- MATCH,🚀 Proxy
+- MATCH,🚀 PROXY
