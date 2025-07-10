@@ -18,7 +18,7 @@ SESSION_NAME = "my_account"
 
 # --- لیست کانال‌ها ---
 ALL_CHANNELS = [
-    "@SRCVPN", "@net0n3", "@xzjinx", "@vpns", "@Capoit",
+    "@SRCVPN", "@net0n3", "@xzjinx","@ShadowProxy66", "@vpns", "@Capoit",
     "@mrsoulh", "@sezar_sec", "@Fr33C0nfig", "@v2ra_config"
 ]
 
