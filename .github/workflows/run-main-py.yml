@@ -2,9 +2,7 @@ name: Extract and Commit VPN Configs
 
 on:
   schedule:
-    # cاجرا هر 2 ساعت
     - cron: '0 */2 * * *'
-  # اجازه اجرای دستی
   workflow_dispatch:
 
 jobs:
@@ -28,12 +26,10 @@ jobs:
           pip install pyrogram tgcrypto pyyaml
 
       - name: 4. Run Python Script
-        # ✨ مهمترین بخش: تمام سکرت‌ها اینجا به اسکریپت پاس داده می‌شوند
         env:
           API_ID: ${{ secrets.API_ID }}
           API_HASH: ${{ secrets.API_HASH }}
-          SESSION_STRING: ${{ secrets.SESSION_STRING }}
-        # مطمئن شوید که نام اسکریپت شما 'main.py' است
+          SESSION_STRING: ${{ secrets.PYROGRAM_SESSION }}
         run: python main.py
 
       - name: 5. Commit and Push new configs
@@ -41,6 +37,5 @@ jobs:
           git config user.name "GitHub Actions Bot"
           git config user.email "actions@github.com"
           git add Config-jo.yaml Config_jo.txt
-          # فقط در صورتی که تغییری وجود داشته باشد، کامیت و پوش کن
           git diff --staged --quiet || git commit -m "Update VPN configs"
           git push
