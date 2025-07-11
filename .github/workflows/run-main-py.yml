@@ -35,8 +35,8 @@ jobs:
           echo "SESSION_STRING=${{ secrets.SESSION_STRING }}" >> $GITHUB_ENV
           echo "CHANNELS=${{ secrets.CHANNELS }}" >> $GITHUB_ENV
           echo "GROUPS=${{ secrets.GROUPS }}" >> $GITHUB_ENV
-          echo "CHANNEL_SEARCH_LIMIT=${{ secrets.CHANNEL_SEARCH_LIMIT }}" >> $GITHUB_ENV
-          echo "GROUP_SEARCH_LIMIT=${{ secrets.GROUP_SEARCH_LIMIT }}" >> $GITHUB_ENV
+          echo "CHANNEL_SEARCH_LIMIT=${{ secrets.CHANNEL_SEARCH_LIMIT || '5' }}" >> $GITHUB_ENV
+          echo "GROUP_SEARCH_LIMIT=${{ secrets.GROUP_SEARCH_LIMIT || '500' }}" >> $GITHUB_ENV
 
       - name: Run main.py # اجرای اسکریپت اصلی پایتون
         run: python main.py
