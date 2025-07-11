@@ -14,7 +14,7 @@ from pyrogram.errors import FloodWait, RPCError
 # --- تنظیمات اصلی ---
 # این مقادیر باید در بخش Secrets ریپازیتوری GitHub شما تنظیم شوند
 API_ID = int(os.environ.get("API_ID"))
-API_HASH = os.environ.get("API_HASH"))
+API_HASH = os.environ.get("API_HASH")
 SESSION_STRING = os.environ.get("SESSION_STRING")
 
 # لیست کانال‌ها و گروه‌ها از متغیرهای محیطی خوانده می‌شوند
