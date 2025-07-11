@@ -6,21 +6,20 @@ import yaml
 import os
 import uuid
 from urllib.parse import urlparse, parse_qs, unquote
-
-# Pyrogram imports
 from pyrogram import Client
 from pyrogram.errors import FloodWait
 
 # --- بخش ۱: تنظیمات اصلی ---
 # این سه مقدار از سکرت‌های گیت‌هاب خوانده می‌شوند
+# توجه: نام سکرت سشن در فایل yml اصلاح شده است
 API_ID = int(os.environ.get("API_ID"))
 API_HASH = os.environ.get("API_HASH")
-SESSION_STRING = os.environ.get("SESSION_STRING")
+SESSION_STRING = os.environ.get("SESSION_STRING") # این نام در کد باقی می‌ماند
 
-# --- بخش ۲: لیست کانال‌ها و گروه‌ها (مانند کد اولیه شما) ---
-CHANNEL_SEARCH_LIMIT = 50
+# --- بخش ۲: لیست کانال‌ها و گروه‌ها (به صورت ثابت در کد) ---
+# نیازی به سکرت‌های CHANNELS_LIST و GROUPS_LIST نیست
+CHANNEL_SEARCH_LIMIT = 5
 GROUP_SEARCH_LIMIT = 700
-
 CHANNELS = [
     "@SRCVPN", "@net0n3", "@ZibaNabz", "@vpns", "@Capoit",
     "@mrsoulh", "@sezar_sec", "@Fr33C0nfig", "@v2ra_config", "@v2rayww3"
@@ -34,32 +33,23 @@ OUTPUT_YAML = "Config-jo.yaml"
 OUTPUT_TXT = "Config_jo.txt"
 
 # --- بخش ۴: الگوهای Regex ---
-V2RAY_PATTERNS = [
-    re.compile(r"(vless://[^\s'\"<>`]+)"),
-    re.compile(r"(vmess://[^\s'\"<>`]+)"),
-    re.compile(r"(trojan://[^\s'\"<>`]+)"),
-    re.compile(r"(ss://[^\s'\"<>`]+)"),
-    re.compile(r"(hy2://[^\s'\"<>`]+)"),
-    re.compile(r"(hysteria://[^\s'\"<>`]+)"),
-    re.compile(r"(tuic://[^\s'\"<>`]+)")
-]
+V2RAY_PATTERNS = [re.compile(r"(vless://[^\s'\"<>`]+)"), re.compile(r"(vmess://[^\s'\"<>`]+)"), re.compile(r"(trojan://[^\s'\"<>`]+)"), re.compile(r"(ss://[^\s'\"<>`]+)"), re.compile(r"(hy2://[^\s'\"<>`]+)"), re.compile(r"(hysteria://[^\s'\"<>`]+)"), re.compile(r"(tuic://[^\s'\"<>`]+)")]
 BASE64_PATTERN = re.compile(r"([A-Za-z0-9+/=]{50,})", re.MULTILINE)
 
 # --- کلاس اصلی برنامه (بدون نیاز به تغییر) ---
 class V2RayExtractor:
     def __init__(self):
         self.raw_configs = set()
-        # ✨ مهم: کلاینت با استفاده از SESSION_STRING ساخته می‌شود
+        if not SESSION_STRING:
+            raise ValueError("SESSION_STRING not found! Please set it in GitHub Secrets.")
         self.client = Client("my_account", api_id=API_ID, api_hash=API_HASH, session_string=SESSION_STRING)
 
+    # ... (بقیه توابع بدون تغییر کپی شوند) ...
     @staticmethod
     def _generate_unique_name(original_name, prefix="config"):
-        if not original_name:
-            return f"{prefix}-{str(uuid.uuid4())[:8]}"
+        if not original_name: return f"{prefix}-{str(uuid.uuid4())[:8]}"
         cleaned_name = re.sub(r'[^\w\s\-\_\u0600-\u06FF]', '', original_name).replace(' ', '_').strip('_-')
         return f"{cleaned_name}-{str(uuid.uuid4())[:8]}" if cleaned_name else f"{prefix}-{str(uuid.uuid4())[:8]}"
-
-    # ... (بقیه توابع parse بدون تغییر باقی می‌مانند) ...
     def parse_config_for_clash(self, config_url):
         try:
             if config_url.startswith('vmess://'): return self.parse_vmess(config_url)
@@ -94,7 +84,6 @@ class V2RayExtractor:
             except: user_info = unquote(user_info_part)
         cipher, password = user_info.split(':', 1) if ':' in user_info else (None, None)
         return {'name': self._generate_unique_name(original_name, 'ss'), 'type': 'ss', 'server': parsed.hostname, 'port': parsed.port, 'cipher': cipher, 'password': password, 'udp': True} if cipher and password else None
-    
     async def find_raw_configs_from_chat(self, chat_id, limit):
         try:
             print(f"🔍 Searching in chat {chat_id} (limit: {limit})...")
@@ -117,31 +106,24 @@ class V2RayExtractor:
             await self.find_raw_configs_from_chat(chat_id, limit)
         except Exception as e:
             print(f"❌ Error scanning chat {chat_id}: {e}")
-
     def save_files(self):
         print("\n" + "="*30)
         print(f"📝 Saving {len(self.raw_configs)} raw configs to {OUTPUT_TXT}...")
         if self.raw_configs:
-            with open(OUTPUT_TXT, 'w', encoding='utf-8') as f:
-                f.write("\n".join(sorted(list(self.raw_configs))))
+            with open(OUTPUT_TXT, 'w', encoding='utf-8') as f: f.write("\n".join(sorted(list(self.raw_configs))))
             print(f"✅ Raw text file saved.")
         else:
             print("⚠️ No raw configs found.")
-        
         print(f"\n⚙️ Processing configs for {OUTPUT_YAML}...")
         clash_proxies = [p for config_url in self.raw_configs if (p := self.parse_config_for_clash(config_url))]
-        
         if not clash_proxies:
             print("⚠️ No valid configs for Clash. YAML file will be empty.")
             open(OUTPUT_YAML, "w").close()
             return
-            
         print(f"👍 Found {len(clash_proxies)} valid configs for Clash.")
         proxy_names = [p['name'] for p in clash_proxies]
         clash_config_base = {'port': 7890, 'socks-port': 7891, 'allow-lan': True, 'mode': 'rule', 'log-level': 'info', 'external-controller': '127.0.0.1:9090', 'proxies': clash_proxies, 'proxy-groups': [{'name': 'PROXY', 'type': 'select', 'proxies': ['AUTO', 'DIRECT', *proxy_names]}, {'name': 'AUTO', 'type': 'url-test', 'proxies': proxy_names, 'url': 'http://www.gstatic.com/generate_204', 'interval': 300}], 'rules': ['MATCH,PROXY']}
-        
-        with open(OUTPUT_YAML, 'w', encoding='utf-8') as f:
-            yaml.dump(clash_config_base, f, allow_unicode=True, sort_keys=False, indent=2, width=1000)
+        with open(OUTPUT_YAML, 'w', encoding='utf-8') as f: yaml.dump(clash_config_base, f, allow_unicode=True, sort_keys=False, indent=2, width=1000)
         print(f"✅ Clash YAML file saved.")
 
 async def main():
