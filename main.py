@@ -9,38 +9,37 @@ from urllib.parse import urlparse, parse_qs, unquote
 
 # Pyrogram imports
 from pyrogram import Client
-from pyrogram.errors import FloodWait, RPCError
+from pyrogram.errors import FloodWait
 
 # --- تنظیمات اصلی ---
 # این مقادیر باید در بخش Secrets ریپازیتوری GitHub شما تنظیم شوند
 API_ID = int(os.environ.get("API_ID"))
 API_HASH = os.environ.get("API_HASH")
-# SESSION_STRING یک رشته طولانی است که پس از اولین اجرای موفق کد در سیستم شخصی شما تولید می‌شود
-# آن را کپی کرده و به عنوان یک Secret در گیت‌هاب با نام SESSION_STRING قرار دهید
 SESSION_STRING = os.environ.get("SESSION_STRING")
 
-# --- لیست کانال‌ها و گروه‌ها ---
-# برای هر بخش می‌توانید محدودیت جستجوی جداگانه‌ای تعیین کنید
-CHANNEL_SEARCH_LIMIT = 5  # تعداد پیام‌هایی که در هر کانال جستجو می‌شود
-GROUP_SEARCH_LIMIT = 700    # تعداد پیام‌هایی که در هر گروه جستجو می‌شود
+# --- خواندن لیست کانال‌ها و گروه‌ها از Secrets ---
+# این متغیرها توسط GitHub Actions از روی سکرت‌های شما تنظیم می‌شوند.
+# .strip() فاصله‌های اضافی احتمالی در ابتدا و انتهای رشته را حذف می‌کند.
+# .split(',') رشته را بر اساس کاما به یک لیست تبدیل می‌کند.
+channels_str = os.environ.get("CHANNELS_LIST", "").strip()
+groups_str = os.environ.get("GROUPS_LIST", "").strip()
 
-# در اینجا یوزرنیم کانال‌های عمومی را وارد کنید
-CHANNELS = [
-    "@SRCVPN", "@net0n3", "@ZibaNabz", "@vpns", "@Capoit",
-    "@mrsoulh", "@sezar_sec", "@Fr33C0nfig", "@v2ra_config","@v2rayww3"
-]
-# rez=["@xzjinx",]
-# در اینجا آیدی عددی گروه‌ها را وارد کنید (باید با -100 شروع شود)
-GROUPS = [
-    -1001287072009,-1001275030629
-    # آی‌دی گروه‌های دیگر را در اینجا اضافه کنید
-]
+# تبدیل رشته‌های خوانده شده به لیست پایتون
+# اگر رشته خالی نباشد، لیست ساخته می‌شود، در غیر این صورت لیست خالی خواهد بود.
+CHANNELS = [ch.strip() for ch in channels_str.split(',') if ch]
+# برای گروه‌ها، آیدی‌ها باید به عدد صحیح (integer) تبدیل شوند.
+GROUPS = [int(g.strip()) for g in groups_str.split(',') if g]
+
+
+# --- محدودیت‌های جستجو ---
+CHANNEL_SEARCH_LIMIT = 50   # تعداد پیام‌هایی که در هر کانال جستجو می‌شود
+GROUP_SEARCH_LIMIT = 700    # تعداد پیام‌هایی که در هر گروه جستجو می‌شود
 
 # --- خروجی‌ها ---
 OUTPUT_YAML = "Config-jo.yaml"
 OUTPUT_TXT = "Config_jo.txt"
 
-# --- الگوهای Regex ---
+# --- الگوهای Regex (بدون تغییر) ---
 V2RAY_PATTERNS = [
     re.compile(r"(vless://[^\s'\"<>`]+)"),
     re.compile(r"(vmess://[^\s'\"<>`]+)"),
@@ -52,12 +51,10 @@ V2RAY_PATTERNS = [
 ]
 BASE64_PATTERN = re.compile(r"([A-Za-z0-9+/=]{50,})", re.MULTILINE)
 
-# --- کلاس اصلی ---
+# --- کلاس اصلی (بقیه کد بدون تغییر باقی می‌ماند) ---
 class V2RayExtractor:
     def __init__(self):
         self.raw_configs = set()
-        # ✨ تغییر کلیدی برای GitHub Actions: استفاده از session_string
-        # نام "my_account" فقط یک نام موقت در حافظه است و فایلی ایجاد نمی‌کند.
         self.client = Client("my_account", api_id=API_ID, api_hash=API_HASH, session_string=SESSION_STRING)
 
     @staticmethod
@@ -67,7 +64,6 @@ class V2RayExtractor:
         cleaned_name = re.sub(r'[^\w\s\-\_\u0600-\u06FF]', '', original_name).replace(' ', '_').strip('_-')
         return f"{cleaned_name}-{str(uuid.uuid4())[:8]}" if cleaned_name else f"{prefix}-{str(uuid.uuid4())[:8]}"
 
-    # --- توابع پارس کردن (بدون تغییر) ---
     def parse_config_for_clash(self, config_url):
         try:
             if config_url.startswith('vmess://'):
@@ -136,9 +132,7 @@ class V2RayExtractor:
             'cipher': cipher, 'password': password, 'udp': True
         } if cipher and password else None
         
-    # --- تابع اصلی جستجو (بهینه‌سازی شده) ---
     async def find_raw_configs_from_chat(self, chat_id, limit):
-        """کانفیگ‌ها را از یک چت (کانال یا گروه) با لیمیت مشخص پیدا می‌کند"""
         try:
             print(f"🔍 Searching for raw configs in chat {chat_id} (limit: {limit})...")
             async for message in self.client.get_chat_history(chat_id, limit=limit):
@@ -166,7 +160,6 @@ class V2RayExtractor:
         except Exception as e:
             print(f"❌ Error scanning chat {chat_id}: {e}")
 
-    # --- تابع ذخیره‌سازی فایل‌ها (بدون تغییر) ---
     def save_files(self):
         print("\n" + "="*30)
         # 1. ذخیره فایل متنی خام
@@ -212,18 +205,20 @@ class V2RayExtractor:
 
 async def main():
     print("🚀 Starting V2Ray config extractor...")
+    if not CHANNELS and not GROUPS:
+        print("❌ Error: No channels or groups to scan. Please check your CHANNELS_LIST and GROUPS_LIST secrets.")
+        return
+
+    print(f"Found {len(CHANNELS)} channels and {len(GROUPS)} groups to scan.")
+
     extractor = V2RayExtractor()
     async with extractor.client:
-        # ساخت لیست تسک‌ها برای اجرا همزمان
         tasks = []
-        # اضافه کردن تسک‌های کانال‌ها
         for channel in CHANNELS:
             tasks.append(extractor.find_raw_configs_from_chat(channel, CHANNEL_SEARCH_LIMIT))
-        # اضافه کردن تسک‌های گروه‌ها
         for group in GROUPS:
             tasks.append(extractor.find_raw_configs_from_chat(group, GROUP_SEARCH_LIMIT))
         
-        # اجرای تمام تسک‌ها به صورت موازی
         await asyncio.gather(*tasks)
     
     extractor.save_files()
