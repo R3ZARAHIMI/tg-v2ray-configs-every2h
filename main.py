@@ -27,7 +27,7 @@ GROUP_SEARCH_LIMIT = 500    # تعداد پیام‌هایی که در هر گر
 # در اینجا یوزرنیم کانال‌های عمومی را وارد کنید
 CHANNELS = [
     "@SRCVPN", "@net0n3", "@ZibaNabz", "@vpns", "@Capoit",
-    "@mrsoulh", "@sezar_sec", "@Fr33C0nfig", "@v2ra_config"
+    "@mrsoulh", "@sezar_sec", "@Fr33C0nfig", "@v2ra_config","@v2rayww3"
 ]
 # rez=["@xzjinx",]
 # در اینجا آیدی عددی گروه‌ها را وارد کنید (باید با -100 شروع شود)
