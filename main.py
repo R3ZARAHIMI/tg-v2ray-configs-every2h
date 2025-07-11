@@ -32,8 +32,8 @@ GROUPS = [int(g.strip()) for g in groups_str.split(',') if g]
 
 
 # --- محدودیت‌های جستجو ---
-CHANNEL_SEARCH_LIMIT = 50   # تعداد پیام‌هایی که در هر کانال جستجو می‌شود
-GROUP_SEARCH_LIMIT = 700    # تعداد پیام‌هایی که در هر گروه جستجو می‌شود
+CHANNEL_SEARCH_LIMIT = 5   # تعداد پیام‌هایی که در هر کانال جستجو می‌شود
+GROUP_SEARCH_LIMIT = 500    # تعداد پیام‌هایی که در هر گروه جستجو می‌شود
 
 # --- خروجی‌ها ---
 OUTPUT_YAML = "Config-jo.yaml"
