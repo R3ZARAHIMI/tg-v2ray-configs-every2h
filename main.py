@@ -14,27 +14,19 @@ from pyrogram.errors import FloodWait, RPCError
 # --- تنظیمات اصلی ---
 # این مقادیر باید در بخش Secrets ریپازیتوری GitHub شما تنظیم شوند
 API_ID = int(os.environ.get("API_ID"))
-API_HASH = os.environ.get("API_HASH")
-# SESSION_STRING یک رشته طولانی است که پس از اولین اجرای موفق کد در سیستم شخصی شما تولید می‌شود
-# آن را کپی کرده و به عنوان یک Secret در گیت‌هاب با نام SESSION_STRING قرار دهید
+API_HASH = os.environ.get("API_HASH"))
 SESSION_STRING = os.environ.get("SESSION_STRING")
 
-# --- لیست کانال‌ها و گروه‌ها ---
-# برای هر بخش می‌توانید محدودیت جستجوی جداگانه‌ای تعیین کنید
-CHANNEL_SEARCH_LIMIT = 5  # تعداد پیام‌هایی که در هر کانال جستجو می‌شود
-GROUP_SEARCH_LIMIT = 500    # تعداد پیام‌هایی که در هر گروه جستجو می‌شود
+# لیست کانال‌ها و گروه‌ها از متغیرهای محیطی خوانده می‌شوند
+CHANNELS = os.environ.get("CHANNELS", "").split(",")
+GROUPS = os.environ.get("GROUPS", "").split(",")
 
-# در اینجا یوزرنیم کانال‌های عمومی را وارد کنید
-CHANNELS = [
-    "@SRCVPN", "@net0n3", "@ZibaNabz", "@vpns", "@Capoit",
-     "@sezar_sec", "@Fr33C0nfig", "@v2ra_config","@v2rayww3"
-]
-# rez=["@xzjinx",]
-# در اینجا آیدی عددی گروه‌ها را وارد کنید (باید با -100 شروع شود)
-GROUPS = [
-    -1001287072009,-1001275030629,-1002026806005
-    # آی‌دی گروه‌های دیگر را در اینجا اضافه کنید
-]
+# تبدیل آیدی گروه‌ها به عدد صحیح
+GROUPS = [int(group) if group.strip().startswith('-100') else -100 + int(group) for group in GROUPS if group.strip()]
+
+# --- تنظیمات جستجو ---
+CHANNEL_SEARCH_LIMIT = int(os.environ.get("CHANNEL_SEARCH_LIMIT", "5"))
+GROUP_SEARCH_LIMIT = int(os.environ.get("GROUP_SEARCH_LIMIT", "500"))
 
 # --- خروجی‌ها ---
 OUTPUT_YAML = "Config-jo.yaml"
@@ -56,8 +48,6 @@ BASE64_PATTERN = re.compile(r"([A-Za-z0-9+/=]{50,})", re.MULTILINE)
 class V2RayExtractor:
     def __init__(self):
         self.raw_configs = set()
-        # ✨ تغییر کلیدی برای GitHub Actions: استفاده از session_string
-        # نام "my_account" فقط یک نام موقت در حافظه است و فایلی ایجاد نمی‌کند.
         self.client = Client("my_account", api_id=API_ID, api_hash=API_HASH, session_string=SESSION_STRING)
 
     @staticmethod
@@ -135,7 +125,7 @@ class V2RayExtractor:
             'server': parsed.hostname, 'port': parsed.port,
             'cipher': cipher, 'password': password, 'udp': True
         } if cipher and password else None
-        
+
     # --- تابع اصلی جستجو (بهینه‌سازی شده) ---
     async def find_raw_configs_from_chat(self, chat_id, limit):
         """کانفیگ‌ها را از یک چت (کانال یا گروه) با لیمیت مشخص پیدا می‌کند"""
@@ -144,7 +134,7 @@ class V2RayExtractor:
             async for message in self.client.get_chat_history(chat_id, limit=limit):
                 if not message.text:
                     continue
-                
+
                 texts_to_scan = [message.text]
                 potential_b64 = BASE64_PATTERN.findall(message.text)
                 for b64_str in potential_b64:
@@ -190,9 +180,9 @@ class V2RayExtractor:
             print("⚠️ No valid configs could be parsed for Clash. YAML file will be empty.")
             open(OUTPUT_YAML, "w").close()
             return
-            
+
         print(f"👍 Found {len(clash_proxies)} valid configs for Clash.")
-        
+
         proxy_names = [p['name'] for p in clash_proxies]
         clash_config_base = {
             'port': 7890, 'socks-port': 7891, 'allow-lan': True, 'mode': 'rule', 'log-level': 'info',
@@ -204,11 +194,10 @@ class V2RayExtractor:
             ],
             'rules': ['MATCH,PROXY']
         }
-        
+
         with open(OUTPUT_YAML, 'w', encoding='utf-8') as f:
             yaml.dump(clash_config_base, f, allow_unicode=True, sort_keys=False, indent=2, width=1000)
         print(f"✅ Clash YAML file saved successfully.")
-
 
 async def main():
     print("🚀 Starting V2Ray config extractor...")
@@ -218,14 +207,19 @@ async def main():
         tasks = []
         # اضافه کردن تسک‌های کانال‌ها
         for channel in CHANNELS:
-            tasks.append(extractor.find_raw_configs_from_chat(channel, CHANNEL_SEARCH_LIMIT))
+            if channel.strip():
+                tasks.append(extractor.find_raw_configs_from_chat(channel, CHANNEL_SEARCH_LIMIT))
         # اضافه کردن تسک‌های گروه‌ها
         for group in GROUPS:
-            tasks.append(extractor.find_raw_configs_from_chat(group, GROUP_SEARCH_LIMIT))
-        
+            if group:
+                tasks.append(extractor.find_raw_configs_from_chat(group, GROUP_SEARCH_LIMIT))
+
         # اجرای تمام تسک‌ها به صورت موازی
-        await asyncio.gather(*tasks)
-    
+        if tasks:
+            await asyncio.gather(*tasks)
+        else:
+            print("⚠️ No channels or groups specified in the environment variables.")
+
     extractor.save_files()
     print("\n✨ All tasks completed!")
 
