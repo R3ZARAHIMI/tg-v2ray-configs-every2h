@@ -25,8 +25,9 @@ GROUPS = os.environ.get("GROUPS", "").split(",")
 GROUPS = [int(group) if group.strip().startswith('-100') else -100 + int(group) for group in GROUPS if group.strip()]
 
 # --- تنظیمات جستجو ---
-CHANNEL_SEARCH_LIMIT = int(os.environ.get("CHANNEL_SEARCH_LIMIT", "5"))
-GROUP_SEARCH_LIMIT = int(os.environ.get("GROUP_SEARCH_LIMIT", "500"))
+
+CHANNEL_SEARCH_LIMIT = int(os.environ.get("CHANNEL_SEARCH_LIMIT") or "5")  # مقدار پیش‌فرض 5
+GROUP_SEARCH_LIMIT = int(os.environ.get("GROUP_SEARCH_LIMIT") or "500")  # 
 
 # --- خروجی‌ها ---
 OUTPUT_YAML = "Config-jo.yaml"
