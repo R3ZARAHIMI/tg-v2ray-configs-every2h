@@ -1,47 +1,45 @@
 name: Extract VPN Configs (User Client)
-
 on:
   schedule:
-    # زمان‌بندی اجرا در ساعت‌های 06:00، 14:00، 22:00 UTC هر روز
-    # برای مثال: 06:00 UTC = 09:30 IRT
-    # 14:00 UTC = 17:30 IRT
-    # 22:00 UTC = 01:30 IRT (روز بعد)
     - cron: '0 */2 * * *'
-
-  workflow_dispatch: # اجازه اجرای دستی از رابط کاربری گیت‌هاب
+  workflow_dispatch:
 
 jobs:
   run-script:
-    runs-on: ubuntu-latest # سیستم عامل Runner
+    runs-on: ubuntu-latest
     permissions:
-      contents: write # این مجوز برای push کردن تغییرات به مخزن ضروری است
+      contents: write
 
     steps:
-      - name: Checkout repository # دانلود کد مخزن
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Python # نصب پایتون
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10' # نسخه پایتون
+          python-version: '3.10'
 
-      - name: Install Python dependencies # نصب کتابخانه‌های پایتون از requirements.txt
+      - name: Install Python dependencies
         run: pip install -r requirements.txt
 
-      - name: Set up Telegram API credentials and Session # تنظیم اطلاعات API تلگرام و ایجاد فایل سشن
+      - name: Set up Telegram API credentials and Session
         run: |
           echo "API_ID=${{ secrets.API_ID }}" >> $GITHUB_ENV
           echo "API_HASH=${{ secrets.API_HASH }}" >> $GITHUB_ENV
-          echo "SESSION_STRING=${{ secrets.SESSION_STRING }}" >> $GITHUB_ENV
-          echo "CHANNELS=${{ secrets.CHANNELS }}" >> $GITHUB_ENV
-          echo "GROUPS=${{ secrets.GROUPS }}" >> $GITHUB_ENV
-          echo "CHANNEL_SEARCH_LIMIT=${{ secrets.CHANNEL_SEARCH_LIMIT || '5' }}" >> $GITHUB_ENV
-          echo "GROUP_SEARCH_LIMIT=${{ secrets.GROUP_SEARCH_LIMIT || '500' }}" >> $GITHUB_ENV
+          echo "CHANNELS_JSON=${{ secrets.CHANNELS_LIST }}" >> $GITHUB_ENV
+          echo "GROUPS_JSON=${{ secrets.GROUPS_LIST }}" >> $GITHUB_ENV
+          echo "SESSION_STRING=${{ secrets.PYROGRAM_SESSION }}" >> $GITHUB_ENV
+          
+          # Decode the Base64 session string and write to file
+          echo "${{ secrets.PYROGRAM_SESSION }}" | base64 --decode > my_account.session
+        env:
+          API_ID: ${{ secrets.API_ID }}
+          API_HASH: ${{ secrets.API_HASH }}
 
-      - name: Run main.py # اجرای اسکریپت اصلی پایتون
+      - name: Run main.py
         run: python main.py
 
-      - name: Commit and Push new configs # کامیت و پوش کردن کانفیگ‌های جدید
+      - name: Commit and Push new configs
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
