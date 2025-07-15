@@ -6,30 +6,34 @@ import yaml
 import os
 import uuid
 from urllib.parse import urlparse, parse_qs, unquote
-import requests
-import socket
-from collections import defaultdict
 
 # Pyrogram imports
 from pyrogram import Client
-from pyrogram.errors import FloodWait
+from pyrogram.errors import FloodWait, RPCError
 
 # --- تنظیمات اصلی ---
 # این مقادیر باید در بخش Secrets ریپازیتوری GitHub شما تنظیم شوند
 API_ID = int(os.environ.get("API_ID"))
 API_HASH = os.environ.get("API_HASH")
+# SESSION_STRING یک رشته طولانی است که پس از اولین اجرای موفق کد در سیستم شخصی شما تولید می‌شود
+# آن را کپی کرده و به عنوان یک Secret در گیت‌هاب با نام SESSION_STRING قرار دهید
 SESSION_STRING = os.environ.get("SESSION_STRING")
 
 # --- لیست کانال‌ها و گروه‌ها ---
-CHANNEL_SEARCH_LIMIT = 5   # تعداد پیام‌هایی که در هر کانال جستجو می‌شود
-GROUP_SEARCH_LIMIT = 500   # تعداد پیام‌هایی که در هر گروه جستجو می‌شود
+# برای هر بخش می‌توانید محدودیت جستجوی جداگانه‌ای تعیین کنید
+CHANNEL_SEARCH_LIMIT = 5  # تعداد پیام‌هایی که در هر کانال جستجو می‌شود
+GROUP_SEARCH_LIMIT = 500    # تعداد پیام‌هایی که در هر گروه جستجو می‌شود
 
+# در اینجا یوزرنیم کانال‌های عمومی را وارد کنید
 CHANNELS = [
     "@SRCVPN", "@net0n3", "@ZibaNabz", "@vpns", "@Capoit",
-    "@sezar_sec", "@Fr33C0nfig", "@v2ra_config", "@v2rayww3", "@gheychiamoozesh"
+     "@sezar_sec", "@Fr33C0nfig", "@v2ra_config","@v2rayww3","@gheychiamoozesh"
 ]
+# rez=["@xzjinx",]
+# در اینجا آیدی عددی گروه‌ها را وارد کنید (باید با -100 شروع شود)
 GROUPS = [
-    -1001287072009, -1001275030629, -1002026806005
+    -1001287072009,-1001275030629,-1002026806005
+    # آی‌دی گروه‌های دیگر را در اینجا اضافه کنید
 ]
 
 # --- خروجی‌ها ---
@@ -52,45 +56,18 @@ BASE64_PATTERN = re.compile(r"([A-Za-z0-9+/=]{50,})", re.MULTILINE)
 class V2RayExtractor:
     def __init__(self):
         self.raw_configs = set()
+        # ✨ تغییر کلیدی برای GitHub Actions: استفاده از session_string
+        # نام "my_account" فقط یک نام موقت در حافظه است و فایلی ایجاد نمی‌کند.
         self.client = Client("my_account", api_id=API_ID, api_hash=API_HASH, session_string=SESSION_STRING)
-        # شمارنده برای نام‌های تکراری بر اساس پرچم
-        self.flag_counters = defaultdict(int)
 
-    def get_country_flag(self, hostname):
-        """آدرس سرور را به ایموجی پرچم کشور تبدیل می‌کند."""
-        # اگر هاست یک آی‌پی بود، نیازی به رزولوشن نیست
-        try:
-            # بررسی می‌کنیم که آیا هاست یک دامنه معتبر است یا خیر
-            if hostname:
-                ip_address = socket.gethostbyname(hostname)
-            else:
-                return "🌍" # اگر هاست‌نیم وجود نداشت
-        except socket.gaierror:
-            # اگر دامنه قابل ترجمه به IP نبود
-            return "❔"
-            
-        try:
-            # ارسال درخواست به سرویس Geolocation
-            response = requests.get(f"http://ip-api.com/json/{ip_address}?fields=status,countryCode", timeout=5)
-            if response.status_code == 200:
-                data = response.json()
-                if data.get('status') == 'success':
-                    country_code = data.get('countryCode')
-                    if country_code:
-                        # تبدیل کد کشور به ایموجی پرچم
-                        return "".join(chr(ord(c) + 127397) for c in country_code.upper())
-        except requests.RequestException:
-            # در صورت بروز خطای شبکه
-            return "🌐"
-        # اگر هیچکدام از شرایط بالا برقرار نبود
-        return "🌍"
+    @staticmethod
+    def _generate_unique_name(original_name, prefix="config"):
+        if not original_name:
+            return f"{prefix}-{str(uuid.uuid4())[:8]}"
+        cleaned_name = re.sub(r'[^\w\s\-\_\u0600-\u06FF]', '', original_name).replace(' ', '_').strip('_-')
+        return f"{cleaned_name}-{str(uuid.uuid4())[:8]}" if cleaned_name else f"{prefix}-{str(uuid.uuid4())[:8]}"
 
-    def _generate_unique_name(self, flag):
-        """بر اساس پرچم و شمارنده، یک نام منحصر به فرد تولید می‌کند."""
-        self.flag_counters[flag] += 1
-        return f"{flag} | {self.flag_counters[flag]}"
-
-    # --- توابع پارس کردن (تغییر یافته) ---
+    # --- توابع پارس کردن (بدون تغییر) ---
     def parse_config_for_clash(self, config_url):
         try:
             if config_url.startswith('vmess://'):
@@ -106,86 +83,60 @@ class V2RayExtractor:
             return None
 
     def parse_vmess(self, vmess_url):
-        try:
-            encoded_data = vmess_url.replace('vmess://', '').split('#')[0]
-            encoded_data += '=' * (4 - len(encoded_data) % 4)
-            config = json.loads(base64.b64decode(encoded_data).decode('utf-8'))
-            
-            flag = self.get_country_flag(config.get('add'))
-            new_name = self._generate_unique_name(flag)
-            
-            return {
-                'name': new_name, 'type': 'vmess',
-                'server': config.get('add'), 'port': int(config.get('port', 443)),
-                'uuid': config.get('id'), 'alterId': int(config.get('aid', 0)),
-                'cipher': config.get('scy', 'auto'), 'tls': config.get('tls') == 'tls',
-                'network': config.get('net', 'tcp'), 'udp': True,
-                'ws-opts': {'path': config.get('path', '/'), 'headers': {'Host': config.get('host', '')}} if config.get('net') == 'ws' else None
-            }
-        except Exception:
-            return None
+        encoded_data = vmess_url.replace('vmess://', '').split('#')[0]
+        encoded_data += '=' * (4 - len(encoded_data) % 4)
+        config = json.loads(base64.b64decode(encoded_data).decode('utf-8'))
+        original_name = config.get('ps', '')
+        return {
+            'name': self._generate_unique_name(original_name, "vmess"), 'type': 'vmess',
+            'server': config.get('add'), 'port': int(config.get('port', 443)),
+            'uuid': config.get('id'), 'alterId': int(config.get('aid', 0)),
+            'cipher': config.get('scy', 'auto'), 'tls': config.get('tls') == 'tls',
+            'network': config.get('net', 'tcp'), 'udp': True,
+            'ws-opts': {'path': config.get('path', '/'), 'headers': {'Host': config.get('host', '')}} if config.get('net') == 'ws' else None
+        }
 
     def parse_vless(self, vless_url):
-        try:
-            parsed = urlparse(vless_url)
-            query = parse_qs(parsed.query)
-            
-            flag = self.get_country_flag(parsed.hostname)
-            new_name = self._generate_unique_name(flag)
-
-            return {
-                'name': new_name, 'type': 'vless',
-                'server': parsed.hostname, 'port': parsed.port or 443,
-                'uuid': parsed.username, 'udp': True, 'tls': query.get('security', [''])[0] == 'tls',
-                'network': query.get('type', ['tcp'])[0], 'servername': query.get('sni', [None])[0],
-                'ws-opts': {'path': query.get('path', ['/'])[0], 'headers': {'Host': query.get('host', [None])[0]}} if query.get('type', [''])[0] == 'ws' else None,
-                'reality-opts': {'public-key': query.get('pbk', [None])[0], 'short-id': query.get('sid', [None])[0]} if query.get('security', [''])[0] == 'reality' else None
-            }
-        except Exception:
-            return None
+        parsed = urlparse(vless_url)
+        query = parse_qs(parsed.query)
+        original_name = unquote(parsed.fragment) if parsed.fragment else ''
+        return {
+            'name': self._generate_unique_name(original_name, "vless"), 'type': 'vless',
+            'server': parsed.hostname, 'port': parsed.port or 443,
+            'uuid': parsed.username, 'udp': True, 'tls': query.get('security', [''])[0] == 'tls',
+            'network': query.get('type', ['tcp'])[0], 'servername': query.get('sni', [None])[0],
+            'ws-opts': {'path': query.get('path', ['/'])[0], 'headers': {'Host': query.get('host', [None])[0]}} if query.get('type', [''])[0] == 'ws' else None,
+            'reality-opts': {'public-key': query.get('pbk', [None])[0], 'short-id': query.get('sid', [None])[0]} if query.get('security', [''])[0] == 'reality' else None
+        }
 
     def parse_trojan(self, trojan_url):
-        try:
-            parsed = urlparse(trojan_url)
-            query = parse_qs(parsed.query)
-            
-            flag = self.get_country_flag(parsed.hostname)
-            new_name = self._generate_unique_name(flag)
-
-            return {
-                'name': new_name, 'type': 'trojan',
-                'server': parsed.hostname, 'port': parsed.port or 443,
-                'password': parsed.username, 'udp': True, 'sni': query.get('peer', [None])[0] or query.get('sni', [None])[0]
-            }
-        except Exception:
-            return None
+        parsed = urlparse(trojan_url)
+        query = parse_qs(parsed.query)
+        original_name = unquote(parsed.fragment) if parsed.fragment else ''
+        return {
+            'name': self._generate_unique_name(original_name, "trojan"), 'type': 'trojan',
+            'server': parsed.hostname, 'port': parsed.port or 443,
+            'password': parsed.username, 'udp': True, 'sni': query.get('peer', [None])[0] or query.get('sni', [None])[0]
+        }
 
     def parse_shadowsocks(self, ss_url):
-        try:
-            parsed = urlparse(ss_url)
-            user_info = ''
-            if '@' in parsed.netloc:
-                user_info_part = parsed.netloc.split('@')[0]
-                try:
-                    user_info = base64.b64decode(user_info_part + '=' * (4 - len(user_info_part) % 4)).decode('utf-8')
-                except:
-                    user_info = unquote(user_info_part)
-            
-            cipher, password = user_info.split(':', 1) if ':' in user_info else (None, None)
-            if not (cipher and password): return None
-
-            flag = self.get_country_flag(parsed.hostname)
-            new_name = self._generate_unique_name(flag)
-
-            return {
-                'name': new_name, 'type': 'ss',
-                'server': parsed.hostname, 'port': parsed.port,
-                'cipher': cipher, 'password': password, 'udp': True
-            }
-        except Exception:
-            return None
-    
-    # --- تابع اصلی جستجو (بدون تغییر) ---
+        parsed = urlparse(ss_url)
+        original_name = unquote(parsed.fragment) if parsed.fragment else ''
+        user_info = ''
+        if '@' in parsed.netloc:
+            user_info_part = parsed.netloc.split('@')[0]
+            try:
+                user_info = base64.b64decode(user_info_part + '=' * (4 - len(user_info_part) % 4)).decode('utf-8')
+            except:
+                user_info = unquote(user_info_part)
+        cipher, password = user_info.split(':', 1) if ':' in user_info else (None, None)
+        return {
+            'name': self._generate_unique_name(original_name, 'ss'), 'type': 'ss',
+            'server': parsed.hostname, 'port': parsed.port,
+            'cipher': cipher, 'password': password, 'udp': True
+        } if cipher and password else None
+        
+    # --- تابع اصلی جستجو (بهینه‌سازی شده) ---
     async def find_raw_configs_from_chat(self, chat_id, limit):
         """کانفیگ‌ها را از یک چت (کانال یا گروه) با لیمیت مشخص پیدا می‌کند"""
         try:
@@ -237,9 +188,7 @@ class V2RayExtractor:
 
         if not clash_proxies:
             print("⚠️ No valid configs could be parsed for Clash. YAML file will be empty.")
-            # ایجاد یک فایل خالی
-            with open(OUTPUT_YAML, 'w') as f:
-                yaml.dump({'proxies': []}, f)
+            open(OUTPUT_YAML, "w").close()
             return
             
         print(f"👍 Found {len(clash_proxies)} valid configs for Clash.")
@@ -265,19 +214,20 @@ async def main():
     print("🚀 Starting V2Ray config extractor...")
     extractor = V2RayExtractor()
     async with extractor.client:
+        # ساخت لیست تسک‌ها برای اجرا همزمان
         tasks = []
+        # اضافه کردن تسک‌های کانال‌ها
         for channel in CHANNELS:
             tasks.append(extractor.find_raw_configs_from_chat(channel, CHANNEL_SEARCH_LIMIT))
+        # اضافه کردن تسک‌های گروه‌ها
         for group in GROUPS:
             tasks.append(extractor.find_raw_configs_from_chat(group, GROUP_SEARCH_LIMIT))
         
+        # اجرای تمام تسک‌ها به صورت موازی
         await asyncio.gather(*tasks)
     
-    # تابع save_files نیازی به async ندارد چون requests به صورت 동기 (synchronous) کار می‌کند
     extractor.save_files()
     print("\n✨ All tasks completed!")
 
 if __name__ == "__main__":
-    # اگر در ویندوز با خطا مواجه شدید این خط را کامنت‌زدایی کنید
-    # asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     asyncio.run(main())
