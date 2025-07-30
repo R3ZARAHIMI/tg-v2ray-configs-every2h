@@ -33,7 +33,7 @@ CHANNELS_STR = os.environ.get('CHANNELS_LIST')
 GROUPS_STR = os.environ.get('GROUPS_LIST')
 
 # --- متغیرهای جستجو و نام فایل‌های خروجی ---
-CHANNEL_SEARCH_LIMIT = 50   # تعداد پیام‌هایی که در هر کانال جستجو می‌شود
+CHANNEL_SEARCH_LIMIT = 10   # تعداد پیام‌هایی که در هر کانال جستجو می‌شود
 GROUP_SEARCH_LIMIT = 500    # تعداد پیام‌هایی که در هر گروه جستجو می‌شود
 OUTPUT_YAML = "Config-jo.yaml"
 OUTPUT_TXT = "Config_jo.txt"
