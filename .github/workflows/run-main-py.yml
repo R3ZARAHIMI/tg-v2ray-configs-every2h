@@ -2,8 +2,11 @@ name: Extract VPN Configs (User Client)
 
 on:
   schedule:
-    # اجرا هر دو ساعت یکبار
-    - cron: '0 */2 * * *'
+    # اجرا در ساعت 07:30 UTC (۱۱:۰۰ صبح به وقت ایران)
+    - cron: '30 7 * * *'
+    # اجرا در ساعت 17:30 UTC (۹:۰۰ شب به وقت ایران)
+    - cron: '30 17 * * *'
+  
   workflow_dispatch: # اجازه اجرای دستی
 
 jobs:
@@ -24,18 +27,12 @@ jobs:
       - name: Install Python dependencies
         run: pip install -r requirements.txt
 
-      # -------------------------------------------------------------------
-      # مرحله‌ی اشتباه قبلی که اطلاعات تلگرام را تنظیم می‌کرد، کاملاً حذف شده است.
-      # -------------------------------------------------------------------
-
       - name: Run main.py
         run: python main.py
-        # ✅ این بخش جدید و صحیح است
-        # تمام سکرت‌ها را مستقیماً به اسکریپت پایتون می‌دهیم
         env:
           API_ID: ${{ secrets.API_ID }}
           API_HASH: ${{ secrets.API_HASH }}
-          SESSION_STRING: ${{ secrets.PYROGRAM_SESSION }} # اگر نام سکرتتان متفاوت است، اینجا اصلاح کنید
+          SESSION_STRING: ${{ secrets.PYROGRAM_SESSION }}
           CHANNELS_LIST: ${{ secrets.CHANNELS_LIST }}
           GROUPS_LIST: ${{ secrets.GROUPS_LIST }}
 
