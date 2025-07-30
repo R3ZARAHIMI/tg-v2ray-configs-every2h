@@ -32,7 +32,7 @@ CHANNELS_STR = os.environ.get('CHANNELS_LIST')
 GROUPS_STR = os.environ.get('GROUPS_LIST')
 
 # --- متغیرهای جستجو و نام فایل‌های خروجی ---
-CHANNEL_SEARCH_LIMIT = 10
+CHANNEL_SEARCH_LIMIT = 50
 GROUP_SEARCH_LIMIT = 500
 OUTPUT_YAML = "Config-jo.yaml"
 OUTPUT_TXT = "Config_jo.txt"
@@ -107,22 +107,16 @@ class V2RayExtractor:
         config = json.loads(base64.b64decode(encoded_data).decode('utf-8'))
         original_name = config.get('ps', '')
         
-        # --- START: Clash YAML Fix ---
-        # اصلاح منطق مربوط به ws-opts برای جلوگیری از خطای Host نامعتبر
         ws_opts = None
         if config.get('net') == 'ws':
             host_header = config.get('host', '').strip()
-            # اگر فیلد host خالی بود، از آدرس سرور به عنوان جایگزین استفاده کن
             if not host_header:
                 host_header = config.get('add', '').strip()
-            
-            # فقط در صورتی هدر را اضافه کن که مقدار Host معتبر باشد
             if host_header:
                  ws_opts = {
                     'path': config.get('path', '/'),
                     'headers': {'Host': host_header}
                 }
-        # --- END: Clash YAML Fix ---
 
         return {
             'name': self._generate_unique_name(original_name, "vmess"), 'type': 'vmess',
@@ -130,7 +124,7 @@ class V2RayExtractor:
             'uuid': config.get('id'), 'alterId': int(config.get('aid', 0)),
             'cipher': config.get('scy', 'auto'), 'tls': config.get('tls') == 'tls',
             'network': config.get('net', 'tcp'), 'udp': True,
-            'ws-opts': ws_opts # استفاده از ws_opts اصلاح شده
+            'ws-opts': ws_opts
         }
 
     def parse_vless(self, vless_url):
@@ -138,31 +132,25 @@ class V2RayExtractor:
         query = parse_qs(parsed.query)
         original_name = unquote(parsed.fragment) if parsed.fragment else ''
         
-        # --- START: Clash YAML Fix ---
-        # اصلاح منطق مربوط به ws-opts برای جلوگیری از خطای Host نامعتبر
         ws_opts = None
         if query.get('type', [''])[0] == 'ws':
             host_header = query.get('host', [''])[0].strip()
-            # اگر فیلد host خالی بود، از sni و سپس از آدرس سرور به عنوان جایگزین استفاده کن
             if not host_header:
                 host_header = query.get('sni', [''])[0].strip()
             if not host_header:
                 host_header = parsed.hostname
-
-            # فقط در صورتی هدر را اضافه کن که مقدار Host معتبر باشد
             if host_header:
                 ws_opts = {
                     'path': query.get('path', ['/'])[0],
                     'headers': {'Host': host_header}
                 }
-        # --- END: Clash YAML Fix ---
 
         return {
             'name': self._generate_unique_name(original_name, "vless"), 'type': 'vless',
             'server': parsed.hostname, 'port': parsed.port or 443,
             'uuid': parsed.username, 'udp': True, 'tls': query.get('security', [''])[0] == 'tls',
             'network': query.get('type', ['tcp'])[0], 'servername': query.get('sni', [None])[0],
-            'ws-opts': ws_opts, # استفاده از ws_opts اصلاح شده
+            'ws-opts': ws_opts,
             'reality-opts': {'public-key': query.get('pbk', [None])[0], 'short-id': query.get('sid', [None])[0]} if query.get('security', [''])[0] == 'reality' else None
         }
 
@@ -227,16 +215,48 @@ class V2RayExtractor:
         print(f"👍 Found {len(clash_proxies)} valid configs for Clash.")
         
         proxy_names = [p['name'] for p in clash_proxies]
+        
+        # --- START: Clash YAML Fix ---
+        # اضافه کردن بخش DNS و قوانین استاندارد برای عملکرد بهتر
         clash_config_base = {
-            'port': 7890, 'socks-port': 7891, 'allow-lan': True, 'mode': 'rule', 'log-level': 'info',
+            'port': 7890,
+            'socks-port': 7891,
+            'allow-lan': True,
+            'mode': 'rule',
+            'log-level': 'info',
             'external-controller': '127.0.0.1:9090',
+            'dns': {
+                'enable': True,
+                'listen': '0.0.0.0:53',
+                'default-nameserver': [
+                    '8.8.8.8',
+                    '1.1.1.1',
+                    '208.67.222.222'
+                ],
+                'enhanced-mode': 'fake-ip',
+                'fake-ip-range': '198.18.0.1/16',
+                'fallback': [
+                    'https://cloudflare-dns.com/dns-query',
+                    'https://dns.google/dns-query'
+                ],
+                'fallback-filter': {'geoip': True, 'ipcidr': ['240.0.0.0/4']}
+            },
             'proxies': clash_proxies,
             'proxy-groups': [
                 {'name': 'PROXY', 'type': 'select', 'proxies': ['AUTO', 'DIRECT', *proxy_names]},
                 {'name': 'AUTO', 'type': 'url-test', 'proxies': proxy_names, 'url': 'http://www.gstatic.com/generate_204', 'interval': 300}
             ],
-            'rules': ['MATCH,PROXY']
+            'rules': [
+                'DOMAIN-SUFFIX,local,DIRECT',
+                'IP-CIDR,127.0.0.0/8,DIRECT',
+                'IP-CIDR,192.168.0.0/16,DIRECT',
+                'IP-CIDR,172.16.0.0/12,DIRECT',
+                'IP-CIDR,10.0.0.0/8,DIRECT',
+                'GEOIP,IR,DIRECT',
+                'MATCH,PROXY'
+            ]
         }
+        # --- END: Clash YAML Fix ---
         
         with open(OUTPUT_YAML, 'w', encoding='utf-8') as f:
             yaml.dump(clash_config_base, f, allow_unicode=True, sort_keys=False, indent=2, width=1000)
