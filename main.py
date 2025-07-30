@@ -21,20 +21,40 @@ SESSION_STRING = os.environ.get("SESSION_STRING")
 
 # --- لیست کانال‌ها و گروه‌ها ---
 # برای هر بخش می‌توانید محدودیت جستجوی جداگانه‌ای تعیین کنید
+# --- لیست کانال‌ها و گروه‌ها ---
+# این مقادیر از GitHub Secrets خوانده می‌شوند و دیگر در کد قابل مشاهده نیستند.
 CHANNEL_SEARCH_LIMIT = 5  # تعداد پیام‌هایی که در هر کانال جستجو می‌شود
 GROUP_SEARCH_LIMIT = 500    # تعداد پیام‌هایی که در هر گروه جستجو می‌شود
 
-# در اینجا یوزرنیم کانال‌های عمومی را وارد کنید
-CHANNELS = [
-    "@SRCVPN", "@net0n3", "@ZibaNabz", "@vpns", "@Capoit",
-     "@sezar_sec", "@Fr33C0nfig", "@v2ra_config","@v2rayww3","@gheychiamoozesh"
-]
-# rez=["@xzjinx",]
-# در اینجا آیدی عددی گروه‌ها را وارد کنید (باید با -100 شروع شود)
-GROUPS = [
-    -1001287072009,-1001275030629,-1002026806005
-    # آی‌دی گروه‌های دیگر را در اینجا اضافه کنید
-]
+# خواندن رشته کانال‌ها و گروه‌ها از متغیرهای محیطی (Secrets)
+channels_str = os.environ.get('CHANNELS_LIST')
+groups_str = os.environ.get('GROUPS_LIST')
+
+# پردازش لیست کانال‌ها
+# رشته‌ی خوانده شده را به یک لیست پایتون تبدیل می‌کند.
+# فرض بر این است که شما در سکرت، کانال‌ها را با کاما (,) جدا کرده‌اید.
+if channels_str:
+    CHANNELS = [ch.strip() for ch in channels_str.split(',')]
+else:
+    print("⚠️ هشدار: سکرت CHANNELS_LIST پیدا نشد یا خالی است.")
+    CHANNELS = []
+
+# پردازش لیست گروه‌ها
+# رشته‌ی آیدی‌ها را به لیست عددی (integer) تبدیل می‌کند.
+GROUPS = []
+if groups_str:
+    try:
+        # هر آیدی را به عدد تبدیل کرده و فاصله‌های اضافی را حذف می‌کند
+        GROUPS = [int(g.strip()) for g in groups_str.split(',')]
+    except ValueError:
+        print("❌ خطا: سکرت GROUPS_LIST باید فقط شامل آیدی‌های عددی باشد که با کاما جدا شده‌اند.")
+        # در صورت خطا، اسکریپت با لیست خالی ادامه می‌دهد تا متوقف نشود.
+        GROUPS = []
+else:
+    print("⚠️ هشدار: سکرت GROUPS_LIST پیدا نشد یا خالی است.")
+
+print(f"✅ کانال‌های خوانده شده از سکرت: {len(CHANNELS)} عدد")
+print(f"✅ گروه‌های خوانده شده از سکرت: {len(GROUPS)} عدد")
 
 # --- خروجی‌ها ---
 OUTPUT_YAML = "Config-jo.yaml"
