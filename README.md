@@ -31,10 +31,10 @@
 
 ✅ سازگار با:
 
-✅Clash Meta 
-✅Clash Verge
-Stash
-FClash
+✅Clash Meta ||
+✅Clash Verge||
+Stash||
+FClash||
 Generated code
 
 ```
@@ -47,13 +47,13 @@ https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config-jo.yaml
 
 ✅ سازگار با:
 
-v2rayNG
-MahsaNG
-✅Hiddify(بهترین عملکرد)
-v2rayN
-Shadowrocket
-Streisand
-Generated code
+v2rayNG||
+MahsaNG||
+✅Hiddify(بهترین عملکرد)||
+v2rayN||
+Shadowrocket||
+Streisand||
+Generated code||
 ```
 https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config_jo.txt
 ```
