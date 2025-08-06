@@ -40,7 +40,10 @@ Stash
 FClash
 
 Generated code
-https://raw.githubusercontent.com/R3ZARAHIMI/tg-v2ray-configs-every2h/main/Config-jo.yaml
+
+```
+https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config-jo.yaml
+```
 
 ۲. لینک مخصوص کلاینت‌های V2Ray
 
@@ -61,12 +64,10 @@ Shadowrocket
 Streisand
 
 Generated code
-https://raw.githubusercontent.com/R3ZARAHIMI/tg-v2ray-configs-every2h/main/Config_jo.txt
-IGNORE_WHEN_COPYING_START
-content_copy
-download
-Use code with caution.
-IGNORE_WHEN_COPYING_END
+```
+https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config_jo.txt
+```
+
 💡 نکات مهم
 
 اگر لینک‌ها برای شما کار نکردند، یک‌بار اشتراک (Subscription) را در نرم‌افزار خود آپدیت کنید.
@@ -76,3 +77,4 @@ IGNORE_WHEN_COPYING_END
 🙏 حمایت
 
 اگر این پروژه برای شما مفید بوده است، با ستاره دادن (Star) به این مخزن از ما حمایت کنید.
+
