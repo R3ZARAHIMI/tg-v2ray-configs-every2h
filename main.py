@@ -9,6 +9,7 @@ import os
 import uuid
 import socket
 import requests
+import aiohttp
 from urllib.parse import urlparse, parse_qs, unquote, urlunparse
 
 # Pyrogram imports
@@ -58,7 +59,6 @@ def process_lists():
         except ValueError:
             print("❌ خطا: سکرت GROUPS_LIST باید فقط شامل آیدی‌های عددی باشد.")
     else: print("⚠️ هشدار: سکرت GROUPS_LIST خالی است.")
-        
     return channels, groups
 
 def get_flag(iso_code):
@@ -66,26 +66,25 @@ def get_flag(iso_code):
     if not iso_code or len(iso_code) != 2: return '🏁'
     return "".join(chr(ord(c) - ord('A') + 0x1F1E6) for c in iso_code.upper())
 
-def get_country_from_ip(session, ip_address):
-    """کشور را با استفاده از API سرویس ipinfo.io پیدا می‌کند."""
+async def get_country_from_ip(session, ip_address):
+    """کشور را با استفاده از API سرویس ipinfo.io به صورت همزمان پیدا می‌کند."""
+    if not ip_address: return None
     try:
-        ip = socket.gethostbyname(ip_address)
-        response = session.get(f'https://ipinfo.io/{ip}/json', timeout=5)
-        response.raise_for_status()
-        data = response.json()
-        return data.get('country')
-    except (socket.gaierror, requests.exceptions.RequestException):
+        # aiohttp به صورت خودکار دامنه را به IP تبدیل می‌کند
+        async with session.get(f'https://ipinfo.io/{ip_address}/json', timeout=10) as response:
+            if response.status == 200:
+                data = await response.json()
+                return data.get('country')
+            return None
+    except Exception:
         return None
 
 CHANNELS, GROUPS = process_lists()
 
 V2RAY_PATTERNS = [
-    re.compile(r'(vless:\/\/[^\s\'\"<>`]+)'),
-    re.compile(r'(vmess:\/\/[^\s\'\"<>`]+)'),
-    re.compile(r'(trojan:\/\/[^\s\'\"<>`]+)'),
-    re.compile(r'(ss:\/\/[^\s\'\"<>`]+)'),
-    re.compile(r"(hy2://[^\s'\"<>`]+)"),
-    re.compile(r"(hysteria2://[^\s'\"<>`]+)"),
+    re.compile(r'(vless:\/\/[^\s\'\"<>`]+)'), re.compile(r'(vmess:\/\/[^\s\'\"<>`]+)'),
+    re.compile(r'(trojan:\/\/[^\s\'\"<>`]+)'), re.compile(r'(ss:\/\/[^\s\'\"<>`]+)'),
+    re.compile(r"(hy2://[^\s'\"<>`]+)"), re.compile(r"(hysteria2://[^\s'\"<>`]+)"),
     re.compile(r"(tuic://[^\s'\"<>`]+)")
 ]
 BASE64_PATTERN = re.compile(r"([A-Za-z0-9+/=]{50,})", re.MULTILINE)
@@ -95,17 +94,12 @@ class V2RayExtractor:
     """کلاس اصلی برای استخراج و پردازش کانفیگ‌های V2Ray."""
     def __init__(self):
         self.raw_configs = set()
-        self.client = Client(
-            "my_account",
-            api_id=API_ID,
-            api_hash=API_HASH,
-            session_string=SESSION_STRING
-        )
+        self.client = Client("my_account", api_id=API_ID, api_hash=API_HASH, session_string=SESSION_STRING)
 
+    # ... توابع parse شما بدون تغییر باقی می‌مانند ...
     @staticmethod
     def _generate_unique_name(original_name, prefix="config"):
-        if not original_name:
-            return f"{prefix}-{str(uuid.uuid4())[:8]}"
+        if not original_name: return f"{prefix}-{str(uuid.uuid4())[:8]}"
         cleaned_name = re.sub(r'[^\w\s\-\_\u0600-\u06FF]', '', original_name).replace(' ', '_').strip('_-')
         return f"{cleaned_name}-{str(uuid.uuid4())[:8]}" if cleaned_name else f"{prefix}-{str(uuid.uuid4())[:8]}"
 
@@ -116,75 +110,38 @@ class V2RayExtractor:
             elif config_url.startswith('trojan://'): return self.parse_trojan(config_url)
             elif config_url.startswith('ss://'): return self.parse_shadowsocks(config_url)
             return None
-        except Exception:
-            return None
+        except Exception: return None
 
     def parse_vmess(self, vmess_url):
-        encoded_data = vmess_url.replace('vmess://', '').split('#')[0]
-        encoded_data += '=' * (4 - len(encoded_data) % 4)
-        config = json.loads(base64.b64decode(encoded_data).decode('utf-8'))
-        original_name = config.get('ps', '')
-        
+        encoded_data = vmess_url.replace('vmess://', '').split('#')[0]; encoded_data += '=' * (4 - len(encoded_data) % 4)
+        config = json.loads(base64.b64decode(encoded_data).decode('utf-8')); original_name = config.get('ps', '')
         ws_opts = None
         if config.get('net') == 'ws':
             host_header = config.get('host', '').strip() or config.get('add', '').strip()
-            if host_header:
-                 ws_opts = {
-                    'path': config.get('path', '/'),
-                    'headers': {'Host': host_header}
-                }
-
-        return {
-            'name': self._generate_unique_name(original_name, "vmess"), 'type': 'vmess',
-            'server': config.get('add'), 'port': int(config.get('port', 443)),
-            'uuid': config.get('id'), 'alterId': int(config.get('aid', 0)),
-            'cipher': config.get('scy', 'auto'), 'tls': config.get('tls') == 'tls',
-            'network': config.get('net', 'tcp'), 'udp': True,
-            'ws-opts': ws_opts
-        }
+            if host_header: ws_opts = {'path': config.get('path', '/'), 'headers': {'Host': host_header}}
+        return {'name': self._generate_unique_name(original_name, "vmess"), 'type': 'vmess', 'server': config.get('add'), 'port': int(config.get('port', 443)), 'uuid': config.get('id'), 'alterId': int(config.get('aid', 0)), 'cipher': config.get('scy', 'auto'), 'tls': config.get('tls') == 'tls', 'network': config.get('net', 'tcp'), 'udp': True, 'ws-opts': ws_opts}
 
     def parse_vless(self, vless_url):
-        parsed = urlparse(vless_url)
-        query = parse_qs(parsed.query)
-        original_name = unquote(parsed.fragment) if parsed.fragment else ''
-        
+        parsed = urlparse(vless_url); query = parse_qs(parsed.query); original_name = unquote(parsed.fragment) if parsed.fragment else ''
         ws_opts = None
         if query.get('type', [''])[0] == 'ws':
             host_header = query.get('host', [''])[0].strip() or query.get('sni', [''])[0].strip() or parsed.hostname
-            if host_header:
-                ws_opts = {
-                    'path': query.get('path', ['/'])[0],
-                    'headers': {'Host': host_header}
-                }
-
-        return {
-            'name': self._generate_unique_name(original_name, "vless"), 'type': 'vless',
-            'server': parsed.hostname, 'port': parsed.port or 443,
-            'uuid': parsed.username, 'udp': True, 'tls': query.get('security', [''])[0] == 'tls',
-            'network': query.get('type', ['tcp'])[0], 'servername': query.get('sni', [None])[0],
-            'ws-opts': ws_opts,
-            'reality-opts': {'public-key': query.get('pbk', [None])[0], 'short-id': query.get('sid', [None])[0]} if query.get('security', [''])[0] == 'reality' else None
-        }
+            if host_header: ws_opts = {'path': query.get('path', ['/'])[0], 'headers': {'Host': host_header}}
+        return {'name': self._generate_unique_name(original_name, "vless"), 'type': 'vless', 'server': parsed.hostname, 'port': parsed.port or 443, 'uuid': parsed.username, 'udp': True, 'tls': query.get('security', [''])[0] == 'tls', 'network': query.get('type', ['tcp'])[0], 'servername': query.get('sni', [None])[0], 'ws-opts': ws_opts, 'reality-opts': {'public-key': query.get('pbk', [None])[0], 'short-id': query.get('sid', [None])[0]} if query.get('security', [''])[0] == 'reality' else None}
 
     def parse_trojan(self, trojan_url):
-        parsed = urlparse(trojan_url)
-        query = parse_qs(parsed.query)
-        original_name = unquote(parsed.fragment) if parsed.fragment else ''
+        parsed = urlparse(trojan_url); query = parse_qs(parsed.query); original_name = unquote(parsed.fragment) if parsed.fragment else ''
         return {'name': self._generate_unique_name(original_name, "trojan"), 'type': 'trojan', 'server': parsed.hostname, 'port': parsed.port or 443, 'password': parsed.username, 'udp': True, 'sni': query.get('peer', [None])[0] or query.get('sni', [None])[0]}
 
     def parse_shadowsocks(self, ss_url):
-        parsed = urlparse(ss_url)
-        original_name = unquote(parsed.fragment) if parsed.fragment else ''
-        user_info = ''
+        parsed = urlparse(ss_url); original_name = unquote(parsed.fragment) if parsed.fragment else ''; user_info = ''
         if '@' in parsed.netloc:
             user_info_part = parsed.netloc.split('@')[0]
-            try:
-                user_info = base64.b64decode(user_info_part + '=' * (4 - len(user_info_part) % 4)).decode('utf-8')
-            except:
-                user_info = unquote(user_info_part)
+            try: user_info = base64.b64decode(user_info_part + '=' * (4 - len(user_info_part) % 4)).decode('utf-8')
+            except: user_info = unquote(user_info_part)
         cipher, password = user_info.split(':', 1) if ':' in user_info else (None, None)
         return {'name': self._generate_unique_name(original_name, 'ss'), 'type': 'ss', 'server': parsed.hostname, 'port': parsed.port, 'cipher': cipher, 'password': password, 'udp': True} if cipher and password else None
-
+    
     async def find_raw_configs_from_chat(self, chat_id, limit):
         try:
             print(f"🔍 Searching for raw configs in chat {chat_id} (limit: {limit})...")
@@ -193,21 +150,16 @@ class V2RayExtractor:
                 texts_to_scan = [message.text]
                 potential_b64 = BASE64_PATTERN.findall(message.text)
                 for b64_str in potential_b64:
-                    try:
-                        texts_to_scan.append(base64.b64decode(b64_str + '=' * (4 - len(b64_str) % 4)).decode('utf-8'))
+                    try: texts_to_scan.append(base64.b64decode(b64_str + '=' * (4 - len(b64_str) % 4)).decode('utf-8'))
                     except: continue
                 for text in texts_to_scan:
-                    for pattern in V2RAY_PATTERNS:
-                        self.raw_configs.update(m.strip() for m in pattern.findall(text))
+                    for pattern in V2RAY_PATTERNS: self.raw_configs.update(m.strip() for m in pattern.findall(text))
         except FloodWait as e:
             print(f"⏳ Waiting {e.value}s for {chat_id} due to flood limit.")
-            await asyncio.sleep(e.value)
-            await self.find_raw_configs_from_chat(chat_id, limit)
-        except Exception as e:
-            print(f"❌ Error scanning chat {chat_id}: {e}")
+            await asyncio.sleep(e.value); await self.find_raw_configs_from_chat(chat_id, limit)
+        except Exception as e: print(f"❌ Error scanning chat {chat_id}: {e}")
 
-    def save_files(self):
-        # --- START: بخش جدید برای تغییر نام و افزودن پرچم ---
+    async def save_files(self):
         FIXED_NAME = "Proxy-by-R3ZARAHIMI"
         print("\n" + "="*30)
         if not self.raw_configs:
@@ -215,35 +167,45 @@ class V2RayExtractor:
 
         print(f"⚙️ Processing {len(self.raw_configs)} configs to add country flags...")
         
+        # --- START: بخش جدید و سریع برای پردازش همزمان ---
+        sorted_configs = sorted(list(self.raw_configs))
+        
+        async def process_one_config(config_url, session, index):
+            """یک کانفیگ را به طور کامل پردازش کرده و نتیجه را برای هر دو فایل برمی‌گرداند"""
+            parsed_proxy = self.parse_config_for_clash(config_url)
+            if not parsed_proxy: return None, None
+
+            country_code = await get_country_from_ip(session, parsed_proxy.get('server'))
+            flag = get_flag(country_code)
+            new_name = f"{flag} {FIXED_NAME}-{index+1}"
+            
+            # آماده‌سازی برای فایل YAML
+            parsed_proxy['name'] = new_name
+            
+            # آماده‌سازی برای فایل TXT
+            try:
+                parts = list(urlparse(config_url))
+                parts[5] = new_name
+                modified_url = urlunparse(parts)
+            except Exception:
+                modified_url = config_url
+                
+            return modified_url, parsed_proxy
+
         modified_txt_configs = []
         clash_proxies_renamed = []
         
-        with requests.Session() as session:
-            # مرتب‌سازی کانفیگ‌ها برای داشتن یک ترتیب ثابت
-            sorted_configs = sorted(list(self.raw_configs))
-            
-            for i, config_url in enumerate(sorted_configs):
-                # ابتدا کانفیگ را برای به دست آوردن آدرس سرور، پردازش می‌کنیم
-                parsed_proxy = self.parse_config_for_clash(config_url)
-                if not parsed_proxy: continue
+        async with aiohttp.ClientSession() as session:
+            tasks = [process_one_config(self, url, session, i) for i, url in enumerate(sorted_configs)]
+            results = await asyncio.gather(*tasks)
 
-                # پیدا کردن کشور و ساختن نام جدید
-                country_code = get_country_from_ip(session, parsed_proxy.get('server'))
-                flag = get_flag(country_code)
-                new_name = f"{flag} {FIXED_NAME}-{i+1}"
-
-                # به‌روزرسانی نام در دیکشنری پراکسی برای فایل YAML
-                parsed_proxy['name'] = new_name
-                clash_proxies_renamed.append(parsed_proxy)
-
-                # بازسازی لینک با نام جدید برای فایل TXT
-                try:
-                    parts = list(urlparse(config_url))
-                    parts[5] = new_name  # index 5 همان fragment یا نام کانفیگ است
-                    modified_url = urlunparse(parts)
-                    modified_txt_configs.append(modified_url)
-                except Exception:
-                    modified_txt_configs.append(config_url) # در صورت خطا، لینک اصلی را نگه دار
+        for txt_url, clash_proxy in results:
+            if txt_url and clash_proxy:
+                modified_txt_configs.append(txt_url)
+                clash_proxies_renamed.append(clash_proxy)
+        
+        print(f"✅ {len(clash_proxies_renamed)} configs processed successfully.")
+        # --- END: پایان بخش جدید ---
 
         # --- ذخیره فایل TXT با نام‌های جدید ---
         if modified_txt_configs:
@@ -253,9 +215,7 @@ class V2RayExtractor:
 
         # --- ذخیره فایل YAML با نام‌های جدید ---
         if clash_proxies_renamed:
-            print(f"👍 Found {len(clash_proxies_renamed)} valid configs for Clash. Generating YAML file...")
             proxy_names = [p['name'] for p in clash_proxies_renamed]
-            
             clash_config_base = {
                 'port': 7890, 'socks-port': 7891, 'allow-lan': True, 'mode': 'rule',
                 'log-level': 'info', 'external-controller': '127.0.0.1:9090', 'dns': {
@@ -264,8 +224,7 @@ class V2RayExtractor:
                     'fallback': ['https://cloudflare-dns.com/dns-query', 'https://dns.google/dns-query'],
                     'fallback-filter': {'geoip': True, 'ipcidr': ['240.0.0.0/4']}
                 },
-                'proxies': clash_proxies_renamed,
-                'proxy-groups': [
+                'proxies': clash_proxies_renamed, 'proxy-groups': [
                     {'name': 'PROXY', 'type': 'select', 'proxies': ['AUTO', 'DIRECT', *proxy_names]},
                     {'name': 'AUTO', 'type': 'url-test', 'proxies': proxy_names, 'url': 'http://www.gstatic.com/generate_204', 'interval': 300}
                 ], 'rules': [
@@ -280,8 +239,6 @@ class V2RayExtractor:
         else:
             print(f"⚠️ No valid configs to save in {OUTPUT_YAML}.")
             open(OUTPUT_YAML, "w").close()
-        # --- END: پایان بخش جدید ---
-
 
 async def main():
     print("🚀 Starting V2Ray config extractor...")
@@ -292,7 +249,7 @@ async def main():
         if tasks: await asyncio.gather(*tasks)
         else: print("No channels or groups to process.")
     
-    extractor.save_files()
+    await extractor.save_files() # <--- این خط باید await داشته باشد
     print("\n✨ All tasks completed!")
 
 if __name__ == "__main__":
