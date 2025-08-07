@@ -7,11 +7,20 @@ import json
 import yaml
 import os
 import uuid
+import socket
 from urllib.parse import urlparse, parse_qs, unquote, urlunparse
 
 # Pyrogram imports
 from pyrogram import Client
 from pyrogram.errors import FloodWait
+
+# GeoIP2 imports
+try:
+    import geoip2.database
+    from geoip2.errors import AddressNotFoundError
+except ImportError:
+    print("❌ کتابخانه‌های geoip2 پیدا نشد. لطفاً 'requirements.txt' را بررسی کنید.")
+    exit(1)
 
 # =================================================================================
 # بخش تنظیمات و خواندن سکرت‌ها از محیط
@@ -36,11 +45,19 @@ CHANNEL_SEARCH_LIMIT = 5
 GROUP_SEARCH_LIMIT = 500
 OUTPUT_YAML = "Config-jo.yaml"
 OUTPUT_TXT = "Config_jo.txt"
+# نام فایل دیتابیس که توسط geoip2-database دانلود می‌شود
+GEOIP_DATABASE = 'GeoLite2-Country.mmdb'
 
 
 # =================================================================================
 # توابع و کلاس‌های اصلی برنامه
 # =================================================================================
+
+def get_flag(iso_code):
+    """کد دو حرفی کشور را به ایموجی پرچم تبدیل می‌کند."""
+    if not iso_code or len(iso_code) != 2:
+        return '🏁'  # پرچم پیش‌فرض
+    return "".join(chr(ord(c) - ord('A') + 0x1F1E6) for c in iso_code.upper())
 
 def process_lists():
     """رشته‌های خوانده شده از سکرت‌ها را به لیست‌های پایتون تبدیل می‌کند."""
@@ -83,6 +100,19 @@ class V2RayExtractor:
             api_hash=API_HASH,
             session_string=SESSION_STRING
         )
+        try:
+            # باز کردن دیتابیس مکان‌یابی در ابتدای برنامه
+            self.geoip_reader = geoip2.database.Reader(GEOIP_DATABASE)
+            print("✅ دیتابیس مکان‌یابی GeoIP با موفقیت بارگذاری شد.")
+        except FileNotFoundError:
+            print(f"❌ دیتابیس '{GEOIP_DATABASE}' پیدا نشد. مطمئن شوید 'geoip2-database' در 'requirements.txt' وجود دارد.")
+            self.geoip_reader = None
+
+    def close(self):
+        """بستن منابع باز مانند دیتابیس GeoIP."""
+        if self.geoip_reader:
+            self.geoip_reader.close()
+            print("ℹ️ دیتابیس GeoIP بسته شد.")
 
     @staticmethod
     def _generate_unique_name(original_name, prefix="config"):
@@ -189,28 +219,20 @@ class V2RayExtractor:
             print(f"❌ Error scanning chat {chat_id}: {e}")
 
     def save_files(self):
-        
-        FIXED_NAME = "🚀configـjo"
+        # ▼▼▼ این عبارت را به نام پایه دلخواه خودتان تغییر دهید ▼▼▼
+        FIXED_NAME = "R3Z4"
+        # ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
         print("\n" + "="*30)
-
-        # --- مرحله ۱: تغییر نام و ذخیره فایل متنی (TXT) ---
-        print(f"📝 Changing names and saving {len(self.raw_configs)} raw configs to {OUTPUT_TXT}...")
-        modified_raw_configs = []
+        # ذخیره فایل متنی خام بدون تغییر
         if self.raw_configs:
-            for config in self.raw_configs:
-                # جدا کردن اجزای لینک، تغییر نام (fragment) و اتصال مجدد
-                parts = list(urlparse(config))
-                parts[5] = FIXED_NAME  # index 5 همان fragment یا نام کانفیگ است
-                modified_raw_configs.append(urlunparse(parts))
-            
             with open(OUTPUT_TXT, 'w', encoding='utf-8') as f:
-                f.write("\n".join(sorted(modified_raw_configs)))
-            print("✅ Raw text file with fixed names saved successfully.")
+                f.write("\n".join(sorted(list(self.raw_configs))))
+            print(f"📝 {len(self.raw_configs)} raw configs saved to {OUTPUT_TXT}.")
         else:
             print("⚠️ No raw configs found to save.")
 
-        # --- مرحله ۲: پردازش و تغییر نام برای فایل YAML ---
+        # --- پردازش و افزودن پرچم برای فایل YAML ---
         print(f"\n⚙️ Processing configs for {OUTPUT_YAML}...")
         clash_proxies = [p for p in (self.parse_config_for_clash(url) for url in self.raw_configs) if p]
 
@@ -219,11 +241,25 @@ class V2RayExtractor:
             open(OUTPUT_YAML, "w").close()
             return
             
-        print(f"👍 Found {len(clash_proxies)} valid configs for Clash.")
+        print(f"👍 Found {len(clash_proxies)} valid configs for Clash. Adding flags...")
         
-        # تغییر نام پراکسی‌ها به صورت شمارشی برای جلوگیری از خطا در Clash
+        # افزودن پرچم به نام هر پراکسی
         for i, proxy in enumerate(clash_proxies):
-            proxy['name'] = f"{FIXED_NAME}-{i+1}"
+            flag = '🏁'  # پرچم پیش‌فرض
+            server_address = proxy.get('server')
+            
+            if self.geoip_reader and server_address:
+                try:
+                    # تبدیل دامنه به IP و پیدا کردن کشور
+                    ip_address = socket.gethostbyname(server_address)
+                    response = self.geoip_reader.country(ip_address)
+                    if response.country.iso_code:
+                        flag = get_flag(response.country.iso_code)
+                except (socket.gaierror, AddressNotFoundError):
+                    # اگر دامنه معتبر نبود یا IP پیدا نشد
+                    pass
+            
+            proxy['name'] = f"{flag} {FIXED_NAME}-{i+1}"
         
         proxy_names = [p['name'] for p in clash_proxies]
         
@@ -261,19 +297,24 @@ class V2RayExtractor:
         
         with open(OUTPUT_YAML, 'w', encoding='utf-8') as f:
             yaml.dump(clash_config_base, f, allow_unicode=True, sort_keys=False, indent=2, width=1000)
-        print("✅ Clash YAML file with fixed names saved successfully.")
+        print("✅ Clash YAML file with country flags saved successfully.")
 
 
 async def main():
     print("🚀 Starting V2Ray config extractor...")
     extractor = V2RayExtractor()
-    async with extractor.client:
-        tasks = [extractor.find_raw_configs_from_chat(channel, CHANNEL_SEARCH_LIMIT) for channel in CHANNELS]
-        tasks.extend(extractor.find_raw_configs_from_chat(group, GROUP_SEARCH_LIMIT) for group in GROUPS)
-        if tasks: await asyncio.gather(*tasks)
-        else: print("No channels or groups to process.")
-    
-    extractor.save_files()
+    try:
+        if extractor.geoip_reader: # فقط در صورتی که دیتابیس با موفقیت باز شد، ادامه بده
+            async with extractor.client:
+                tasks = [extractor.find_raw_configs_from_chat(channel, CHANNEL_SEARCH_LIMIT) for channel in CHANNELS]
+                tasks.extend(extractor.find_raw_configs_from_chat(group, GROUP_SEARCH_LIMIT) for group in GROUPS)
+                if tasks: await asyncio.gather(*tasks)
+                else: print("No channels or groups to process.")
+            
+            extractor.save_files()
+    finally:
+        extractor.close() # بستن دیتابیس در هر صورت
+
     print("\n✨ All tasks completed!")
 
 if __name__ == "__main__":
