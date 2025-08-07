@@ -61,9 +61,6 @@ def process_lists():
 
 CHANNELS, GROUPS = process_lists()
 
-# --- START: Regex Fix ---
-# ایراد اصلی اینجا بود. تعریف متغیر در داخل لیست مجاز نیست.
-# الگوها به صورت مستقیم در لیست قرار گرفتند و کمی دقیق‌تر شدند.
 V2RAY_PATTERNS = [
     re.compile(r'(vless:\/\/[^\s\'\"<>`]+)'),
     re.compile(r'(vmess:\/\/[^\s\'\"<>`]+)'),
@@ -73,7 +70,6 @@ V2RAY_PATTERNS = [
     re.compile(r"(hysteria2://[^\s'\"<>`]+)"),
     re.compile(r"(tuic://[^\s'\"<>`]+)")
 ]
-# --- END: Regex Fix ---
 
 BASE64_PATTERN = re.compile(r"([A-Za-z0-9+/=]{50,})", re.MULTILINE)
 
@@ -216,7 +212,6 @@ class V2RayExtractor:
         
         proxy_names = [p['name'] for p in clash_proxies]
         
-        # این بخش از کد شما برای ساخت فایل YAML بسیار عالی است و یک فایل کامل و قابل استفاده تولید می‌کند.
         clash_config_base = {
             'port': 7890,
             'socks-port': 7891,
