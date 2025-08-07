@@ -7,7 +7,7 @@ import json
 import yaml
 import os
 import uuid
-from urllib.parse import urlparse, parse_qs, unquote
+from urllib.parse import urlparse, parse_qs, unquote, urlunparse
 
 # Pyrogram imports
 from pyrogram import Client
@@ -70,7 +70,6 @@ V2RAY_PATTERNS = [
     re.compile(r"(hysteria2://[^\s'\"<>`]+)"),
     re.compile(r"(tuic://[^\s'\"<>`]+)")
 ]
-
 BASE64_PATTERN = re.compile(r"([A-Za-z0-9+/=]{50,})", re.MULTILINE)
 
 
@@ -89,7 +88,6 @@ class V2RayExtractor:
     def _generate_unique_name(original_name, prefix="config"):
         if not original_name:
             return f"{prefix}-{str(uuid.uuid4())[:8]}"
-        # حذف کاراکترهای غیرمجاز و جایگزینی فاصله با آندرلاین
         cleaned_name = re.sub(r'[^\w\s\-\_\u0600-\u06FF]', '', original_name).replace(' ', '_').strip('_-')
         return f"{cleaned_name}-{str(uuid.uuid4())[:8]}" if cleaned_name else f"{prefix}-{str(uuid.uuid4())[:8]}"
 
@@ -191,15 +189,28 @@ class V2RayExtractor:
             print(f"❌ Error scanning chat {chat_id}: {e}")
 
     def save_files(self):
+        
+        FIXED_NAME = "🚀configـjo"
+
         print("\n" + "="*30)
-        print(f"📝 Saving {len(self.raw_configs)} raw configs to {OUTPUT_TXT}...")
+
+        # --- مرحله ۱: تغییر نام و ذخیره فایل متنی (TXT) ---
+        print(f"📝 Changing names and saving {len(self.raw_configs)} raw configs to {OUTPUT_TXT}...")
+        modified_raw_configs = []
         if self.raw_configs:
+            for config in self.raw_configs:
+                # جدا کردن اجزای لینک، تغییر نام (fragment) و اتصال مجدد
+                parts = list(urlparse(config))
+                parts[5] = FIXED_NAME  # index 5 همان fragment یا نام کانفیگ است
+                modified_raw_configs.append(urlunparse(parts))
+            
             with open(OUTPUT_TXT, 'w', encoding='utf-8') as f:
-                f.write("\n".join(sorted(list(self.raw_configs))))
-            print("✅ Raw text file saved successfully.")
+                f.write("\n".join(sorted(modified_raw_configs)))
+            print("✅ Raw text file with fixed names saved successfully.")
         else:
             print("⚠️ No raw configs found to save.")
 
+        # --- مرحله ۲: پردازش و تغییر نام برای فایل YAML ---
         print(f"\n⚙️ Processing configs for {OUTPUT_YAML}...")
         clash_proxies = [p for p in (self.parse_config_for_clash(url) for url in self.raw_configs) if p]
 
@@ -209,6 +220,10 @@ class V2RayExtractor:
             return
             
         print(f"👍 Found {len(clash_proxies)} valid configs for Clash.")
+        
+        # تغییر نام پراکسی‌ها به صورت شمارشی برای جلوگیری از خطا در Clash
+        for i, proxy in enumerate(clash_proxies):
+            proxy['name'] = f"{FIXED_NAME}-{i+1}"
         
         proxy_names = [p['name'] for p in clash_proxies]
         
@@ -246,7 +261,7 @@ class V2RayExtractor:
         
         with open(OUTPUT_YAML, 'w', encoding='utf-8') as f:
             yaml.dump(clash_config_base, f, allow_unicode=True, sort_keys=False, indent=2, width=1000)
-        print("✅ Clash YAML file saved successfully.")
+        print("✅ Clash YAML file with fixed names saved successfully.")
 
 
 async def main():
