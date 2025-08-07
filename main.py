@@ -68,7 +68,7 @@ V2RAY_PATTERNS = [
     re.compile(r'(vless:\/\/[^\s\'\"<>`]+)'),
     re.compile(r'(vmess:\/\/[^\s\'\"<>`]+)'),
     re.compile(r'(trojan:\/\/[^\s\'\"<>`]+)'),
-    re.compile(r'(ss:\/\/[^\s\'\"<>`]+)'),
+    # re.compile(r'(ss:\/\/[^\s\'\"<>`]+)'),
     re.compile(r"(hy2://[^\s'\"<>`]+)"),
     re.compile(r"(hysteria2://[^\s'\"<>`]+)"),
     re.compile(r"(tuic://[^\s'\"<>`]+)")
@@ -102,7 +102,7 @@ class V2RayExtractor:
             if config_url.startswith('vmess://'): return self.parse_vmess(config_url)
             elif config_url.startswith('vless://'): return self.parse_vless(config_url)
             elif config_url.startswith('trojan://'): return self.parse_trojan(config_url)
-            elif config_url.startswith('ss://'): return self.parse_shadowsocks(config_url)
+            # elif config_url.startswith('ss://'): return self.parse_shadowsocks(config_url)
             return None
         except Exception:
             return None
