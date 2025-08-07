@@ -9,7 +9,7 @@ import os
 import uuid
 import socket
 import requests
-from urllib.parse import urlparse, parse_qs, unquote
+from urllib.parse import urlparse, parse_qs, unquote, urlunparse
 
 # Pyrogram imports
 from pyrogram import Client
@@ -49,18 +49,15 @@ def get_flag(iso_code):
     if not iso_code or len(iso_code) != 2: return '🏁'
     return "".join(chr(ord(c) - ord('A') + 0x1F1E6) for c in iso_code.upper())
 
-def get_country_from_ip(ip_address):
+def get_country_from_ip(session, ip_address):
     """کشور را با استفاده از API سرویس ipinfo.io پیدا می‌کند."""
     try:
-        # تبدیل دامنه به IP در صورت لزوم
         ip = socket.gethostbyname(ip_address)
-        # ارسال درخواست به API
-        response = requests.get(f'https://ipinfo.io/{ip}/json', timeout=5)
-        response.raise_for_status() # بررسی خطاهای HTTP
+        response = session.get(f'https://ipinfo.io/{ip}/json', timeout=5)
+        response.raise_for_status()
         data = response.json()
         return data.get('country')
     except (socket.gaierror, requests.exceptions.RequestException):
-        # در صورت بروز خطا در شبکه یا پیدا نشدن دامنه
         return None
 
 def process_lists():
@@ -162,40 +159,65 @@ class V2RayExtractor:
     def save_files(self):
         FIXED_NAME = "Proxy-by-R3ZARAHIMI"
         print("\n" + "="*30)
-        if self.raw_configs:
-            with open(OUTPUT_TXT, 'w', encoding='utf-8') as f: f.write("\n".join(sorted(list(self.raw_configs))))
-            print(f"📝 {len(self.raw_configs)} raw configs saved to {OUTPUT_TXT}.")
-        else: print("⚠️ No raw configs found."); return
+        if not self.raw_configs:
+            print("⚠️ No raw configs found."); return
 
-        print(f"\n⚙️ Processing configs for {OUTPUT_YAML}...")
-        clash_proxies = [p for p in (self.parse_config_for_clash(url) for url in self.raw_configs) if p]
-        if not clash_proxies: print("⚠️ No valid configs parsed for Clash."); open(OUTPUT_YAML, "w").close(); return
-            
-        print(f"👍 Found {len(clash_proxies)} valid configs. Adding flags via API...")
+        print(f"⚙️ Processing {len(self.raw_configs)} configs to add country flags...")
         
-        for i, proxy in enumerate(clash_proxies):
-            country_code = get_country_from_ip(proxy.get('server'))
-            flag = get_flag(country_code)
-            proxy['name'] = f"{flag} {FIXED_NAME}-{i+1}"
+        modified_txt_configs = []
+        clash_proxies = []
         
-        proxy_names = [p['name'] for p in clash_proxies]; clash_config_base = {
-            'port': 7890, 'socks-port': 7891, 'allow-lan': True, 'mode': 'rule',
-            'log-level': 'info', 'external-controller': '127.0.0.1:9090', 'dns': {
-                'enable': True, 'listen': '0.0.0.0:53', 'default-nameserver': ['8.8.8.8', '1.1.1.1', '208.67.222.222'],
-                'enhanced-mode': 'fake-ip', 'fake-ip-range': '198.18.0.1/16',
-                'fallback': ['https://cloudflare-dns.com/dns-query', 'https://dns.google/dns-query'],
-                'fallback-filter': {'geoip': True, 'ipcidr': ['240.0.0.0/4']}
-            }, 'proxies': clash_proxies, 'proxy-groups': [
-                {'name': 'PROXY', 'type': 'select', 'proxies': ['AUTO', 'DIRECT', *proxy_names]},
-                {'name': 'AUTO', 'type': 'url-test', 'proxies': proxy_names, 'url': 'http://www.gstatic.com/generate_204', 'interval': 300}
-            ], 'rules': [
-                'DOMAIN-SUFFIX,local,DIRECT', 'IP-CIDR,127.0.0.0/8,DIRECT', 'IP-CIDR,192.168.0.0/16,DIRECT',
-                'IP-CIDR,172.16.0.0/12,DIRECT', 'IP-CIDR,10.0.0.0/8,DIRECT', 'GEOIP,IR,DIRECT', 'MATCH,PROXY'
-            ]
-        };
-        with open(OUTPUT_YAML, 'w', encoding='utf-8') as f:
-            yaml.dump(clash_config_base, f, allow_unicode=True, sort_keys=False, indent=2, width=1000)
-        print("✅ Clash YAML file with country flags saved successfully.")
+        with requests.Session() as session:
+            for i, config_url in enumerate(sorted(list(self.raw_configs))):
+                clash_proxy = self.parse_config_for_clash(config_url)
+                if not clash_proxy: continue
+
+                country_code = get_country_from_ip(session, clash_proxy.get('server'))
+                flag = get_flag(country_code)
+                new_name = f"{flag} {FIXED_NAME}-{i+1}"
+
+                # به‌روزرسانی نام برای فایل YAML
+                clash_proxy['name'] = new_name
+                clash_proxies.append(clash_proxy)
+
+                # بازسازی لینک با نام جدید برای فایل TXT
+                try:
+                    parts = list(urlparse(config_url))
+                    parts[5] = new_name  # index 5 همان fragment یا نام کانفیگ است
+                    modified_url = urlunparse(parts)
+                    modified_txt_configs.append(modified_url)
+                except Exception:
+                    modified_txt_configs.append(config_url) # در صورت خطا، لینک اصلی را نگه دار
+
+        # --- ذخیره فایل TXT با نام‌های جدید ---
+        if modified_txt_configs:
+            with open(OUTPUT_TXT, 'w', encoding='utf-8') as f:
+                f.write("\n".join(modified_txt_configs))
+            print(f"📝 {len(modified_txt_configs)} configs with flags saved to {OUTPUT_TXT}.")
+
+        # --- ذخیره فایل YAML با نام‌های جدید ---
+        if clash_proxies:
+            proxy_names = [p['name'] for p in clash_proxies]; clash_config_base = {
+                'port': 7890, 'socks-port': 7891, 'allow-lan': True, 'mode': 'rule',
+                'log-level': 'info', 'external-controller': '127.0.0.1:9090', 'dns': {
+                    'enable': True, 'listen': '0.0.0.0:53', 'default-nameserver': ['8.8.8.8', '1.1.1.1', '208.67.222.222'],
+                    'enhanced-mode': 'fake-ip', 'fake-ip-range': '198.18.0.1/16',
+                    'fallback': ['https://cloudflare-dns.com/dns-query', 'https://dns.google/dns-query'],
+                    'fallback-filter': {'geoip': True, 'ipcidr': ['240.0.0.0/4']}
+                }, 'proxies': clash_proxies, 'proxy-groups': [
+                    {'name': 'PROXY', 'type': 'select', 'proxies': ['AUTO', 'DIRECT', *proxy_names]},
+                    {'name': 'AUTO', 'type': 'url-test', 'proxies': proxy_names, 'url': 'http://www.gstatic.com/generate_204', 'interval': 300}
+                ], 'rules': [
+                    'DOMAIN-SUFFIX,local,DIRECT', 'IP-CIDR,127.0.0.0/8,DIRECT', 'IP-CIDR,192.168.0.0/16,DIRECT',
+                    'IP-CIDR,172.16.0.0/12,DIRECT', 'IP-CIDR,10.0.0.0/8,DIRECT', 'GEOIP,IR,DIRECT', 'MATCH,PROXY'
+                ]
+            };
+            with open(OUTPUT_YAML, 'w', encoding='utf-8') as f:
+                yaml.dump(clash_config_base, f, allow_unicode=True, sort_keys=False, indent=2, width=1000)
+            print(f"✅ Clash YAML file with country flags saved successfully.")
+        else:
+            print(f"⚠️ No valid configs parsed for Clash. {OUTPUT_YAML} will be empty.")
+            open(OUTPUT_YAML, "w").close()
 
 async def main():
     print("🚀 Starting V2Ray config extractor...")
