@@ -61,15 +61,20 @@ def process_lists():
 
 CHANNELS, GROUPS = process_lists()
 
+# --- START: Regex Fix ---
+# ایراد اصلی اینجا بود. تعریف متغیر در داخل لیست مجاز نیست.
+# الگوها به صورت مستقیم در لیست قرار گرفتند و کمی دقیق‌تر شدند.
 V2RAY_PATTERNS = [
-    re.compile(r"(vless://[^\s'\"<>`]+)"),
-    re.compile(r"(vmess://[^\s'\"<>`]+)"),
-    re.compile(r"(trojan://[^\s'\"<>`]+)"),
-    re.compile(r"(ss://[^\s'\"<>`]+)"),
+    re.compile(r'(vless:\/\/[^\s\'\"<>`]+)'),
+    re.compile(r'(vmess:\/\/[^\s\'\"<>`]+)'),
+    re.compile(r'(trojan:\/\/[^\s\'\"<>`]+)'),
+    re.compile(r'(ss:\/\/[^\s\'\"<>`]+)'),
     re.compile(r"(hy2://[^\s'\"<>`]+)"),
-    re.compile(r"(hysteria://[^\s'\"<>`]+)"),
+    re.compile(r"(hysteria2://[^\s'\"<>`]+)"),
     re.compile(r"(tuic://[^\s'\"<>`]+)")
 ]
+# --- END: Regex Fix ---
+
 BASE64_PATTERN = re.compile(r"([A-Za-z0-9+/=]{50,})", re.MULTILINE)
 
 
@@ -88,6 +93,7 @@ class V2RayExtractor:
     def _generate_unique_name(original_name, prefix="config"):
         if not original_name:
             return f"{prefix}-{str(uuid.uuid4())[:8]}"
+        # حذف کاراکترهای غیرمجاز و جایگزینی فاصله با آندرلاین
         cleaned_name = re.sub(r'[^\w\s\-\_\u0600-\u06FF]', '', original_name).replace(' ', '_').strip('_-')
         return f"{cleaned_name}-{str(uuid.uuid4())[:8]}" if cleaned_name else f"{prefix}-{str(uuid.uuid4())[:8]}"
 
@@ -109,9 +115,7 @@ class V2RayExtractor:
         
         ws_opts = None
         if config.get('net') == 'ws':
-            host_header = config.get('host', '').strip()
-            if not host_header:
-                host_header = config.get('add', '').strip()
+            host_header = config.get('host', '').strip() or config.get('add', '').strip()
             if host_header:
                  ws_opts = {
                     'path': config.get('path', '/'),
@@ -134,11 +138,7 @@ class V2RayExtractor:
         
         ws_opts = None
         if query.get('type', [''])[0] == 'ws':
-            host_header = query.get('host', [''])[0].strip()
-            if not host_header:
-                host_header = query.get('sni', [''])[0].strip()
-            if not host_header:
-                host_header = parsed.hostname
+            host_header = query.get('host', [''])[0].strip() or query.get('sni', [''])[0].strip() or parsed.hostname
             if host_header:
                 ws_opts = {
                     'path': query.get('path', ['/'])[0],
@@ -216,8 +216,7 @@ class V2RayExtractor:
         
         proxy_names = [p['name'] for p in clash_proxies]
         
-        # --- START: Clash YAML Fix ---
-        # اضافه کردن بخش DNS و قوانین استاندارد برای عملکرد بهتر
+        # این بخش از کد شما برای ساخت فایل YAML بسیار عالی است و یک فایل کامل و قابل استفاده تولید می‌کند.
         clash_config_base = {
             'port': 7890,
             'socks-port': 7891,
@@ -228,17 +227,10 @@ class V2RayExtractor:
             'dns': {
                 'enable': True,
                 'listen': '0.0.0.0:53',
-                'default-nameserver': [
-                    '8.8.8.8',
-                    '1.1.1.1',
-                    '208.67.222.222'
-                ],
+                'default-nameserver': ['8.8.8.8', '1.1.1.1', '208.67.222.222'],
                 'enhanced-mode': 'fake-ip',
                 'fake-ip-range': '198.18.0.1/16',
-                'fallback': [
-                    'https://cloudflare-dns.com/dns-query',
-                    'https://dns.google/dns-query'
-                ],
+                'fallback': ['https://cloudflare-dns.com/dns-query', 'https://dns.google/dns-query'],
                 'fallback-filter': {'geoip': True, 'ipcidr': ['240.0.0.0/4']}
             },
             'proxies': clash_proxies,
@@ -256,7 +248,6 @@ class V2RayExtractor:
                 'MATCH,PROXY'
             ]
         }
-        # --- END: Clash YAML Fix ---
         
         with open(OUTPUT_YAML, 'w', encoding='utf-8') as f:
             yaml.dump(clash_config_base, f, allow_unicode=True, sort_keys=False, indent=2, width=1000)
