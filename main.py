@@ -33,7 +33,7 @@ GROUPS_STR = os.environ.get('GROUPS_LIST')
 
 # --- متغیرهای جستجو و نام فایل‌های خروجی ---
 CHANNEL_SEARCH_LIMIT = 5
-GROUP_SEARCH_LIMIT = 500
+GROUP_SEARCH_LIMIT = 600
 OUTPUT_YAML = "Config-jo.yaml"
 OUTPUT_TXT = "Config_jo.txt"
 
