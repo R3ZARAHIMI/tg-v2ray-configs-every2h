@@ -257,19 +257,57 @@ class V2RayExtractor:
             return None
 
     def extract_configs_from_text(self, text):
-        """استخراج کانفیگ‌ها از متن با بررسی دقیق‌تر"""
+        """استخراج کانفیگ‌ها از متن با تصحیح نوع کانفیگ‌های اشتباه"""
         found_configs = set()
         
-        # استخراج مستقیم با regex patterns
+        # ابتدا تمام کانفیگ‌های ممکن را پیدا کنیم
+        potential_configs = set()
+        
         for pattern in V2RAY_PATTERNS:
             matches = pattern.findall(text)
             for match in matches:
-                config_url = match.strip()
-                # بررسی اضافی برای اطمینان از صحت نوع کانفیگ
-                if self._validate_config_type(config_url):
-                    found_configs.add(config_url)
+                potential_configs.add(match.strip())
+        
+        # حالا هر کانفیگ را بررسی و در صورت لزوم تصحیح می‌کنیم
+        for config_url in potential_configs:
+            corrected_config = self._correct_config_type(config_url)
+            if corrected_config and self._validate_config_type(corrected_config):
+                found_configs.add(corrected_config)
                     
         return found_configs
+
+    def _correct_config_type(self, config_url):
+        """تصحیح نوع کانفیگ در صورت اشتباه بودن"""
+        try:
+            if config_url.startswith('ss://'):
+                # بررسی اینکه آیا واقعاً shadowsocks است یا خیر
+                parsed = urlparse(config_url)
+                
+                # اگر UUID pattern دارد، احتمالاً vless است
+                uuid_pattern = r'[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}'
+                if parsed.username and re.match(uuid_pattern, parsed.username):
+                    # تبدیل ss:// به vless://
+                    corrected_url = config_url.replace('ss://', 'vless://', 1)
+                    return corrected_url
+                
+                # اگر base64 decoded شده JSON باشد، vmess است
+                if parsed.username:
+                    try:
+                        decoded = base64.b64decode(parsed.username + '=' * (-len(parsed.username) % 4)).decode('utf-8')
+                        json_data = json.loads(decoded)
+                        if 'v' in json_data and json_data.get('v') == '2':
+                            # این یک vmess config است
+                            corrected_url = config_url.replace('ss://', 'vmess://', 1)
+                            return corrected_url
+                    except:
+                        pass
+                
+                # اگر هیچ کدام از شرایط بالا برقرار نبود، shadowsocks واقعی است
+                return config_url
+            
+            return config_url
+        except:
+            return config_url
 
     def _validate_config_type(self, config_url):
         """اعتبارسنجی نوع کانفیگ برای اطمینان از تشخیص صحیح"""
@@ -289,11 +327,46 @@ class V2RayExtractor:
                 parsed = urlparse(config_url)
                 return bool(parsed.hostname and parsed.username)
             elif config_url.startswith('ss://'):
-                # بررسی ساختار shadowsocks - مطمئن شویم که vless نیست
-                if 'vless://' in config_url:
+                # بررسی دقیق‌تر برای shadowsocks
+                return self._is_valid_shadowsocks(config_url)
+            return True
+        except:
+            return False
+
+    def _is_valid_shadowsocks(self, ss_url):
+        """بررسی می‌کند که آیا URL واقعاً shadowsocks است یا خیر"""
+        try:
+            parsed = urlparse(ss_url)
+            
+            # اگر UUID pattern دارد، احتمالاً vless یا vmess است
+            uuid_pattern = r'[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}'
+            if re.search(uuid_pattern, parsed.username if parsed.username else ''):
+                return False
+            
+            # اگر base64 decoded شده JSON باشد، vmess است
+            if parsed.username:
+                try:
+                    decoded = base64.b64decode(parsed.username + '=' * (-len(parsed.username) % 4)).decode('utf-8')
+                    json.loads(decoded)  # اگر JSON باشد، vmess است
                     return False
-                parsed = urlparse(config_url)
-                return bool(parsed.hostname)
+                except:
+                    pass
+            
+            # بررسی کلی ساختار shadowsocks
+            if not parsed.hostname:
+                return False
+                
+            # shadowsocks معمولاً cipher:password format دارد
+            if parsed.username and ':' not in parsed.username:
+                # اگر username وجود دارد ولی cipher:password format ندارد، مشکوک است
+                # مگر اینکه base64 encoded باشد
+                try:
+                    decoded_user = base64.b64decode(parsed.username + '=' * (-len(parsed.username) % 4)).decode('utf-8')
+                    if ':' not in decoded_user:
+                        return False
+                except:
+                    return False
+            
             return True
         except:
             return False
