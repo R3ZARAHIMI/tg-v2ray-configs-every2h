@@ -8,15 +8,26 @@ import yaml
 import os
 import uuid
 from urllib.parse import urlparse, parse_qs, unquote
+import ipaddress # کتابخانه جدید برای کار با آدرس‌های IP
 
 # Pyrogram imports
 from pyrogram import Client
 from pyrogram.errors import FloodWait
 
 # =================================================================================
-# بخش تنظیمات و خواندن سکرت‌ها از محیط
+# بخش تنظیمات و ثابت‌ها
 # =================================================================================
 
+# --- لیست محدوده‌های IP کلادفلر (IPv4) ---
+# منبع: https://www.cloudflare.com/ips/
+CLOUDFLARE_IPV4_RANGES = [
+    '173.245.48.0/20', '103.21.244.0/22', '103.22.200.0/22', '103.31.4.0/22',
+    '141.101.64.0/18', '108.162.192.0/18', '190.93.240.0/20', '188.114.96.0/20',
+    '197.234.240.0/22', '198.41.128.0/17', '162.158.0.0/15', '104.16.0.0/13',
+    '172.64.0.0/13', '131.0.72.0/22'
+]
+
+# --- خواندن سکرت‌ها از محیط ---
 try:
     API_ID = int(os.environ.get("API_ID"))
 except (ValueError, TypeError):
@@ -27,7 +38,7 @@ API_HASH = os.environ.get("API_HASH")
 SESSION_STRING = os.environ.get("SESSION_STRING")
 CHANNELS_STR = os.environ.get('CHANNELS_LIST')
 GROUPS_STR = os.environ.get('GROUPS_LIST')
-CHANNEL_SEARCH_LIMIT = 6
+CHANNEL_SEARCH_LIMIT = 10
 GROUP_SEARCH_LIMIT = 600
 OUTPUT_YAML = "Config-jo.yaml"
 OUTPUT_TXT = "Config_jo.txt"
@@ -68,12 +79,27 @@ class V2RayExtractor:
     def __init__(self):
         self.raw_configs = set()
         self.client = Client("my_account", api_id=API_ID, api_hash=API_HASH, session_string=SESSION_STRING)
+        # برای سرعت بیشتر، محدوده‌های IP را یک بار در ابتدا پردازش می‌کنیم
+        self.cf_networks = [ipaddress.ip_network(r) for r in CLOUDFLARE_IPV4_RANGES]
 
-    @staticmethod
-    def _is_speedtest_config(config_url):
+    def _is_cloudflare_ip(self, ip_str):
+        """بررسی می‌کند آیا یک IP در محدوده کلادفلر است یا خیر."""
+        try:
+            ip = ipaddress.ip_address(ip_str)
+            # فقط IP های عمومی و از نوع IPv4 را بررسی می‌کنیم
+            if not ip.is_global or ip.version != 4:
+                return False
+            for network in self.cf_networks:
+                if ip in network:
+                    return True
+            return False
+        except ValueError:
+            # اگر ورودی یک دامنه باشد و نه IP، خطا می‌دهد که یعنی IP کلادفلر نیست
+            return False
+
+    def _is_unwanted_config(self, config_url):
         """
-        بررسی می‌کند که آیا آدرس سرور کانفیگ حاوی 'speedtest.net' است یا خیر.
-        این تابع اصلاح شده است تا تمام موارد را پوشش دهد.
+        تابع فیلتر جامع: کانفیگ‌های اسپیدتست و کلادفلر را شناسایی می‌کند.
         """
         try:
             hostname = ''
@@ -85,16 +111,20 @@ class V2RayExtractor:
             elif config_url.startswith(('vless://', 'trojan://', 'ss://')):
                 parsed = urlparse(config_url)
                 hostname = parsed.hostname
-            
-            # --- این خط اصلاح اصلی است ---
-            # بررسی می‌کند آیا 'speedtest.net' در نام هاست وجود دارد یا خیر
-            if hostname:
-                return 'speedtest.net' in hostname.lower()
-            return False
-            # ---------------------------
 
+            if not hostname:
+                return False
+            
+            # شرط اول: بررسی اسپیدتست
+            if 'speedtest.net' in hostname.lower():
+                return True
+            
+            # شرط دوم: بررسی IP کلادفلر
+            if self._is_cloudflare_ip(hostname):
+                return True
+
+            return False
         except Exception:
-            # اگر در پردازش لینک خطایی رخ داد، فرض می‌کنیم اسپیدتست نیست
             return False
 
     @staticmethod
@@ -113,6 +143,7 @@ class V2RayExtractor:
             return None
         except Exception: return None
 
+    # ... (بقیه توابع parse بدون تغییر باقی می‌مانند) ...
     def parse_vmess(self, vmess_url):
         encoded_data = vmess_url.split("://")[1]
         decoded_str = base64.b64decode(encoded_data + '=' * (-len(encoded_data) % 4)).decode('utf-8')
@@ -157,6 +188,7 @@ class V2RayExtractor:
         cipher, password = user_info.split(':', 1) if ':' in user_info else (None, None)
         return {'name': self._generate_unique_name(original_name, 'ss'), 'type': 'ss', 'server': parsed.hostname, 'port': parsed.port, 'cipher': cipher, 'password': password, 'udp': True} if cipher and password else None
 
+
     async def find_raw_configs_from_chat(self, chat_id, limit):
         try:
             print(f"🔍 جستجو در چت {chat_id} (محدودیت: {limit} پیام)...")
@@ -181,12 +213,12 @@ class V2RayExtractor:
     def save_files(self):
         print("\n" + "="*40)
         
-        print(f"⚙️ فیلتر کردن کانفیگ‌های speedtest.net از مجموع {len(self.raw_configs)} کانفیگ پیدا شده...")
-        filtered_configs = {config for config in self.raw_configs if not self._is_speedtest_config(config)}
+        print(f"⚙️ فیلتر کردن کانفیگ‌های ناخواسته (Speedtest و Cloudflare) از مجموع {len(self.raw_configs)} کانفیگ...")
+        filtered_configs = {config for config in self.raw_configs if not self._is_unwanted_config(config)}
         
         removed_count = len(self.raw_configs) - len(filtered_configs)
         if removed_count > 0:
-            print(f"👍 {removed_count} کانفیگ speedtest.net حذف شد.")
+            print(f"👍 {removed_count} کانفیگ ناخواسته حذف شد.")
         
         print(f"📝 ذخیره {len(filtered_configs)} کانفیگ نهایی در فایل {OUTPUT_TXT}...")
         if filtered_configs:
@@ -235,4 +267,5 @@ if __name__ == "__main__":
     if not all([API_ID, API_HASH, SESSION_STRING]):
         print("❌ خطا: یک یا چند مورد از سکرت‌های ضروری (API_ID, API_HASH, SESSION_STRING) تنظیم نشده است.")
     else:
+        # فراموش نکنید که کتابخانه ipaddress نیاز به نصب جداگانه ندارد و بخشی از پایتون است
         asyncio.run(main())
