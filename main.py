@@ -27,7 +27,7 @@ API_HASH = os.environ.get("API_HASH")
 SESSION_STRING = os.environ.get("SESSION_STRING")
 CHANNELS_STR = os.environ.get('CHANNELS_LIST')
 GROUPS_STR = os.environ.get('GROUPS_LIST')
-CHANNEL_SEARCH_LIMIT = 10
+CHANNEL_SEARCH_LIMIT = 6
 GROUP_SEARCH_LIMIT = 600
 OUTPUT_YAML = "Config-jo.yaml"
 OUTPUT_TXT = "Config_jo.txt"
@@ -55,8 +55,8 @@ CHANNELS, GROUPS = process_lists()
 V2RAY_PATTERNS = [
     re.compile(r'(vless:\/\/[^\s\'\"<>`]+)'),
     re.compile(r'(vmess:\/\/[^\s\'\"<>`]+)'),
-    re.compile(r'(trojan:\/\/[^\s\'\"<>`]+)'),    
-   #re.compile(r'(ss:\/\/[^\s\'\"<>`]+)'),  
+    re.compile(r'(trojan:\/\/[^\s\'\"<>`]+)'),
+    re.compile(r'(ss:\/\/[^\s\'\"<>`]+)'),
     re.compile(r"(hy2://[^\s'\"<>`]+)"),
     re.compile(r"(hysteria2://[^\s'\"<>`]+)"),
     re.compile(r"(tuic://[^\s'\"<>`]+)")
@@ -71,17 +71,30 @@ class V2RayExtractor:
 
     @staticmethod
     def _is_speedtest_config(config_url):
+        """
+        بررسی می‌کند که آیا آدرس سرور کانفیگ حاوی 'speedtest.net' است یا خیر.
+        این تابع اصلاح شده است تا تمام موارد را پوشش دهد.
+        """
         try:
+            hostname = ''
             if config_url.startswith('vmess://'):
                 encoded_data = config_url.split("://")[1]
                 decoded_str = base64.b64decode(encoded_data + '=' * (-len(encoded_data) % 4)).decode('utf-8')
                 config = json.loads(decoded_str)
-                return config.get('add', '').lower() == 'www.speedtest.net'
-            elif config_url.startswith(('vless://', 'trojan://')):
+                hostname = config.get('add', '')
+            elif config_url.startswith(('vless://', 'trojan://', 'ss://')):
                 parsed = urlparse(config_url)
-                return parsed.hostname.lower() == 'www.speedtest.net'
+                hostname = parsed.hostname
+            
+            # --- این خط اصلاح اصلی است ---
+            # بررسی می‌کند آیا 'speedtest.net' در نام هاست وجود دارد یا خیر
+            if hostname:
+                return 'speedtest.net' in hostname.lower()
             return False
+            # ---------------------------
+
         except Exception:
+            # اگر در پردازش لینک خطایی رخ داد، فرض می‌کنیم اسپیدتست نیست
             return False
 
     @staticmethod
@@ -96,9 +109,7 @@ class V2RayExtractor:
             if config_url.startswith('vmess://'): return self.parse_vmess(config_url)
             elif config_url.startswith('vless://'): return self.parse_vless(config_url)
             elif config_url.startswith('trojan://'): return self.parse_trojan(config_url)
-            
-            #elif config_url.startswith('ss://'): return self.parse_shadowsocks(config_url)
-          
+            elif config_url.startswith('ss://'): return self.parse_shadowsocks(config_url)
             return None
         except Exception: return None
 
@@ -133,7 +144,6 @@ class V2RayExtractor:
         sni = query.get('peer', [None])[0] or query.get('sni', [None])[0] or parsed.hostname
         return {'name': self._generate_unique_name(original_name, "trojan"), 'type': 'trojan', 'server': parsed.hostname, 'port': parsed.port or 443, 'password': parsed.username, 'udp': True, 'sni': sni}
     
-    # --- تابع زیر به طور کامل بازگردانده شد ---
     def parse_shadowsocks(self, ss_url):
         parsed = urlparse(ss_url)
         original_name = unquote(parsed.fragment) if parsed.fragment else ''
@@ -146,7 +156,6 @@ class V2RayExtractor:
                 user_info = unquote(user_info_part)
         cipher, password = user_info.split(':', 1) if ':' in user_info else (None, None)
         return {'name': self._generate_unique_name(original_name, 'ss'), 'type': 'ss', 'server': parsed.hostname, 'port': parsed.port, 'cipher': cipher, 'password': password, 'udp': True} if cipher and password else None
-    # ---------------------------------------------
 
     async def find_raw_configs_from_chat(self, chat_id, limit):
         try:
