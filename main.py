@@ -63,11 +63,12 @@ def process_lists():
 
 CHANNELS, GROUPS = process_lists()
 
+# تغییر ترتیب regex patterns - vless باید قبل از ss باشد
 V2RAY_PATTERNS = [
-    re.compile(r'(vless:\/\/[^\s\'\"<>`]+)'),
+    re.compile(r'(vless:\/\/[^\s\'\"<>`]+)'),  # vless قبل از ss
     re.compile(r'(vmess:\/\/[^\s\'\"<>`]+)'),
     re.compile(r'(trojan:\/\/[^\s\'\"<>`]+)'),
-    re.compile(r'(ss:\/\/[^\s\'\"<>`]+)'),
+    re.compile(r'(ss:\/\/[^\s\'\"<>`]+)'),     # ss بعد از vless
     re.compile(r"(hy2://[^\s'\"<>`]+)"),
     re.compile(r"(hysteria2://[^\s'\"<>`]+)"),
     re.compile(r"(tuic://[^\s'\"<>`]+)")
@@ -141,74 +142,190 @@ class V2RayExtractor:
             elif config_url.startswith('trojan://'): return self.parse_trojan(config_url)
             elif config_url.startswith('ss://'): return self.parse_shadowsocks(config_url)
             return None
-        except Exception: return None
+        except Exception as e:
+            print(f"❌ خطا در پارس کردن کانفیگ {config_url[:50]}...: {e}")
+            return None
 
-    # ... (بقیه توابع parse بدون تغییر باقی می‌مانند) ...
     def parse_vmess(self, vmess_url):
-        encoded_data = vmess_url.split("://")[1]
-        decoded_str = base64.b64decode(encoded_data + '=' * (-len(encoded_data) % 4)).decode('utf-8')
-        config = json.loads(decoded_str)
-        original_name = config.get('ps', '')
-        ws_opts = None
-        if config.get('net') == 'ws':
-            host_header = config.get('host', '').strip() or config.get('add', '').strip()
-            if host_header: ws_opts = {'path': config.get('path', '/'), 'headers': {'Host': host_header}}
-        return {'name': self._generate_unique_name(original_name, "vmess"), 'type': 'vmess', 'server': config.get('add'), 'port': int(config.get('port', 443)), 'uuid': config.get('id'), 'alterId': int(config.get('aid', 0)), 'cipher': config.get('scy', 'auto'), 'tls': config.get('tls') == 'tls', 'network': config.get('net', 'tcp'), 'udp': True, 'ws-opts': ws_opts}
+        try:
+            encoded_data = vmess_url.split("://")[1]
+            decoded_str = base64.b64decode(encoded_data + '=' * (-len(encoded_data) % 4)).decode('utf-8')
+            config = json.loads(decoded_str)
+            original_name = config.get('ps', '')
+            ws_opts = None
+            if config.get('net') == 'ws':
+                host_header = config.get('host', '').strip() or config.get('add', '').strip()
+                if host_header: ws_opts = {'path': config.get('path', '/'), 'headers': {'Host': host_header}}
+            
+            return {
+                'name': self._generate_unique_name(original_name, "vmess"), 
+                'type': 'vmess', 
+                'server': config.get('add'), 
+                'port': int(config.get('port', 443)), 
+                'uuid': config.get('id'), 
+                'alterId': int(config.get('aid', 0)), 
+                'cipher': config.get('scy', 'auto'), 
+                'tls': config.get('tls') == 'tls', 
+                'network': config.get('net', 'tcp'), 
+                'udp': True, 
+                'ws-opts': ws_opts
+            }
+        except Exception as e:
+            print(f"❌ خطا در پارس vmess: {e}")
+            return None
 
     def parse_vless(self, vless_url):
-        parsed = urlparse(vless_url)
-        query = parse_qs(parsed.query)
-        original_name = unquote(parsed.fragment) if parsed.fragment else ''
-        ws_opts, reality_opts = None, None
-        if query.get('type', [''])[0] == 'ws':
-            host_header = query.get('host', [''])[0].strip() or query.get('sni', [''])[0].strip() or parsed.hostname
-            if host_header: ws_opts = {'path': query.get('path', ['/'])[0], 'headers': {'Host': host_header}}
-        if query.get('security', [''])[0] == 'reality':
-            pbk = query.get('pbk', [None])[0]
-            if pbk: reality_opts = {'public-key': pbk, 'short-id': query.get('sid', [''])[0]}
-        return {'name': self._generate_unique_name(original_name, "vless"), 'type': 'vless', 'server': parsed.hostname, 'port': parsed.port or 443, 'uuid': parsed.username, 'udp': True, 'tls': query.get('security', [''])[0] in ['tls', 'reality'], 'network': query.get('type', ['tcp'])[0], 'servername': query.get('sni', [None])[0], 'ws-opts': ws_opts, 'reality-opts': reality_opts}
+        try:
+            parsed = urlparse(vless_url)
+            query = parse_qs(parsed.query)
+            original_name = unquote(parsed.fragment) if parsed.fragment else ''
+            ws_opts, reality_opts = None, None
+            
+            if query.get('type', [''])[0] == 'ws':
+                host_header = query.get('host', [''])[0].strip() or query.get('sni', [''])[0].strip() or parsed.hostname
+                if host_header: ws_opts = {'path': query.get('path', ['/'])[0], 'headers': {'Host': host_header}}
+                
+            if query.get('security', [''])[0] == 'reality':
+                pbk = query.get('pbk', [None])[0]
+                if pbk: reality_opts = {'public-key': pbk, 'short-id': query.get('sid', [''])[0]}
+            
+            return {
+                'name': self._generate_unique_name(original_name, "vless"), 
+                'type': 'vless', 
+                'server': parsed.hostname, 
+                'port': parsed.port or 443, 
+                'uuid': parsed.username, 
+                'udp': True, 
+                'tls': query.get('security', [''])[0] in ['tls', 'reality'], 
+                'network': query.get('type', ['tcp'])[0], 
+                'servername': query.get('sni', [None])[0], 
+                'ws-opts': ws_opts, 
+                'reality-opts': reality_opts
+            }
+        except Exception as e:
+            print(f"❌ خطا در پارس vless: {e}")
+            return None
 
     def parse_trojan(self, trojan_url):
-        parsed = urlparse(trojan_url)
-        query = parse_qs(parsed.query)
-        original_name = unquote(parsed.fragment) if parsed.fragment else ''
-        sni = query.get('peer', [None])[0] or query.get('sni', [None])[0] or parsed.hostname
-        return {'name': self._generate_unique_name(original_name, "trojan"), 'type': 'trojan', 'server': parsed.hostname, 'port': parsed.port or 443, 'password': parsed.username, 'udp': True, 'sni': sni}
+        try:
+            parsed = urlparse(trojan_url)
+            query = parse_qs(parsed.query)
+            original_name = unquote(parsed.fragment) if parsed.fragment else ''
+            sni = query.get('peer', [None])[0] or query.get('sni', [None])[0] or parsed.hostname
+            
+            return {
+                'name': self._generate_unique_name(original_name, "trojan"), 
+                'type': 'trojan', 
+                'server': parsed.hostname, 
+                'port': parsed.port or 443, 
+                'password': parsed.username, 
+                'udp': True, 
+                'sni': sni
+            }
+        except Exception as e:
+            print(f"❌ خطا در پارس trojan: {e}")
+            return None
     
     def parse_shadowsocks(self, ss_url):
-        parsed = urlparse(ss_url)
-        original_name = unquote(parsed.fragment) if parsed.fragment else ''
-        user_info = ''
-        if '@' in parsed.netloc:
-            user_info_part = parsed.netloc.split('@')[0]
-            try:
-                user_info = base64.b64decode(user_info_part + '=' * (4 - len(user_info_part) % 4)).decode('utf-8')
-            except:
-                user_info = unquote(user_info_part)
-        cipher, password = user_info.split(':', 1) if ':' in user_info else (None, None)
-        return {'name': self._generate_unique_name(original_name, 'ss'), 'type': 'ss', 'server': parsed.hostname, 'port': parsed.port, 'cipher': cipher, 'password': password, 'udp': True} if cipher and password else None
+        try:
+            parsed = urlparse(ss_url)
+            original_name = unquote(parsed.fragment) if parsed.fragment else ''
+            user_info = ''
+            
+            if '@' in parsed.netloc:
+                user_info_part = parsed.netloc.split('@')[0]
+                try:
+                    user_info = base64.b64decode(user_info_part + '=' * (4 - len(user_info_part) % 4)).decode('utf-8')
+                except:
+                    user_info = unquote(user_info_part)
+            
+            cipher, password = user_info.split(':', 1) if ':' in user_info else (None, None)
+            
+            if cipher and password:
+                return {
+                    'name': self._generate_unique_name(original_name, 'ss'), 
+                    'type': 'ss', 
+                    'server': parsed.hostname, 
+                    'port': parsed.port, 
+                    'cipher': cipher, 
+                    'password': password, 
+                    'udp': True
+                }
+            return None
+        except Exception as e:
+            print(f"❌ خطا در پارس shadowsocks: {e}")
+            return None
 
+    def extract_configs_from_text(self, text):
+        """استخراج کانفیگ‌ها از متن با بررسی دقیق‌تر"""
+        found_configs = set()
+        
+        # استخراج مستقیم با regex patterns
+        for pattern in V2RAY_PATTERNS:
+            matches = pattern.findall(text)
+            for match in matches:
+                config_url = match.strip()
+                # بررسی اضافی برای اطمینان از صحت نوع کانفیگ
+                if self._validate_config_type(config_url):
+                    found_configs.add(config_url)
+                    
+        return found_configs
+
+    def _validate_config_type(self, config_url):
+        """اعتبارسنجی نوع کانفیگ برای اطمینان از تشخیص صحیح"""
+        try:
+            if config_url.startswith('vless://'):
+                # بررسی ساختار vless
+                parsed = urlparse(config_url)
+                return bool(parsed.hostname and parsed.username)
+            elif config_url.startswith('vmess://'):
+                # بررسی ساختار vmess
+                encoded_data = config_url.split("://")[1]
+                decoded_str = base64.b64decode(encoded_data + '=' * (-len(encoded_data) % 4)).decode('utf-8')
+                config = json.loads(decoded_str)
+                return bool(config.get('add') and config.get('id'))
+            elif config_url.startswith('trojan://'):
+                # بررسی ساختار trojan
+                parsed = urlparse(config_url)
+                return bool(parsed.hostname and parsed.username)
+            elif config_url.startswith('ss://'):
+                # بررسی ساختار shadowsocks - مطمئن شویم که vless نیست
+                if 'vless://' in config_url:
+                    return False
+                parsed = urlparse(config_url)
+                return bool(parsed.hostname)
+            return True
+        except:
+            return False
 
     async def find_raw_configs_from_chat(self, chat_id, limit):
         try:
             print(f"🔍 جستجو در چت {chat_id} (محدودیت: {limit} پیام)...")
             async for message in self.client.get_chat_history(chat_id, limit=limit):
                 if not message.text: continue
+                
                 texts_to_scan = [message.text]
+                
+                # بررسی base64 های احتمالی
                 potential_b64 = BASE64_PATTERN.findall(message.text)
                 for b64_str in potential_b64:
                     try:
                         decoded_text = base64.b64decode(b64_str + '=' * (-len(b64_str) % 4)).decode('utf-8', errors='ignore')
                         texts_to_scan.append(decoded_text)
-                    except Exception: continue
+                    except Exception: 
+                        continue
+                
+                # استخراج کانفیگ از هر متن
                 for text in texts_to_scan:
-                    for pattern in V2RAY_PATTERNS:
-                        self.raw_configs.update(m.strip() for m in pattern.findall(text))
+                    found_configs = self.extract_configs_from_text(text)
+                    self.raw_configs.update(found_configs)
+                    
         except FloodWait as e:
             print(f"⏳ به دلیل محدودیت تلگرام، برای چت {chat_id} به مدت {e.value} ثانیه صبر می‌کنیم.")
             await asyncio.sleep(e.value)
             await self.find_raw_configs_from_chat(chat_id, limit)
-        except Exception as e: print(f"❌ خطا در زمان اسکن چت {chat_id}: {e}")
+        except Exception as e: 
+            print(f"❌ خطا در زمان اسکن چت {chat_id}: {e}")
 
     def save_files(self):
         print("\n" + "="*40)
@@ -220,6 +337,25 @@ class V2RayExtractor:
         if removed_count > 0:
             print(f"👍 {removed_count} کانفیگ ناخواسته حذف شد.")
         
+        # نمایش آمار به تفکیک نوع کانفیگ
+        config_types = {'vless': 0, 'vmess': 0, 'trojan': 0, 'ss': 0, 'other': 0}
+        for config in filtered_configs:
+            if config.startswith('vless://'):
+                config_types['vless'] += 1
+            elif config.startswith('vmess://'):
+                config_types['vmess'] += 1
+            elif config.startswith('trojan://'):
+                config_types['trojan'] += 1
+            elif config.startswith('ss://'):
+                config_types['ss'] += 1
+            else:
+                config_types['other'] += 1
+        
+        print(f"📊 آمار کانفیگ‌های یافت شده:")
+        for config_type, count in config_types.items():
+            if count > 0:
+                print(f"   - {config_type.upper()}: {count}")
+        
         print(f"📝 ذخیره {len(filtered_configs)} کانفیگ نهایی در فایل {OUTPUT_TXT}...")
         if filtered_configs:
             with open(OUTPUT_TXT, 'w', encoding='utf-8') as f:
@@ -229,7 +365,18 @@ class V2RayExtractor:
             print("⚠️ هیچ کانفیگ خامی برای ذخیره باقی نماند.")
 
         print(f"\n⚙️ پردازش کانفیگ‌ها برای فایل کلش ({OUTPUT_YAML})...")
-        clash_proxies = [p for p in (self.parse_config_for_clash(url) for url in filtered_configs) if p is not None]
+        clash_proxies = []
+        parse_errors = 0
+        
+        for url in filtered_configs:
+            proxy = self.parse_config_for_clash(url)
+            if proxy is not None:
+                clash_proxies.append(proxy)
+            else:
+                parse_errors += 1
+
+        if parse_errors > 0:
+            print(f"⚠️ {parse_errors} کانفیگ به دلیل خطا در پارسینگ نادیده گرفته شد.")
 
         if not clash_proxies:
             print(f"⚠️ هیچ کانفیگ معتبری برای Clash پیدا نشد. فایل {OUTPUT_YAML} خالی خواهد بود.")
@@ -240,12 +387,48 @@ class V2RayExtractor:
         proxy_names = [p['name'] for p in clash_proxies]
         
         clash_config_base = {
-            'port': 7890, 'socks-port': 7891, 'allow-lan': True, 'mode': 'rule',
-            'log-level': 'info', 'external-controller': '127.0.0.1:9090',
-            'dns': {'enable': True, 'listen': '0.0.0.0:53', 'default-nameserver': ['8.8.8.8', '1.1.1.1'], 'enhanced-mode': 'fake-ip', 'fake-ip-range': '198.18.0.1/16', 'fallback': ['https://cloudflare-dns.com/dns-query', 'https://dns.google/dns-query'], 'fallback-filter': {'geoip': True, 'ipcidr': ['240.0.0.0/4']}},
+            'port': 7890, 
+            'socks-port': 7891, 
+            'allow-lan': True, 
+            'mode': 'rule',
+            'log-level': 'info', 
+            'external-controller': '127.0.0.1:9090',
+            'dns': {
+                'enable': True, 
+                'listen': '0.0.0.0:53', 
+                'default-nameserver': ['8.8.8.8', '1.1.1.1'], 
+                'enhanced-mode': 'fake-ip', 
+                'fake-ip-range': '198.18.0.1/16', 
+                'fallback': ['https://cloudflare-dns.com/dns-query', 'https://dns.google/dns-query'], 
+                'fallback-filter': {
+                    'geoip': True, 
+                    'ipcidr': ['240.0.0.0/4']
+                }
+            },
             'proxies': clash_proxies,
-            'proxy-groups': [{'name': 'PROXY', 'type': 'select', 'proxies': ['AUTO', 'DIRECT', *proxy_names]}, {'name': 'AUTO', 'type': 'url-test', 'proxies': proxy_names, 'url': 'http://www.gstatic.com/generate_204', 'interval': 300}],
-            'rules': ['DOMAIN-SUFFIX,local,DIRECT', 'IP-CIDR,127.0.0.0/8,DIRECT', 'IP-CIDR,192.168.0.0/16,DIRECT', 'IP-CIDR,172.16.0.0/12,DIRECT', 'IP-CIDR,10.0.0.0/8,DIRECT', 'GEOIP,IR,DIRECT', 'MATCH,PROXY']
+            'proxy-groups': [
+                {
+                    'name': 'PROXY', 
+                    'type': 'select', 
+                    'proxies': ['AUTO', 'DIRECT', *proxy_names]
+                }, 
+                {
+                    'name': 'AUTO', 
+                    'type': 'url-test', 
+                    'proxies': proxy_names, 
+                    'url': 'http://www.gstatic.com/generate_204', 
+                    'interval': 300
+                }
+            ],
+            'rules': [
+                'DOMAIN-SUFFIX,local,DIRECT', 
+                'IP-CIDR,127.0.0.0/8,DIRECT', 
+                'IP-CIDR,192.168.0.0/16,DIRECT', 
+                'IP-CIDR,172.16.0.0/12,DIRECT', 
+                'IP-CIDR,10.0.0.0/8,DIRECT', 
+                'GEOIP,IR,DIRECT', 
+                'MATCH,PROXY'
+            ]
         }
         
         with open(OUTPUT_YAML, 'w', encoding='utf-8') as f:
@@ -258,8 +441,10 @@ async def main():
     async with extractor.client:
         tasks = [extractor.find_raw_configs_from_chat(channel, CHANNEL_SEARCH_LIMIT) for channel in CHANNELS]
         tasks.extend(extractor.find_raw_configs_from_chat(group, GROUP_SEARCH_LIMIT) for group in GROUPS)
-        if tasks: await asyncio.gather(*tasks)
-        else: print("❌ هیچ کانال یا گروهی برای جستجو تعریف نشده است.")
+        if tasks: 
+            await asyncio.gather(*tasks)
+        else: 
+            print("❌ هیچ کانال یا گروهی برای جستجو تعریف نشده است.")
     extractor.save_files()
     print("\n✨ تمام عملیات با موفقیت به پایان رسید!")
 
@@ -267,5 +452,4 @@ if __name__ == "__main__":
     if not all([API_ID, API_HASH, SESSION_STRING]):
         print("❌ خطا: یک یا چند مورد از سکرت‌های ضروری (API_ID, API_HASH, SESSION_STRING) تنظیم نشده است.")
     else:
-        # فراموش نکنید که کتابخانه ipaddress نیاز به نصب جداگانه ندارد و بخشی از پایتون است
         asyncio.run(main())
