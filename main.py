@@ -133,7 +133,7 @@ class V2RayExtractor:
     def _generate_unique_name(self, original_name, prefix="config"):
         """یک نام ثابت با شماره‌گذاری منحصر به فرد تولید می‌کند."""
         self.config_counter += 1
-        return f"Config-jo-{self.config_counter:03}"
+        return f"R3ZA-{self.config_counter:03}"
 
     def parse_config_for_clash(self, config_url):
         try:
