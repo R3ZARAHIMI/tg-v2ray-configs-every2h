@@ -42,6 +42,7 @@ CHANNEL_SEARCH_LIMIT = 5
 GROUP_SEARCH_LIMIT = 600
 OUTPUT_YAML = "Config-jo.yaml"
 OUTPUT_TXT = "Config_jo.txt"
+OUTPUT_ORIGINAL_TXT = "Original-Configs.txt" # <-- فایل جدید اضافه شد
 
 # =================================================================================
 # توابع و کلاس‌های اصلی برنامه
@@ -82,6 +83,7 @@ class V2RayExtractor:
         self.client = Client("my_account", api_id=API_ID, api_hash=API_HASH, session_string=SESSION_STRING)
         # برای سرعت بیشتر، محدوده‌های IP را یک بار در ابتدا پردازش می‌کنیم
         self.cf_networks = [ipaddress.ip_network(r) for r in CLOUDFLARE_IPV4_RANGES]
+        self.config_counter = 0
 
     def _is_cloudflare_ip(self, ip_str):
         """بررسی می‌کند آیا یک IP در محدوده کلادفلر است یا خیر."""
@@ -128,12 +130,10 @@ class V2RayExtractor:
         except Exception:
             return False
 
-    @staticmethod
-    def _generate_unique_name(original_name, prefix="config"):
-        if not original_name: return f"{prefix}-{str(uuid.uuid4())[:8]}"
-        cleaned_name = re.sub(r'[^\w\s\-\_\u0600-\u06FF]', '', original_name).replace(' ', '_').strip('_-')
-        if not cleaned_name: return f"{prefix}-{str(uuid.uuid4())[:8]}"
-        return f"{cleaned_name}-{str(uuid.uuid4())[:4]}"
+    def _generate_unique_name(self, original_name, prefix="config"):
+        """یک نام ثابت با شماره‌گذاری منحصر به فرد تولید می‌کند."""
+        self.config_counter += 1
+        return f"Config-jo-{self.config_counter:03}"
 
     def parse_config_for_clash(self, config_url):
         try:
@@ -437,11 +437,22 @@ class V2RayExtractor:
         else:
             print("⚠️ هیچ کانفیگ خامی برای ذخیره باقی نماند.")
 
+        # <-- شروع بلوک کد جدید برای فایل دوم
+        print(f"📝 ذخیره {len(filtered_configs)} کانفیگ با نام اصلی در فایل {OUTPUT_ORIGINAL_TXT}...")
+        if filtered_configs:
+            with open(OUTPUT_ORIGINAL_TXT, 'w', encoding='utf-8') as f:
+                f.write("\n".join(sorted(list(filtered_configs))))
+            print(f"✅ فایل {OUTPUT_ORIGINAL_TXT} با موفقیت ذخیره شد.")
+        # <-- پایان بلوک کد جدید
+
         print(f"\n⚙️ پردازش کانفیگ‌ها برای فایل کلش ({OUTPUT_YAML})...")
         clash_proxies = []
         parse_errors = 0
         
-        for url in filtered_configs:
+        # ریست کردن شمارنده قبل از پارس کردن برای کلش
+        self.config_counter = 0
+
+        for url in sorted(list(filtered_configs)): # مرتب‌سازی برای نام‌گذاری قابل پیش‌بینی
             proxy = self.parse_config_for_clash(url)
             if proxy is not None:
                 clash_proxies.append(proxy)
