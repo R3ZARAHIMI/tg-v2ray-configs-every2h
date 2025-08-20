@@ -26,7 +26,7 @@ API_HASH = os.environ.get("API_HASH")
 SESSION_STRING = os.environ.get("SESSION_STRING")
 CHANNELS_STR = os.environ.get('CHANNELS_LIST')
 GROUPS_STR = os.environ.get('GROUPS_LIST')
-CHANNEL_SEARCH_LIMIT = int(os.environ.get('CHANNEL_SEARCH_LIMIT', 5))
+CHANNEL_SEARCH_LIMIT = int(os.environ.get('CHANNEL_SEARCH_LIMIT', 200)) # مقدار پیش‌فرض افزایش یافت
 GROUP_SEARCH_LIMIT = int(os.environ.get('GROUP_SEARCH_LIMIT', 600))
 OUTPUT_YAML = "Config-jo.yaml"
 OUTPUT_TXT = "Config_jo.txt"
@@ -76,32 +76,6 @@ class V2RayExtractor:
                     return True
             return False
         except ValueError:
-            return False
-
-    def _is_unwanted_config(self, config_url: str) -> bool:
-        """تابع فیلتر جامع: کانفیگ‌های اسپیدتست و کلادفلر را شناسایی می‌کند."""
-        try:
-            hostname = ''
-            if config_url.startswith('vmess://'):
-                encoded_data = config_url.split("://")[1]
-                decoded_str = base64.b64decode(encoded_data + '=' * (-len(encoded_data) % 4)).decode('utf-8')
-                config = json.loads(decoded_str)
-                hostname = config.get('add', '')
-            elif config_url.startswith(('vless://', 'trojan://', 'ss://')):
-                parsed = urlparse(config_url)
-                hostname = parsed.hostname
-
-            if not hostname:
-                return False
-
-            if 'speedtest.net' in hostname.lower():
-                return True
-
-            if self._is_cloudflare_ip(hostname):
-                return True
-
-            return False
-        except Exception:
             return False
 
     @staticmethod
@@ -192,7 +166,7 @@ class V2RayExtractor:
                 return self.parse_trojan(config_url)
             elif config_url.startswith('ss://'):
                 return self.parse_shadowsocks(config_url)
-            elif config_url.startswith('hysteria2://'):
+            elif config_url.startswith(('hysteria2://', 'hy2://')):
                 return self.parse_hysteria2(config_url)
             elif config_url.startswith('tuic://'):
                 return self.parse_tuic(config_url)
@@ -376,11 +350,12 @@ class V2RayExtractor:
         try:
             print(f"🔍 جستجو در چت {chat_id} (محدودیت: {limit} پیام)...")
             async for message in self.client.get_chat_history(chat_id, limit=limit):
-                if not message.text:
+                text_to_check = message.text or message.caption
+                if not text_to_check:
                     continue
 
-                texts_to_scan = [message.text]
-                potential_b64 = BASE64_PATTERN.findall(message.text)
+                texts_to_scan = [text_to_check]
+                potential_b64 = BASE64_PATTERN.findall(text_to_check)
                 for b64_str in potential_b64:
                     try:
                         decoded_text = base64.b64decode(b64_str + '=' * (-len(b64_str) % 4)).decode('utf-8', errors='ignore')
@@ -406,64 +381,61 @@ class V2RayExtractor:
     def save_files(self):
         print("\n" + "="*40)
 
-        print(f"⚙️ فیلتر کردن کانفیگ‌های ناخواسته (Speedtest و Cloudflare) از مجموع {len(self.raw_configs)} کانفیگ...")
-        filtered_configs = {config for config in self.raw_configs if not self._is_unwanted_config(config)}
-
-        removed_count = len(self.raw_configs) - len(filtered_configs)
-        if removed_count > 0:
-            print(f"👍 {removed_count} کانفیگ ناخواسته حذف شد.")
-
-        config_types = {'vless': 0, 'vmess': 0, 'trojan': 0, 'ss': 0, 'hysteria2': 0, 'tuic': 0, 'other': 0}
-        for config in filtered_configs:
-            if config.startswith('vless://'):
-                config_types['vless'] += 1
-            elif config.startswith('vmess://'):
-                config_types['vmess'] += 1
-            elif config.startswith('trojan://'):
-                config_types['trojan'] += 1
-            elif config.startswith('ss://'):
-                config_types['ss'] += 1
-            elif config.startswith('hysteria2://'):
-                config_types['hysteria2'] += 1
-            elif config.startswith('tuic://'):
-                config_types['tuic'] += 1
-            else:
-                config_types['other'] += 1
-
-        print(f"📊 آمار کانفیگ‌های یافت شده:")
-        for config_type, count in config_types.items():
-            if count > 0:
-                print(f"   - {config_type.upper()}: {count}")
-
-        print(f"📝 ذخیره {len(filtered_configs)} کانفیگ نهایی در فایل {OUTPUT_TXT}...")
-        if filtered_configs:
-            with open(OUTPUT_TXT, 'w', encoding='utf-8') as f:
-                f.write("\n".join(sorted(list(filtered_configs))))
-            print("✅ فایل متنی با موفقیت ذخیره شد.")
-        else:
-            print("⚠️ هیچ کانفیگ خامی برای ذخیره باقی نماند.")
-
-        print(f"\n⚙️ پردازش کانفیگ‌ها برای فایل کلش ({OUTPUT_YAML})...")
-        clash_proxies = []
+        # مرحله ۱: جدا کردن کانفیگ‌های کلودفلر از غیر کلودفلر
+        # =======================================================
+        print(f"⚙️ پردازش و جداسازی {len(self.raw_configs)} کانفیگ یافت شده...")
+        direct_proxies = []
+        cf_proxies = []
         parse_errors = 0
 
-        for url in filtered_configs:
+        # به جای حذف کامل، کانفیگ‌ها را دسته‌بندی می‌کنیم
+        # ابتدا کانفیگ‌های اسپیدتست را حذف می‌کنیم ولی کلودفلر را نگه می‌داریم
+        configs_to_process = set()
+        for url in self.raw_configs:
+            try:
+                hostname = urlparse(url).hostname
+                if hostname and 'speedtest.net' in hostname.lower():
+                    continue
+                if url.startswith('vmess://'):
+                    encoded_data = url.split("://")[1]
+                    decoded_str = base64.b64decode(encoded_data + '=' * (-len(encoded_data) % 4)).decode('utf-8', errors='ignore')
+                    config = json.loads(decoded_str)
+                    if 'speedtest.net' in config.get('add', '').lower():
+                        continue
+                configs_to_process.add(url)
+            except:
+                configs_to_process.add(url)
+
+        for url in configs_to_process:
             proxy = self.parse_config_for_clash(url)
-            if proxy is not None:
-                clash_proxies.append(proxy)
-            else:
+            if proxy is None:
                 parse_errors += 1
+                continue
+
+            server_address = proxy.get('server', '')
+            if self._is_cloudflare_ip(server_address):
+                cf_proxies.append(proxy)
+            else:
+                direct_proxies.append(proxy)
 
         if parse_errors > 0:
             print(f"⚠️ {parse_errors} کانفیگ به دلیل خطا در پارسینگ نادیده گرفته شد.")
 
-        if not clash_proxies:
-            print(f"⚠️ هیچ کانفیگ معتبری برای Clash پیدا نشد. فایل {OUTPUT_YAML} خالی خواهد بود.")
+        print(f"👍 {len(direct_proxies)} کانفیگ مستقیم و {len(cf_proxies)} کانفیگ کلودفلر یافت شد.")
+
+        # اگر هیچ کانفیگی پیدا نشد، فایل‌ها را خالی می‌سازیم
+        if not direct_proxies and not cf_proxies:
+            print(f"⚠️ هیچ کانفیگ معتبری برای ساخت فایل‌ها پیدا نشد.")
             open(OUTPUT_YAML, "w").close()
+            open(OUTPUT_TXT, "w").close()
             return
 
-        print(f"👍 {len(clash_proxies)} کانفیگ معتبر برای Clash پیدا شد.")
-        proxy_names = [p['name'] for p in clash_proxies]
+        # مرحله ۲: ساخت ساختار YAML با گروه‌ها و قوانین هوشمند
+        # =========================================================
+        all_proxies = direct_proxies + cf_proxies
+        direct_proxy_names = [p['name'] for p in direct_proxies]
+        cf_proxy_names = [p['name'] for p in cf_proxies]
+        all_proxy_names = direct_proxy_names + cf_proxy_names
 
         clash_port = int(os.environ.get('CLASH_PORT', 7890))
         clash_socks_port = int(os.environ.get('CLASH_SOCKS_PORT', 7891))
@@ -479,60 +451,64 @@ class V2RayExtractor:
             'mode': 'rule',
             'log-level': log_level,
             'external-controller': '127.0.0.1:9090',
-            'dns': {
-                'enable': True,
-                'listen': '0.0.0.0:53',
-                'default-nameserver': dns_server,
-                'enhanced-mode': 'fake-ip',
-                'fake-ip-range': '198.18.0.1/16',
-                'fallback': fallback_dns,
-                'fallback-filter': {
-                    'geoip': True,
-                    'ipcidr': ['240.0.0.0/4']
-                }
-            },
-            'proxies': clash_proxies,
+            'dns': { 'enable': True, 'listen': '0.0.0.0:53', 'default-nameserver': dns_server, 'enhanced-mode': 'fake-ip', 'fake-ip-range': '198.18.0.1/16', 'fallback': fallback_dns, 'fallback-filter': {'geoip': True, 'ipcidr': ['240.0.0.0/4']}},
+            'proxies': all_proxies,
             'proxy-groups': [
                 {
                     'name': 'PROXY',
                     'type': 'select',
-                    'proxies': ['AUTO', 'DIRECT', *proxy_names]
+                    'proxies': ['✅ CF-Access (Auto)', '♻️ All-Auto', 'DIRECT', *all_proxy_names]
                 },
                 {
-                    'name': 'AUTO',
+                    'name': '✅ CF-Access (Auto)',
                     'type': 'url-test',
-                    'proxies': proxy_names,
+                    'proxies': direct_proxy_names if direct_proxy_names else ['DIRECT'],
                     'url': 'http://www.gstatic.com/generate_204',
                     'interval': 300
                 },
                 {
-                    'name': 'IRAN',
-                    'type': 'select',
-                    'proxies': ['DIRECT', *proxy_names]
-                },
-                {
-                    'name': 'GLOBAL',
-                    'type': 'select',
-                    'proxies': ['PROXY', *proxy_names]
+                    'name': '♻️ All-Auto',
+                    'type': 'url-test',
+                    'proxies': all_proxy_names,
+                    'url': 'http://www.gstatic.com/generate_204',
+                    'interval': 300
                 }
             ],
             'rules': [
-                'DOMAIN-SUFFIX,local,DIRECT',
-                'IP-CIDR,127.0.0.0/8,DIRECT',
-                'IP-CIDR,192.168.0.0/16,DIRECT',
-                'IP-CIDR,172.16.0.0/12,DIRECT',
-                'IP-CIDR,10.0.0.0/8,DIRECT',
-                'GEOIP,IR,IRAN',
-                'DOMAIN-SUFFIX,ir,IRAN',
-                'DOMAIN-KEYWORD,iran,IRAN',
-                'MATCH,GLOBAL'
+                # قانون هوشمند: اگر مقصد یکی از IPهای کلودفلر بود، از گروه CF-Access استفاده کن
+                'IP-CIDR,173.245.48.0/20,✅ CF-Access (Auto)',
+                'IP-CIDR,103.21.244.0/22,✅ CF-Access (Auto)',
+                'IP-CIDR,103.22.200.0/22,✅ CF-Access (Auto)',
+                'IP-CIDR,103.31.4.0/22,✅ CF-Access (Auto)',
+                'IP-CIDR,141.101.64.0/18,✅ CF-Access (Auto)',
+                'IP-CIDR,108.162.192.0/18,✅ CF-Access (Auto)',
+                'IP-CIDR,190.93.240.0/20,✅ CF-Access (Auto)',
+                'IP-CIDR,188.114.96.0/20,✅ CF-Access (Auto)',
+                'IP-CIDR,197.234.240.0/22,✅ CF-Access (Auto)',
+                'IP-CIDR,198.41.128.0/17,✅ CF-Access (Auto)',
+                'IP-CIDR,162.158.0.0/15,✅ CF-Access (Auto)',
+                'IP-CIDR,104.16.0.0/13,✅ CF-Access (Auto)',
+                'IP-CIDR,172.64.0.0/13,✅ CF-Access (Auto)',
+                'IP-CIDR,131.0.72.0/22,✅ CF-Access (Auto)',
+                # قوانین دیگر
+                'GEOIP,IR,DIRECT',
+                'MATCH,PROXY'
             ]
         }
+        
+        # اگر هیچ پروکسی مستقیمی پیدا نشد، به کاربر اطلاع بده
+        if not direct_proxy_names:
+            print("⚠️ هشدار: هیچ کانفیگ با IP مستقیم یافت نشد. گروه CF-Access فقط شامل DIRECT خواهد بود.")
 
         with open(OUTPUT_YAML, 'w', encoding='utf-8') as f:
             yaml.dump(clash_config_base, f, allow_unicode=True, sort_keys=False, indent=2, width=1000)
 
-        print(f"✅ فایل {OUTPUT_YAML} با موفقیت ذخیره شد.")
+        print(f"✅ فایل هوشمند {OUTPUT_YAML} با موفقیت ذخیره شد.")
+
+        # فایل متنی را با کانفیگ‌های پردازش شده ذخیره می‌کنیم
+        with open(OUTPUT_TXT, 'w', encoding='utf-8') as f:
+            f.write("\n".join(sorted(list(configs_to_process))))
+        print(f"✅ فایل متنی {OUTPUT_TXT} با موفقیت ذخیره شد.")
 
 async def main():
     print("🚀 شروع برنامه استخراج کانفیگ...")
