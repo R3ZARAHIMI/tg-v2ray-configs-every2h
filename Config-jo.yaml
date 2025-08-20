@@ -1,0 +1,275 @@
+port: 7890
+socks-port: 7891
+allow-lan: true
+mode: rule
+log-level: info
+external-controller: 127.0.0.1:9090
+dns:
+  enable: true
+  listen: 0.0.0.0:53
+  default-nameserver:
+  - 8.8.8.8
+  - 1.1.1.1
+  enhanced-mode: fake-ip
+  fake-ip-range: 198.18.0.1/16
+  fallback:
+  - https://cloudflare-dns.com/dns-query
+  - https://dns.google/dns-query
+  fallback-filter:
+    geoip: true
+    ipcidr:
+    - 240.0.0.0/4
+proxies:
+- name: CA-26da
+  type: vless
+  server: 140.238.158.238
+  port: 443
+  uuid: 06e4425e-a8cb-4b63-929f-2105604ab0a9
+  udp: true
+  tls: true
+  network: ws
+  servername: cc.ylks0033.dpdns.org
+  ws-opts:
+    path: /?ed=2560
+    headers:
+      Host: cc.ylks0033.dpdns.org
+  reality-opts: null
+- name: US-2127
+  type: vless
+  server: 45.145.42.229
+  port: 4002
+  uuid: 06e4425e-a8cb-4b63-929f-2105604ab0a9
+  udp: true
+  tls: true
+  network: ws
+  servername: tt.ylks0033.dpdns.org
+  ws-opts:
+    path: /?ed=2560
+    headers:
+      Host: tt.ylks0033.dpdns.org
+  reality-opts: null
+- name: TheNetherlands_AzadNet-1631
+  type: ss
+  server: 193.29.139.202
+  port: 8080
+  cipher: chacha20-ietf-poly1305
+  password: oZIoA69Q8yhcQV8ka3Pa3A
+  udp: true
+- name: 𝗝𝗼𝗶𝗻__vpnplusee_free__کانال_ما-4f28
+  type: vless
+  server: het.iran-mehrbu.ir
+  port: 3333
+  uuid: 1ded0e98-c349-4465-b240-5b5650bb377a
+  udp: true
+  tls: false
+  network: tcp
+  servername: null
+  ws-opts: null
+  reality-opts: null
+- name: NETMelliAnti__چنل_کانفیگ-b17b
+  type: vless
+  server: 46.62.163.94
+  port: 22222
+  uuid: 8a3e475c-b2f2-44fe-82fd-5cb4d87fbee8
+  udp: true
+  tls: true
+  network: tcp
+  servername: nobitex.ir
+  ws-opts: null
+  reality-opts:
+    public-key: Gu0N2cbeLwNm0Vwr5ex2AYecfnp8h3hYguy6UzoM8V4
+    short-id: 8789760e67ce
+- name: Golestan_VPN_-_JOIN-ec20
+  type: vless
+  server: 45.82.251.63
+  port: 8880
+  uuid: e4824193-4f54-453b-d037-88368e85ef0e
+  udp: true
+  tls: false
+  network: grpc
+  servername: null
+  ws-opts: null
+  reality-opts: null
+- name: US-8b2c
+  type: vless
+  server: 45.145.42.229
+  port: 4002
+  uuid: 06e4425e-a8cb-4b63-929f-2105604ab0a9
+  udp: true
+  tls: true
+  network: ws
+  servername: cc.ylks0033.dpdns.org
+  ws-opts:
+    path: /?ed=2560
+    headers:
+      Host: cc.ylks0033.dpdns.org
+  reality-opts: null
+- name: CA-70a2
+  type: vless
+  server: 140.238.158.238
+  port: 443
+  uuid: 06e4425e-a8cb-4b63-929f-2105604ab0a9
+  udp: true
+  tls: true
+  network: ws
+  servername: tt.ylks0033.dpdns.org
+  ws-opts:
+    path: /?ed=2560
+    headers:
+      Host: tt.ylks0033.dpdns.org
+  reality-opts: null
+- name: Golestan_VPN_-_JOIN-24de
+  type: vmess
+  server: 45.67.139.225
+  port: 20086
+  uuid: d3928330-4050-47f6-9d1c-df1fd801c568
+  alterId: 0
+  cipher: auto
+  tls: false
+  network: ws
+  udp: true
+  ws-opts:
+    path: /
+    headers:
+      Host: 45.67.139.225
+- name: ChannelidShadowProxy66-b036
+  type: ss
+  server: 103.104.247.47
+  port: 8080
+  cipher: chacha20-ietf-poly1305
+  password: oZIoA69Q8yhcQV8ka3Pa3A
+  udp: true
+- name: US-5b13
+  type: vless
+  server: 5.181.171.2
+  port: 443
+  uuid: 8e6acce9-8b56-7190-d491-7d84f8189e26
+  udp: true
+  tls: true
+  network: tcp
+  servername: speed.cloudflare.com
+  ws-opts: null
+  reality-opts:
+    public-key: YNGotlyAx3ELUmi4lxOUjiEDmibqf1pPUTE9o3YYT2Y
+    short-id: ''
+- name: Golestan_VPN_-_JOIN-362b
+  type: vless
+  server: 185.231.205.5
+  port: 8880
+  uuid: df0680ca-e43c-498d-ed86-8e196eedd012
+  udp: true
+  tls: false
+  network: grpc
+  servername: null
+  ws-opts: null
+  reality-opts: null
+- name: Golestan_VPN_-_JOIN-16a3
+  type: vmess
+  server: 45.67.230.79
+  port: 11052
+  uuid: 314185f7-931d-4656-922d-0857e7afd224
+  alterId: 0
+  cipher: auto
+  tls: false
+  network: tcp
+  udp: true
+  ws-opts: null
+- name: France_ws_tls_b16-8aef
+  type: vless
+  server: 94.131.9.240
+  port: 443
+  uuid: a5e0c391-accd-45a7-8bb9-99ffb9b09b16
+  udp: true
+  tls: true
+  network: ws
+  servername: null
+  ws-opts:
+    path: /
+    headers:
+      Host: 94.131.9.240
+  reality-opts: null
+proxy-groups:
+- name: PROXY
+  type: select
+  proxies:
+  - AUTO
+  - DIRECT
+  - CA-26da
+  - US-2127
+  - TheNetherlands_AzadNet-1631
+  - 𝗝𝗼𝗶𝗻__vpnplusee_free__کانال_ما-4f28
+  - NETMelliAnti__چنل_کانفیگ-b17b
+  - Golestan_VPN_-_JOIN-ec20
+  - US-8b2c
+  - CA-70a2
+  - Golestan_VPN_-_JOIN-24de
+  - ChannelidShadowProxy66-b036
+  - US-5b13
+  - Golestan_VPN_-_JOIN-362b
+  - Golestan_VPN_-_JOIN-16a3
+  - France_ws_tls_b16-8aef
+- name: AUTO
+  type: url-test
+  proxies:
+  - CA-26da
+  - US-2127
+  - TheNetherlands_AzadNet-1631
+  - 𝗝𝗼𝗶𝗻__vpnplusee_free__کانال_ما-4f28
+  - NETMelliAnti__چنل_کانفیگ-b17b
+  - Golestan_VPN_-_JOIN-ec20
+  - US-8b2c
+  - CA-70a2
+  - Golestan_VPN_-_JOIN-24de
+  - ChannelidShadowProxy66-b036
+  - US-5b13
+  - Golestan_VPN_-_JOIN-362b
+  - Golestan_VPN_-_JOIN-16a3
+  - France_ws_tls_b16-8aef
+  url: http://www.gstatic.com/generate_204
+  interval: 300
+- name: IRAN
+  type: select
+  proxies:
+  - DIRECT
+  - CA-26da
+  - US-2127
+  - TheNetherlands_AzadNet-1631
+  - 𝗝𝗼𝗶𝗻__vpnplusee_free__کانال_ما-4f28
+  - NETMelliAnti__چنل_کانفیگ-b17b
+  - Golestan_VPN_-_JOIN-ec20
+  - US-8b2c
+  - CA-70a2
+  - Golestan_VPN_-_JOIN-24de
+  - ChannelidShadowProxy66-b036
+  - US-5b13
+  - Golestan_VPN_-_JOIN-362b
+  - Golestan_VPN_-_JOIN-16a3
+  - France_ws_tls_b16-8aef
+- name: GLOBAL
+  type: select
+  proxies:
+  - PROXY
+  - CA-26da
+  - US-2127
+  - TheNetherlands_AzadNet-1631
+  - 𝗝𝗼𝗶𝗻__vpnplusee_free__کانال_ما-4f28
+  - NETMelliAnti__چنل_کانفیگ-b17b
+  - Golestan_VPN_-_JOIN-ec20
+  - US-8b2c
+  - CA-70a2
+  - Golestan_VPN_-_JOIN-24de
+  - ChannelidShadowProxy66-b036
+  - US-5b13
+  - Golestan_VPN_-_JOIN-362b
+  - Golestan_VPN_-_JOIN-16a3
+  - France_ws_tls_b16-8aef
+rules:
+- DOMAIN-SUFFIX,local,DIRECT
+- IP-CIDR,127.0.0.0/8,DIRECT
+- IP-CIDR,192.168.0.0/16,DIRECT
+- IP-CIDR,172.16.0.0/12,DIRECT
+- IP-CIDR,10.0.0.0/8,DIRECT
+- GEOIP,IR,IRAN
+- DOMAIN-SUFFIX,ir,IRAN
+- DOMAIN-KEYWORD,iran,IRAN
+- MATCH,GLOBAL
