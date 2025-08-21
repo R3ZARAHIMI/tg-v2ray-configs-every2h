@@ -35,7 +35,7 @@
 ✅Clash Verge||
 Stash||
 FClash||
-Generated code
+
 
 ```
 https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config-jo.yaml
@@ -53,7 +53,7 @@ MahsaNG||
 v2rayN||
 Shadowrocket||
 Streisand||
-Generated code||
+
 ```
 https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config_jo.txt
 ```
