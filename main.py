@@ -29,8 +29,11 @@ CHANNELS_STR = os.environ.get('CHANNELS_LIST')
 GROUPS_STR = os.environ.get('GROUPS_LIST')
 CHANNEL_SEARCH_LIMIT = int(os.environ.get('CHANNEL_SEARCH_LIMIT', 5))
 GROUP_SEARCH_LIMIT = int(os.environ.get('GROUP_SEARCH_LIMIT', 600))
-OUTPUT_YAML = "Config-jo.yaml"
-OUTPUT_TXT = "Config_jo.txt"
+
+# تعریف نام فایل‌های خروجی
+OUTPUT_YAML_PRO = "Config-jo.yaml"       # نسخه حرفه‌ای
+OUTPUT_YAML_LITE = "Config-Lite.yaml"     # نسخه سازگار برای کلاینت‌های قدیمی
+OUTPUT_TXT = "Config_jo.txt"              # لیست خام کانفیگ‌ها
 
 # الگوهای Regex برای یافتن انواع کانفیگ
 V2RAY_PATTERNS = [
@@ -69,29 +72,21 @@ class V2RayExtractor:
         self.cf_networks = [ipaddress.ip_network(r) for r in CLOUDFLARE_IPV4_RANGES]
 
     def _is_cloudflare_ip(self, ip_str: str) -> bool:
-        """بررسی می‌کند آیا یک IP در محدوده کلادفلر است یا خیر."""
         try:
             ip = ipaddress.ip_address(ip_str)
-            if not ip.is_global or ip.version != 4:
-                return False
+            if not ip.is_global or ip.version != 4: return False
             for network in self.cf_networks:
-                if ip in network:
-                    return True
+                if ip in network: return True
             return False
-        except ValueError:
-            return False
+        except ValueError: return False
 
     @staticmethod
     def _generate_unique_name(original_name: str, prefix: str = "config") -> str:
-        """تولید نام منحصر به فرد برای هر کانفیگ"""
-        if not original_name:
-            return f"{prefix}-{str(uuid.uuid4())[:8]}"
+        if not original_name: return f"{prefix}-{str(uuid.uuid4())[:8]}"
         cleaned_name = re.sub(r'[^\w\s\-\_\u0600-\u06FF]', '', original_name).replace(' ', '_').strip('_-')
-        if not cleaned_name:
-            return f"{prefix}-{str(uuid.uuid4())[:8]}"
+        if not cleaned_name: return f"{prefix}-{str(uuid.uuid4())[:8]}"
         return f"{cleaned_name}-{str(uuid.uuid4())[:4]}"
 
-    # ... (بقیه توابع پارس کردن کانفیگ‌ها بدون تغییر باقی می‌مانند) ...
     def _is_valid_shadowsocks(self, ss_url: str) -> bool:
         try:
             parsed = urlparse(ss_url)
@@ -270,9 +265,6 @@ class V2RayExtractor:
         except Exception as e:
             print(f"❌ خطا در زمان اسکن چت {chat_id}: {e}")
 
-    # =================================================================================
-    # تابع بازنویسی شده و سازگار برای ساخت فایل کانفیگ
-    # =================================================================================
     def save_files(self):
         print("\n" + "="*40)
         print("⚙️ شروع پردازش و ساخت فایل‌های کانفیگ...")
@@ -280,12 +272,11 @@ class V2RayExtractor:
         # مرحله ۱: فیلتر کردن و دسته‌بندی کانفیگ‌ها
         if not self.raw_configs:
             print("⚠️ هیچ کانفیگی در چت‌ها یافت نشد. فایل‌های خروجی خالی خواهند بود.")
-            open(OUTPUT_YAML, "w").close()
-            open(OUTPUT_TXT, "w").close()
+            for f in [OUTPUT_YAML_PRO, OUTPUT_YAML_LITE, OUTPUT_TXT]: open(f, "w").close()
             return
 
-        print(f"⚙️ پردازش و جداسازی {len(self.raw_configs)} کانفیگ یافت شده...")
-        direct_proxies, cf_proxies, parse_errors = [], [], 0
+        print(f"⚙️ پردازش {len(self.raw_configs)} کانفیگ یافت شده...")
+        proxies_list, parse_errors = [], 0
         
         valid_configs = set()
         for url in self.raw_configs:
@@ -300,70 +291,48 @@ class V2RayExtractor:
         for url in valid_configs:
             proxy = self.parse_config_for_clash(url)
             if proxy:
-                server_address = proxy.get('server', '')
-                if self._is_cloudflare_ip(server_address):
-                    cf_proxies.append(proxy)
-                else:
-                    direct_proxies.append(proxy)
+                proxies_list.append(proxy)
             else:
                 parse_errors += 1
 
         if parse_errors > 0:
             print(f"⚠️ {parse_errors} کانفیگ به دلیل خطا در پارسینگ نادیده گرفته شد.")
 
-        all_proxies = direct_proxies + cf_proxies
-        if not all_proxies:
+        if not proxies_list:
             print("⚠️ هیچ کانفیگ معتبری برای ساخت فایل‌ها پیدا نشد.")
-            open(OUTPUT_YAML, "w").close()
-            open(OUTPUT_TXT, "w").close()
+            for f in [OUTPUT_YAML_PRO, OUTPUT_YAML_LITE, OUTPUT_TXT]: open(f, "w").close()
             return
             
-        print(f"👍 {len(direct_proxies)} کانفیگ مستقیم و {len(cf_proxies)} کانفیگ کلودفلر یافت شد.")
+        print(f"👍 {len(proxies_list)} کانفیگ معتبر برای فایل نهایی یافت شد.")
+        all_proxy_names = [p['name'] for p in proxies_list]
 
-        # مرحله ۲: ساخت ساختار YAML سازگار با اکثر کلاینت‌ها
-        all_proxy_names = [p['name'] for p in all_proxies]
+        # مرحله ۲: ساخت و ذخیره فایل حرفه‌ای (Pro)
+        try:
+            os.makedirs('rules', exist_ok=True)
+            pro_config = self.build_pro_config(proxies_list, all_proxy_names)
+            with open(OUTPUT_YAML_PRO, 'w', encoding='utf-8') as f:
+                yaml.dump(pro_config, f, allow_unicode=True, sort_keys=False, indent=2, width=1000)
+            print(f"✅ فایل حرفه‌ای {OUTPUT_YAML_PRO} با موفقیت ساخته شد.")
+        except Exception as e:
+            print(f"❌ خطا در ساخت فایل حرفه‌ای: {e}")
 
-        # تعریف گروه‌های پراکسی
-        proxy_groups = [
-            {
-                'name': 'PROXY',
-                'type': 'select',
-                'proxies': ['⚡ Auto-Select', 'DIRECT', *all_proxy_names]
-            },
-            {
-                'name': '⚡ Auto-Select',
-                'type': 'url-test',
-                'proxies': all_proxy_names,
-                'url': 'http://www.gstatic.com/generate_204',
-                'interval': 300
-            }
-        ]
-        
-        # تعریف قوانین داخلی (بدون نیاز به rule-provider)
-        # این لیست شامل دامنه‌های اصلی ایرانی و سرویس‌های مهم است
-        iran_rules = [
-            'GEOIP,IR,DIRECT',
-            'DOMAIN-SUFFIX,ir,DIRECT',
-            'DOMAIN-KEYWORD,digikala,DIRECT',
-            'DOMAIN-KEYWORD,snapp,DIRECT',
-            'DOMAIN-KEYWORD,tapsi,DIRECT',
-            'DOMAIN-KEYWORD,sheypoor,DIRECT',
-            'DOMAIN-KEYWORD,divar,DIRECT',
-            'DOMAIN-SUFFIX,shaparak.ir,DIRECT',
-            # IPهای داخلی برای اطمینان بیشتر
-            'IP-CIDR,185.143.232.0/22,DIRECT',
-            'IP-CIDR,91.239.100.0/22,DIRECT',
-            'IP-CIDR,87.247.160.0/20,DIRECT',
-        ]
-        
-        # قانون نهایی برای عبور بقیه ترافیک از پراکسی
-        final_rule = ['MATCH,PROXY']
+        # مرحله ۳: ساخت و ذخیره فایل سازگار (Lite)
+        try:
+            lite_config = self.build_lite_config(proxies_list, all_proxy_names)
+            with open(OUTPUT_YAML_LITE, 'w', encoding='utf-8') as f:
+                yaml.dump(lite_config, f, allow_unicode=True, sort_keys=False, indent=2, width=1000)
+            print(f"✅ فایل سازگار {OUTPUT_YAML_LITE} (برای ClashMI) با موفقیت ساخته شد.")
+        except Exception as e:
+            print(f"❌ خطا در ساخت فایل سازگار: {e}")
 
-        # ترکیب همه قوانین
-        rules = iran_rules + final_rule
+        # مرحله ۴: ذخیره فایل متنی
+        with open(OUTPUT_TXT, 'w', encoding='utf-8') as f:
+            f.write("\n".join(sorted(list(valid_configs))))
+        print(f"✅ فایل متنی {OUTPUT_TXT} با موفقیت ذخیره شد.")
 
-        # ساختار نهایی فایل YAML
-        clash_config = {
+    def build_pro_config(self, proxies, proxy_names):
+        """ساخت کانفیگ حرفه‌ای با قابلیت‌های پیشرفته"""
+        return {
             'port': int(os.environ.get('CLASH_PORT', 7890)),
             'socks-port': int(os.environ.get('CLASH_SOCKS_PORT', 7891)),
             'allow-lan': os.environ.get('CLASH_ALLOW_LAN', 'true').lower() == 'true',
@@ -379,25 +348,52 @@ class V2RayExtractor:
                 'fallback': ['https://dns.google/dns-query', 'https://cloudflare-dns.com/dns-query'],
                 'fallback-filter': {'geoip': True, 'ipcidr': ['240.0.0.0/4', '0.0.0.0/32']}
             },
-            'proxies': all_proxies,
-            'proxy-groups': proxy_groups,
-            'rules': rules # <--- استفاده از لیست قوانین داخلی
+            'proxies': proxies,
+            'proxy-groups': [
+                {'name': 'PROXY', 'type': 'select', 'proxies': ['⚡ Auto-Select', 'DIRECT', *proxy_names]},
+                {'name': '⚡ Auto-Select', 'type': 'url-test', 'proxies': proxy_names, 'url': 'http://www.gstatic.com/generate_204', 'interval': 300},
+                {'name': '🇮🇷 Iran', 'type': 'select', 'proxies': ['DIRECT', 'PROXY']},
+                {'name': '🛑 Block-Ads', 'type': 'select', 'proxies': ['REJECT', 'DIRECT']}
+            ],
+            'rule-providers': {
+                'iran_domains': {'type': 'http', 'behavior': 'domain', 'url': "https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/iran-domains.txt", 'path': './rules/iran_domains.txt', 'interval': 86400},
+                'blocked_domains': {'type': 'http', 'behavior': 'domain', 'url': "https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/blocked-domains.txt", 'path': './rules/blocked_domains.txt', 'interval': 86400},
+                'ad_domains': {'type': 'http', 'behavior': 'domain', 'url': "https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/ad-domains.txt", 'path': './rules/ad_domains.txt', 'interval': 86400}
+            },
+            'rules': [
+                'RULE-SET,ad_domains,🛑 Block-Ads',
+                'RULE-SET,blocked_domains,PROXY',
+                'RULE-SET,iran_domains,🇮🇷 Iran',
+                'GEOIP,IR,🇮🇷 Iran',
+                'MATCH,PROXY'
+            ]
         }
 
-        # مرحله ۳: ذخیره فایل‌های خروجی
-        try:
-            # ذخیره فایل YAML
-            with open(OUTPUT_YAML, 'w', encoding='utf-8') as f:
-                yaml.dump(clash_config, f, allow_unicode=True, sort_keys=False, indent=2, width=1000)
-            print(f"✅ فایل سازگار {OUTPUT_YAML} با موفقیت ساخته شد.")
-
-            # ذخیره فایل TXT
-            with open(OUTPUT_TXT, 'w', encoding='utf-8') as f:
-                f.write("\n".join(sorted(list(valid_configs))))
-            print(f"✅ فایل متنی {OUTPUT_TXT} با موفقیت ذخیره شد.")
-
-        except Exception as e:
-            print(f"❌ خطا در زمان ذخیره فایل‌ها: {e}")
+    def build_lite_config(self, proxies, proxy_names):
+        """ساخت کانفیگ ساده و سازگار برای کلاینت‌های قدیمی"""
+        return {
+            'port': 7890,
+            'socks-port': 7891,
+            'allow-lan': True,
+            'mode': 'rule',
+            'log-level': 'info',
+            'external-controller': '127.0.0.1:9090',
+            'dns': {
+                'enable': True,
+                'listen': '0.0.0.0:53',
+                'nameserver': ['8.8.8.8', '1.1.1.1']
+            },
+            'proxies': proxies,
+            'proxy-groups': [
+                {'name': 'PROXY', 'type': 'select', 'proxies': ['⚡ Auto-Select', 'DIRECT', *proxy_names]},
+                {'name': '⚡ Auto-Select', 'type': 'url-test', 'proxies': proxy_names, 'url': 'http://www.gstatic.com/generate_204', 'interval': 300}
+            ],
+            'rules': [
+                'DOMAIN-SUFFIX,ir,DIRECT',
+                'GEOIP,IR,DIRECT',
+                'MATCH,PROXY'
+            ]
+        }
 
 
 async def main():
