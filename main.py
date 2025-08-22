@@ -32,7 +32,7 @@ GROUP_SEARCH_LIMIT = int(os.environ.get('GROUP_SEARCH_LIMIT', 600))
 
 # تعریف نام فایل‌های خروجی
 OUTPUT_YAML_PRO = "Config-jo.yaml"       # نسخه حرفه‌ای
-OUTPUT_YAML_LITE = "Config-Lite.yaml"     # نسخه سازگار برای کلاینت‌های قدیمی
+OUTPUT_YAML_LITE = "Config-Lite.yaml"     # نسخه سازگار برای بعضی کلاینت‌های کلش 
 OUTPUT_TXT = "Config_jo.txt"              # لیست خام کانفیگ‌ها
 
 # الگوهای Regex برای یافتن انواع کانفیگ
