@@ -13,14 +13,49 @@ dns:
   enhanced-mode: fake-ip
   fake-ip-range: 198.18.0.1/16
   fallback:
-  - https://cloudflare-dns.com/dns-query
   - https://dns.google/dns-query
+  - https://cloudflare-dns.com/dns-query
   fallback-filter:
     geoip: true
     ipcidr:
     - 240.0.0.0/4
+    - 0.0.0.0/32
 proxies:
-- name: ShadowProxy66-c257
+- name: Channel_id_ShadowProxy66-b9b0
+  type: vless
+  server: 185.236.232.136
+  port: 1001
+  uuid: c7c922da-ab54-433c-8046-1f9bf9d95c23
+  udp: true
+  tls: true
+  network: tcp
+  servername: telewebion.com
+  ws-opts: null
+  reality-opts:
+    public-key: 8Gunn8hjWbit5yLtTPcvLph0u2ovHLsGoXX4IJS1EQ0
+    short-id: 5fab0deb
+- name: Channel_id_ShadowProxy66-0465
+  type: ss
+  server: 104.167.197.25
+  port: 57456
+  cipher: chacha20-ietf-poly1305
+  password: 360e21d21977dc11
+  udp: true
+- name: Channel_id_ShadowProxy66-0cc3
+  type: vless
+  server: 212.95.34.17
+  port: 443
+  uuid: 784646e5-8e84-4672-8670-efc9cafcd2cc
+  udp: true
+  tls: true
+  network: ws
+  servername: null
+  ws-opts:
+    path: /
+    headers:
+      Host: 212.95.34.17
+  reality-opts: null
+- name: ShadowProxy66-f8fc
   type: vmess
   server: 57.129.24.125
   port: 443
@@ -34,53 +69,7 @@ proxies:
     path: /linkvws
     headers:
       Host: wrmelmwxlf.gktevlrqznwqqozy.fabpfs66gizmnojhcvqxwl.kytrcfzqla87gvgvs6c7kjnrubuh.cc
-- name: کانفینگ_رایگان_کانال_Gonabadvpnn_3-5dd9
-  type: ss
-  server: 193.29.139.177
-  port: 8080
-  cipher: chacha20-ietf-poly1305
-  password: oZIoA69Q8yhcQV8ka3Pa3A
-  udp: true
-- name: کانفینگ_رایگان_کانال_Gonabadvpnn_2-2c4a
-  type: vless
-  server: 185.236.232.189
-  port: 8880
-  uuid: e4824193-4f54-453b-d037-88368e85ef0e
-  udp: true
-  tls: false
-  network: grpc
-  servername: null
-  ws-opts: null
-  reality-opts: null
-- name: ShadowProxy66-1fb7
-  type: vmess
-  server: 57.129.25.25
-  port: 443
-  uuid: 03fcc618-b93d-6796-6aed-8a38c975d581
-  alterId: 0
-  cipher: auto
-  tls: true
-  network: ws
-  udp: true
-  ws-opts:
-    path: /linkvws
-    headers:
-      Host: f.khilei.com
-- name: Gonabadvpnn____بیا_کانالمون-70d4
-  type: vless
-  server: brand.tickyou.ir
-  port: 2053
-  uuid: 5816ddf8-edc2-42fe-8870-2aa672debe6f
-  udp: true
-  tls: true
-  network: ws
-  servername: brand.tickyou.ir
-  ws-opts:
-    path: /
-    headers:
-      Host: brand.tickyou.ir
-  reality-opts: null
-- name: CA-64bf
+- name: CA-d5f7
   type: vless
   server: 140.238.158.238
   port: 443
@@ -94,156 +83,7 @@ proxies:
     headers:
       Host: tt.ylks0033.dpdns.org
   reality-opts: null
-- name: کانفینگ_رایگان_کانال_Gonabadvpnn_4-3b6b
-  type: ss
-  server: 45.87.175.65
-  port: 8080
-  cipher: chacha20-ietf-poly1305
-  password: oZIoA69Q8yhcQV8ka3Pa3A
-  udp: true
-- name: TheNetherlands_AzadNet-c5f2
-  type: ss
-  server: 193.29.139.202
-  port: 8080
-  cipher: chacha20-ietf-poly1305
-  password: oZIoA69Q8yhcQV8ka3Pa3A
-  udp: true
-- name: Gonabadvpnn____بیا_کانالمون__3-d0b6
-  type: vless
-  server: 51.38.98.69
-  port: 443
-  uuid: 6b690c69-7301-44c4-81e8-9d5d7e8263a6
-  udp: true
-  tls: true
-  network: tcp
-  servername: yahoo.com
-  ws-opts: null
-  reality-opts:
-    public-key: -3sZE2OPDhkNtxufF2YqPmoa5hqVna5zalfJfrUiMm0
-    short-id: ecd6615548c2bddb
-- name: ShadowProxy66-613b
-  type: vmess
-  server: 57.129.64.238
-  port: 443
-  uuid: 03fcc618-b93d-6796-6aed-8a38c975d581
-  alterId: 0
-  cipher: auto
-  tls: true
-  network: ws
-  udp: true
-  ws-opts:
-    path: /linkvws
-    headers:
-      Host: kapelleng.com
-- name: US-d407
-  type: vless
-  server: 45.145.42.229
-  port: 4002
-  uuid: 06e4425e-a8cb-4b63-929f-2105604ab0a9
-  udp: true
-  tls: true
-  network: ws
-  servername: tt.ylks0033.dpdns.org
-  ws-opts:
-    path: /?ed=2560
-    headers:
-      Host: tt.ylks0033.dpdns.org
-  reality-opts: null
-- name: Gonabadvpnn____بیا_کانالمون__1-6855
-  type: vless
-  server: blog.ruangguru.com.servpn.my.id
-  port: 443
-  uuid: 408f71e2-170d-4bf9-8b42-b6ba23cc227c
-  udp: true
-  tls: true
-  network: ws
-  servername: blog.ruangguru.com.servpn.my.id
-  ws-opts:
-    path: /kr1?ed=2560
-    headers:
-      Host: blog.ruangguru.com.servpn.my.id
-  reality-opts: null
-- name: ShadowProxy66-48ec
-  type: vmess
-  server: 57.129.28.69
-  port: 443
-  uuid: 03fcc618-b93d-6796-6aed-8a38c975d581
-  alterId: 0
-  cipher: auto
-  tls: true
-  network: ws
-  udp: true
-  ws-opts:
-    path: /linkvws
-    headers:
-      Host: baradiha.com
-- name: Armenia_Monster-6e3c
-  type: vless
-  server: 93.115.240.74
-  port: 14200
-  uuid: 3f28ba72-d5c7-4318-b050-9e03cc6004ae
-  udp: true
-  tls: false
-  network: ws
-  servername: null
-  ws-opts:
-    path: /
-    headers:
-      Host: 93.115.240.74
-  reality-opts: null
-- name: ShadowProxy66-44b9
-  type: vmess
-  server: 146.59.55.50
-  port: 443
-  uuid: 03fcc618-b93d-6796-6aed-8a38c975d581
-  alterId: 0
-  cipher: auto
-  tls: true
-  network: ws
-  udp: true
-  ws-opts:
-    path: /linkvws
-    headers:
-      Host: o.metuji.com
-- name: 𝗝𝗼𝗶𝗻__vpnplusee_free__کانال_ما-dfec
-  type: vless
-  server: het.iran-mehrbu.ir
-  port: 3333
-  uuid: 1ded0e98-c349-4465-b240-5b5650bb377a
-  udp: true
-  tls: false
-  network: tcp
-  servername: null
-  ws-opts: null
-  reality-opts: null
-- name: ChannelidShadowProxy66-9df9
-  type: ss
-  server: 103.104.247.47
-  port: 8080
-  cipher: chacha20-ietf-poly1305
-  password: oZIoA69Q8yhcQV8ka3Pa3A
-  udp: true
-- name: Germany_ServerStack_Inc-28fa
-  type: ss
-  server: 46.101.245.131
-  port: 44354
-  cipher: chacha20-ietf-poly1305
-  password: 9RviNa4tscjcmCB408vLSg
-  udp: true
-- name: US-fe72
-  type: vless
-  server: 5.181.171.2
-  port: 443
-  uuid: 8e6acce9-8b56-7190-d491-7d84f8189e26
-  udp: true
-  tls: true
-  network: tcp
-  servername: speed.cloudflare.com
-  ws-opts: null
-  reality-opts:
-    public-key: YNGotlyAx3ELUmi4lxOUjiEDmibqf1pPUTE9o3YYT2Y
-    short-id: ''
-- name: ShadowProxy66-2f05
+- name: ShadowProxy66-f218
   type: vmess
   server: 57.129.28.65
   port: 443
@@ -257,23 +97,34 @@ proxies:
     path: /linkvws
     headers:
       Host: kapelleng.com
-- name: CA-1802
-  type: vless
-  server: 140.238.158.238
-  port: 443
-  uuid: 06e4425e-a8cb-4b63-929f-2105604ab0a9
+- name: Channel_id_ShadowProxy66-beaf
+  type: ss
+  server: 83.147.216.70
+  port: 64519
+  cipher: chacha20-ietf-poly1305
+  password: F3nY73di5onWV3gotbpI0Q
   udp: true
-  tls: true
-  network: ws
-  servername: cc.ylks0033.dpdns.org
-  ws-opts:
-    path: /?ed=2560
-    headers:
-      Host: cc.ylks0033.dpdns.org
+- name: Channel_id_ShadowProxy66-77e1
+  type: ss
+  server: 147.45.178.200
+  port: 57456
+  cipher: chacha20-ietf-poly1305
+  password: a58fa62b4944ddbf
+  udp: true
+- name: 𝗝𝗼𝗶𝗻__vpnplusee_free__کانال_ما-8ca8
+  type: vless
+  server: het.iran-mehrbu.ir
+  port: 3333
+  uuid: 1ded0e98-c349-4465-b240-5b5650bb377a
+  udp: true
+  tls: false
+  network: tcp
+  servername: null
+  ws-opts: null
   reality-opts: null
-- name: ShadowProxy66-8f20
+- name: ShadowProxy66-2da8
   type: vmess
-  server: 57.129.24.124
+  server: 57.129.28.69
   port: 443
   uuid: 03fcc618-b93d-6796-6aed-8a38c975d581
   alterId: 0
@@ -284,36 +135,54 @@ proxies:
   ws-opts:
     path: /linkvws
     headers:
-      Host: aveiror.com
-- name: US-1c0f
-  type: vless
-  server: 45.145.42.229
-  port: 4002
-  uuid: 06e4425e-a8cb-4b63-929f-2105604ab0a9
-  udp: true
-  tls: true
-  network: ws
-  servername: cc.ylks0033.dpdns.org
-  ws-opts:
-    path: /?ed=2560
-    headers:
-      Host: cc.ylks0033.dpdns.org
-  reality-opts: null
-- name: ShadowProxy66-ccfd
+      Host: baradiha.com
+- name: Channel_id_ShadowProxy66-b4da
   type: vmess
-  server: 57.129.24.125
-  port: 443
-  uuid: 03fcc618-b93d-6796-6aed-8a38c975d581
+  server: 64.227.45.92
+  port: 20086
+  uuid: 5e02bc01-42a7-4609-b20a-4d93feea65c6
   alterId: 0
   cipher: auto
-  tls: true
+  tls: false
   network: ws
   udp: true
   ws-opts:
-    path: /linkvws
+    path: /
     headers:
-      Host: wrmelmwxlf.gktevlrqznwqqozy.fabpfs66gizmnojhcvqxwl.kytrcfzqla87gvgvs6c7kjnrubuh.cc
-- name: Gonabadvpnn____بیا_کانالمون__2-fa61
+      Host: 64.227.45.92
+- name: Gonabadvpnn____بیا_کانالمون__1-60d9
+  type: vless
+  server: blog.ruangguru.com.servpn.my.id
+  port: 443
+  uuid: 408f71e2-170d-4bf9-8b42-b6ba23cc227c
+  udp: true
+  tls: true
+  network: ws
+  servername: blog.ruangguru.com.servpn.my.id
+  ws-opts:
+    path: /kr1?ed=2560
+    headers:
+      Host: blog.ruangguru.com.servpn.my.id
+  reality-opts: null
+- name: کانفینگ_رایگان_کانال_Gonabadvpnn_4-8f1d
+  type: ss
+  server: 45.87.175.65
+  port: 8080
+  cipher: chacha20-ietf-poly1305
+  password: oZIoA69Q8yhcQV8ka3Pa3A
+  udp: true
+- name: کانفینگ_رایگان_کانال_Gonabadvpnn_1-edde
+  type: vless
+  server: 91.99.85.185
+  port: 8443
+  uuid: e66beedb-dd44-47f0-baf8-7ba947d919d0
+  udp: true
+  tls: false
+  network: xhttp
+  servername: null
+  ws-opts: null
+  reality-opts: null
+- name: Gonabadvpnn____بیا_کانالمون__2-78ca
   type: vless
   server: zula.ir
   port: 443
@@ -327,7 +196,90 @@ proxies:
     headers:
       Host: rayan-supra.parisa.dpdns.org
   reality-opts: null
-- name: ShadowProxy66-6276
+- name: Channel_id_ShadowProxy66-de18
+  type: ss
+  server: 46.101.245.131
+  port: 44354
+  cipher: chacha20-ietf-poly1305
+  password: 9RviNa4tscjcmCB408vLSg
+  udp: true
+- name: Channel_id_ShadowProxy66-d49e
+  type: vmess
+  server: 57.129.28.65
+  port: 443
+  uuid: 03fcc618-b93d-6796-6aed-8a38c975d581
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
+  ws-opts:
+    path: /linkvws
+    headers:
+      Host: kapelleng.com
+- name: ChannelidShadowProxy66-81d0
+  type: ss
+  server: 103.104.247.47
+  port: 8080
+  cipher: chacha20-ietf-poly1305
+  password: oZIoA69Q8yhcQV8ka3Pa3A
+  udp: true
+- name: Armenia_Monster-4b82
+  type: vless
+  server: 93.115.240.74
+  port: 14200
+  uuid: 3f28ba72-d5c7-4318-b050-9e03cc6004ae
+  udp: true
+  tls: false
+  network: ws
+  servername: null
+  ws-opts:
+    path: /
+    headers:
+      Host: 93.115.240.74
+  reality-opts: null
+- name: Gonabadvpnn____بیا_کانالمون-e6c5
+  type: vless
+  server: brand.tickyou.ir
+  port: 2053
+  uuid: 5816ddf8-edc2-42fe-8870-2aa672debe6f
+  udp: true
+  tls: true
+  network: ws
+  servername: brand.tickyou.ir
+  ws-opts:
+    path: /
+    headers:
+      Host: brand.tickyou.ir
+  reality-opts: null
+- name: Gonabadvpnn____بیا_کانالمون__3-f635
+  type: vless
+  server: 51.38.98.69
+  port: 443
+  uuid: 6b690c69-7301-44c4-81e8-9d5d7e8263a6
+  udp: true
+  tls: true
+  network: tcp
+  servername: yahoo.com
+  ws-opts: null
+  reality-opts:
+    public-key: -3sZE2OPDhkNtxufF2YqPmoa5hqVna5zalfJfrUiMm0
+    short-id: ecd6615548c2bddb
+- name: ShadowProxy66-c113
+  type: vmess
+  server: 57.129.24.124
+  port: 443
+  uuid: 03fcc618-b93d-6796-6aed-8a38c975d581
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
+  ws-opts:
+    path: /linkvws
+    headers:
+      Host: aveiror.com
+- name: ShadowProxy66-7db9
   type: vmess
   server: 57.129.25.20
   port: 443
@@ -341,7 +293,204 @@ proxies:
     path: linkvws
     headers:
       Host: 57.129.25.20
-- name: ShadowProxy66-72e4
+- name: TheNetherlands_AzadNet-6546
+  type: ss
+  server: 193.29.139.202
+  port: 8080
+  cipher: chacha20-ietf-poly1305
+  password: oZIoA69Q8yhcQV8ka3Pa3A
+  udp: true
+- name: US-77da
+  type: vless
+  server: 45.145.42.229
+  port: 4002
+  uuid: 06e4425e-a8cb-4b63-929f-2105604ab0a9
+  udp: true
+  tls: true
+  network: ws
+  servername: cc.ylks0033.dpdns.org
+  ws-opts:
+    path: /?ed=2560
+    headers:
+      Host: cc.ylks0033.dpdns.org
+  reality-opts: null
+- name: Channel_id_ShadowProxy66-a946
+  type: vless
+  server: 87.120.205.207
+  port: 2025
+  uuid: ebac2049-8367-4eab-a1a5-8b742b2fd3b6
+  udp: true
+  tls: true
+  network: grpc
+  servername: yahoo.com
+  ws-opts: null
+  reality-opts:
+    public-key: Cnuh4bNEBvRIjrYBEWSVhX8nr5j46lHuyen_IU2rbSk
+    short-id: a76e2f1d45
+- name: ShadowProxy66-7008
+  type: vmess
+  server: 57.129.24.125
+  port: 443
+  uuid: 03fcc618-b93d-6796-6aed-8a38c975d581
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
+  ws-opts:
+    path: /linkvws
+    headers:
+      Host: wrmelmwxlf.gktevlrqznwqqozy.fabpfs66gizmnojhcvqxwl.kytrcfzqla87gvgvs6c7kjnrubuh.cc
+- name: Channel_id_ShadowProxy66-ed75
+  type: vless
+  server: 212.95.34.18
+  port: 443
+  uuid: 784646e5-8e84-4672-8670-efc9cafcd2cc
+  udp: true
+  tls: true
+  network: ws
+  servername: null
+  ws-opts:
+    path: /
+    headers:
+      Host: 212.95.34.18
+  reality-opts: null
+- name: ShadowProxy66-3497
+  type: vmess
+  server: 57.129.64.238
+  port: 443
+  uuid: 03fcc618-b93d-6796-6aed-8a38c975d581
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
+  ws-opts:
+    path: /linkvws
+    headers:
+      Host: kapelleng.com
+- name: 𝗚𝗲𝗿𝗺𝗮𝗻𝘆__VConfing-7666
+  type: vless
+  server: 91.99.117.197
+  port: 8443
+  uuid: f335b8ee-04d9-45be-b582-958ba944f08a
+  udp: true
+  tls: true
+  network: grpc
+  servername: www.cdn77.com
+  ws-opts: null
+  reality-opts:
+    public-key: X1ZcgEvOoRWwMQHDd4VOVUsVc0clHdcRKwVgjV9VvWs
+    short-id: ''
+- name: کانفینگ_رایگان_کانال_Gonabadvpnn_2-bb7f
+  type: vless
+  server: 185.236.232.189
+  port: 8880
+  uuid: e4824193-4f54-453b-d037-88368e85ef0e
+  udp: true
+  tls: false
+  network: grpc
+  servername: null
+  ws-opts: null
+  reality-opts: null
+- name: Channel_id_ShadowProxy66-c72b
+  type: ss
+  server: 138.197.223.38
+  port: 443
+  cipher: chacha20-ietf-poly1305
+  password: QZcsIzl7JgFPTHWzVaBeJu
+  udp: true
+- name: CA-9bd3
+  type: vless
+  server: 140.238.158.238
+  port: 443
+  uuid: 06e4425e-a8cb-4b63-929f-2105604ab0a9
+  udp: true
+  tls: true
+  network: ws
+  servername: cc.ylks0033.dpdns.org
+  ws-opts:
+    path: /?ed=2560
+    headers:
+      Host: cc.ylks0033.dpdns.org
+  reality-opts: null
+- name: US-5cf9
+  type: vless
+  server: 45.145.42.229
+  port: 4002
+  uuid: 06e4425e-a8cb-4b63-929f-2105604ab0a9
+  udp: true
+  tls: true
+  network: ws
+  servername: tt.ylks0033.dpdns.org
+  ws-opts:
+    path: /?ed=2560
+    headers:
+      Host: tt.ylks0033.dpdns.org
+  reality-opts: null
+- name: ShadowProxy66-5fb3
+  type: vmess
+  server: 146.59.55.50
+  port: 443
+  uuid: 03fcc618-b93d-6796-6aed-8a38c975d581
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
+  ws-opts:
+    path: /linkvws
+    headers:
+      Host: o.metuji.com
+- name: US-50cc
+  type: vless
+  server: 5.181.171.2
+  port: 443
+  uuid: 8e6acce9-8b56-7190-d491-7d84f8189e26
+  udp: true
+  tls: true
+  network: tcp
+  servername: speed.cloudflare.com
+  ws-opts: null
+  reality-opts:
+    public-key: YNGotlyAx3ELUmi4lxOUjiEDmibqf1pPUTE9o3YYT2Y
+    short-id: ''
+- name: Channel_id_ShadowProxy66-ccd9
+  type: vless
+  server: 212.95.34.16
+  port: 443
+  uuid: 784646e5-8e84-4672-8670-efc9cafcd2cc
+  udp: true
+  tls: true
+  network: ws
+  servername: null
+  ws-opts:
+    path: /
+    headers:
+      Host: 212.95.34.16
+  reality-opts: null
+- name: کانفینگ_رایگان_کانال_Gonabadvpnn_3-af43
+  type: ss
+  server: 193.29.139.177
+  port: 8080
+  cipher: chacha20-ietf-poly1305
+  password: oZIoA69Q8yhcQV8ka3Pa3A
+  udp: true
+- name: ShadowProxy66-d393
+  type: vmess
+  server: 57.129.25.25
+  port: 443
+  uuid: 03fcc618-b93d-6796-6aed-8a38c975d581
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
+  ws-opts:
+    path: /linkvws
+    headers:
+      Host: f.khilei.com
+- name: ShadowProxy66-e413
   type: vmess
   server: 51.38.64.209
   port: 44023
@@ -352,18 +501,67 @@ proxies:
   network: tcp
   udp: true
   ws-opts: null
-- name: کانفینگ_رایگان_کانال_Gonabadvpnn_1-0f7e
+- name: Channel_id_ShadowProxy66-3680
+  type: ss
+  server: 103.104.247.45
+  port: 8080
+  cipher: chacha20-ietf-poly1305
+  password: oZIoA69Q8yhcQV8ka3Pa3A
+  udp: true
+- name: Channel_id_ShadowProxy66-d626
+  type: ss
+  server: 77.110.110.240
+  port: 443
+  cipher: aes-256-gcm
+  password: d70ef8b5-6048-4c0d-be4d-fc60399b0f45
+  udp: true
+- name: Germany_ServerStack_Inc-6b18
+  type: ss
+  server: 46.101.245.131
+  port: 44354
+  cipher: chacha20-ietf-poly1305
+  password: 9RviNa4tscjcmCB408vLSg
+  udp: true
+- name: 1ConfigX2ray-57e0
   type: vless
-  server: 91.99.85.185
-  port: 8443
-  uuid: e66beedb-dd44-47f0-baf8-7ba947d919d0
+  server: 172.66.40.99
+  port: 8080
+  uuid: fa8566be-0262-427e-b24e-f9997e0aafa4
   udp: true
   tls: false
-  network: xhttp
+  network: ws
   servername: null
-  ws-opts: null
+  ws-opts:
+    path: /-LiV2ry@LIGHTNING6-TEL--@LIGHTNING6-TEL--@LIGHTNING6-TEL--@LIGHTNING6-JOIN-@LIGHTNING6-TEL--@LIGHTNING6-JOIN-@LIGHTNING6-TEL-@LIGHTNING6-TEL--@LIGHTNING6-JOIN-@LIGHTNING6-TEL--@LIGHTNING6?ed=2048
+    headers:
+      Host: T.ubuntu-linuxmirror.ir
   reality-opts: null
-- name: ConfigX2ray-e6d7
+- name: کانفیگ_اختصاصی_چنلproxie-6d3e
+  type: vmess
+  server: 104.21.62.144
+  port: 443
+  uuid: 9da10022-4480-4794-8338-33f87cbbf2d4
+  alterId: 0
+  cipher: zero
+  tls: true
+  network: xhttp
+  udp: true
+  ws-opts: null
+- name: configLINE-a67d
+  type: vless
+  server: 172.66.40.99
+  port: 443
+  uuid: a6f98117-6274-403b-a2de-1d2690f32382
+  udp: true
+  tls: true
+  network: ws
+  servername: az52.mashkestan.com
+  ws-opts:
+    path: /telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE?ed=2048
+    headers:
+      Host: az52.mashkestan.com
+  reality-opts: null
+- name: configLINE2-c8ac
   type: vless
   server: 172.66.40.99
   port: 8080
@@ -377,7 +575,21 @@ proxies:
     headers:
       Host: az221.mashkestan.com
   reality-opts: null
-- name: کانفیگ_شبانه_proxie-b69f
+- name: Telegram-2ca0
+  type: vless
+  server: 172.66.40.99
+  port: 443
+  uuid: telegram-id-Arfilter
+  udp: true
+  tls: true
+  network: ws
+  servername: jSa.2SeDkFjEuIxIjD0Ew9DvKcxoisiEk61.BlOg
+  ws-opts:
+    path: /telegram-ArV2ray,telegram-ArV2ray,telegram-ArV2ray,telegram-ArV2ray,telegram-ArV2ray,telegram-ArV2ray,telegram-ArV2ray,telegram-ArV2ray,telegram-ArV2ray,telegram-ArV2ray,telegram-ArV2ray,telegram-ArV2ray?ed=2048
+    headers:
+      Host: jSa.2SeDkFjEuIxIjD0Ew9DvKcxoisiEk61.BlOg
+  reality-opts: null
+- name: کانفیگ_شبانه_proxie-c095
   type: vmess
   server: 104.21.62.144
   port: 443
@@ -388,7 +600,46 @@ proxies:
   network: xhttp
   udp: true
   ws-opts: null
-- name: configLINE3-c6f5
+- name: Telegram-5db2
+  type: vless
+  server: 172.66.40.99
+  port: 443
+  uuid: a6f98117-6274-403b-a2de-1d2690f32382
+  udp: true
+  tls: true
+  network: ws
+  servername: az52.mashkestan.com
+  ws-opts:
+    path: /telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE?ed=2048
+    headers:
+      Host: az52.mashkestan.com
+  reality-opts: null
+- name: کانفینگ_رایگان_کانال_Gonabadvpnn_5-38d9
+  type: vless
+  server: 172.66.40.99
+  port: 443
+  uuid: telegram-id-Arfilter
+  udp: true
+  tls: true
+  network: ws
+  servername: jSa.2SeDkFjEuIxIjD0Ew9DvKcxoisiEk61.BlOg
+  ws-opts:
+    path: /telegram-ArV2ray,telegram-ArV2ray,telegram-ArV2ray,telegram-ArV2ray,telegram-ArV2ray,telegram-ArV2ray,telegram-ArV2ray,telegram-ArV2ray,telegram-ArV2ray,telegram-ArV2ray,telegram-ArV2ray,telegram-ArV2ray?ed=2048
+    headers:
+      Host: jSa.2SeDkFjEuIxIjD0Ew9DvKcxoisiEk61.BlOg
+  reality-opts: null
+- name: کانفیگ_روزانهproxie-9ba5
+  type: vmess
+  server: 104.21.62.144
+  port: 443
+  uuid: 79e0b95b-0775-4bb5-87a9-9f1c9ada42c5
+  alterId: 0
+  cipher: zero
+  tls: true
+  network: xhttp
+  udp: true
+  ws-opts: null
+- name: configLINE3-4bc4
   type: vless
   server: 172.66.40.99
   port: 8080
@@ -402,88 +653,7 @@ proxies:
     headers:
       Host: he10.motorbazan.com
   reality-opts: null
-- name: کانفینگ_رایگان_کانال_Gonabadvpnn_5-3979
-  type: vless
-  server: 172.66.40.99
-  port: 443
-  uuid: telegram-id-Arfilter
-  udp: true
-  tls: true
-  network: ws
-  servername: jSa.2SeDkFjEuIxIjD0Ew9DvKcxoisiEk61.BlOg
-  ws-opts:
-    path: /telegram-ArV2ray,telegram-ArV2ray,telegram-ArV2ray,telegram-ArV2ray,telegram-ArV2ray,telegram-ArV2ray,telegram-ArV2ray,telegram-ArV2ray,telegram-ArV2ray,telegram-ArV2ray,telegram-ArV2ray,telegram-ArV2ray?ed=2048
-    headers:
-      Host: jSa.2SeDkFjEuIxIjD0Ew9DvKcxoisiEk61.BlOg
-  reality-opts: null
-- name: Telegram-a92c
-  type: vless
-  server: 172.66.40.99
-  port: 443
-  uuid: telegram-id-Arfilter
-  udp: true
-  tls: true
-  network: ws
-  servername: aBs.2SeDkFjEuIxIjD0Ew9DvKcxoisiEk61.BlOg
-  ws-opts:
-    path: /telegram-ArV2ray,telegram-ArV2ray,telegram-ArV2ray,telegram-ArV2ray,telegram-ArV2ray,telegram-ArV2ray,telegram-ArV2ray,telegram-ArV2ray,telegram-ArV2ray,telegram-ArV2ray,telegram-ArV2ray,telegram-ArV2ray?ed=2048
-    headers:
-      Host: aBs.2SeDkFjEuIxIjD0Ew9DvKcxoisiEk61.BlOg
-  reality-opts: null
-- name: Telegram-e2e6
-  type: vless
-  server: 172.66.40.99
-  port: 443
-  uuid: telegram-id-Arfilter
-  udp: true
-  tls: true
-  network: ws
-  servername: jSa.2SeDkFjEuIxIjD0Ew9DvKcxoisiEk61.BlOg
-  ws-opts:
-    path: /telegram-ArV2ray,telegram-ArV2ray,telegram-ArV2ray,telegram-ArV2ray,telegram-ArV2ray,telegram-ArV2ray,telegram-ArV2ray,telegram-ArV2ray,telegram-ArV2ray,telegram-ArV2ray,telegram-ArV2ray,telegram-ArV2ray?ed=2048
-    headers:
-      Host: jSa.2SeDkFjEuIxIjD0Ew9DvKcxoisiEk61.BlOg
-  reality-opts: null
-- name: کانفیگ_اختصاصی_چنلproxie-a024
-  type: vmess
-  server: 104.21.62.144
-  port: 443
-  uuid: 9da10022-4480-4794-8338-33f87cbbf2d4
-  alterId: 0
-  cipher: zero
-  tls: true
-  network: xhttp
-  udp: true
-  ws-opts: null
-- name: Telegram-2e26
-  type: vless
-  server: 172.66.40.99
-  port: 443
-  uuid: a6f98117-6274-403b-a2de-1d2690f32382
-  udp: true
-  tls: true
-  network: ws
-  servername: az52.mashkestan.com
-  ws-opts:
-    path: /telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE?ed=2048
-    headers:
-      Host: az52.mashkestan.com
-  reality-opts: null
-- name: configLINE-5134
-  type: vless
-  server: 172.66.40.99
-  port: 443
-  uuid: a6f98117-6274-403b-a2de-1d2690f32382
-  udp: true
-  tls: true
-  network: ws
-  servername: az52.mashkestan.com
-  ws-opts:
-    path: /telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE?ed=2048
-    headers:
-      Host: az52.mashkestan.com
-  reality-opts: null
-- name: کانفیگ_روزانه_proxie-44d0
+- name: کانفیگ_روزانه_proxie-5836
   type: vmess
   server: 104.21.62.144
   port: 443
@@ -494,7 +664,7 @@ proxies:
   network: xhttp
   udp: true
   ws-opts: null
-- name: configLINE2-3dfd
+- name: Telegram-d32a
   type: vless
   server: 172.66.40.99
   port: 8080
@@ -508,21 +678,18 @@ proxies:
     headers:
       Host: az221.mashkestan.com
   reality-opts: null
-- name: Telegram-b8b1
-  type: vless
-  server: 172.66.40.99
-  port: 8080
-  uuid: 424c04d8-dc08-4644-b4af-fd466a45b191
+- name: کانفیگ_روزانهproxie-cc0a
+  type: vmess
+  server: 104.21.62.144
+  port: 443
+  uuid: 9ec1787e-7919-475d-8c7f-976ebe92e299
+  alterId: 0
+  cipher: zero
+  tls: true
+  network: xhttp
   udp: true
-  tls: false
-  network: ws
-  servername: null
-  ws-opts:
-    path: /-LiV2ry@LIGHTNING6-TEL--@LIGHTNING6-TEL--@LIGHTNING6-TEL--@LIGHTNING6-JOIN-@LIGHTNING6-TEL--@LIGHTNING6-JOIN-@LIGHTNING6-TEL-@LIGHTNING6-TEL--@LIGHTNING6-JOIN-@LIGHTNING6-TEL--@LIGHTNING6?ed=2048
-    headers:
-      Host: T.ubuntu-linuxmirror.ir
-  reality-opts: null
-- name: configLINE4-4df3
+  ws-opts: null
+- name: configLINE4-9d3e
   type: vless
   server: 172.66.40.99
   port: 443
@@ -536,205 +703,141 @@ proxies:
     headers:
       Host: hE136.maShkesTan.CoM
   reality-opts: null
-- name: کانفیگ_روزانهproxie-52c0
-  type: vmess
-  server: 104.21.62.144
-  port: 443
-  uuid: 9ec1787e-7919-475d-8c7f-976ebe92e299
-  alterId: 0
-  cipher: zero
-  tls: true
-  network: xhttp
-  udp: true
-  ws-opts: null
-- name: کانفیگ_روزانهproxie-7acf
-  type: vmess
-  server: 104.21.62.144
-  port: 443
-  uuid: 79e0b95b-0775-4bb5-87a9-9f1c9ada42c5
-  alterId: 0
-  cipher: zero
-  tls: true
-  network: xhttp
-  udp: true
-  ws-opts: null
-- name: Telegram-b40b
-  type: vless
-  server: 172.66.40.99
-  port: 8080
-  uuid: 2023c5f3-6ee4-4a6d-be55-44a06570f8dd
-  udp: true
-  tls: false
-  network: ws
-  servername: null
-  ws-opts:
-    path: /telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE?ed=2048
-    headers:
-      Host: az221.mashkestan.com
-  reality-opts: null
-- name: ConfigX2ray-3349
-  type: vless
-  server: 172.66.40.99
-  port: 443
-  uuid: a6f98117-6274-403b-a2de-1d2690f32382
-  udp: true
-  tls: true
-  network: ws
-  servername: az52.mashkestan.com
-  ws-opts:
-    path: /telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE?ed=2048
-    headers:
-      Host: az52.mashkestan.com
-  reality-opts: null
 proxy-groups:
 - name: PROXY
   type: select
   proxies:
-  - ✅ CF-Access (Auto)
-  - ♻️ All-Auto
+  - ⚡ Auto-Select
   - DIRECT
-  - ShadowProxy66-c257
-  - کانفینگ_رایگان_کانال_Gonabadvpnn_3-5dd9
-  - کانفینگ_رایگان_کانال_Gonabadvpnn_2-2c4a
-  - ShadowProxy66-1fb7
-  - Gonabadvpnn____بیا_کانالمون-70d4
-  - CA-64bf
-  - کانفینگ_رایگان_کانال_Gonabadvpnn_4-3b6b
-  - TheNetherlands_AzadNet-c5f2
-  - Gonabadvpnn____بیا_کانالمون__3-d0b6
-  - ShadowProxy66-613b
-  - US-d407
-  - Gonabadvpnn____بیا_کانالمون__1-6855
-  - ShadowProxy66-48ec
-  - Armenia_Monster-6e3c
-  - ShadowProxy66-44b9
-  - 𝗝𝗼𝗶𝗻__vpnplusee_free__کانال_ما-dfec
-  - ChannelidShadowProxy66-9df9
-  - Germany_ServerStack_Inc-28fa
-  - US-fe72
-  - ShadowProxy66-2f05
-  - CA-1802
-  - ShadowProxy66-8f20
-  - US-1c0f
-  - ShadowProxy66-ccfd
-  - Gonabadvpnn____بیا_کانالمون__2-fa61
-  - ShadowProxy66-6276
-  - ShadowProxy66-72e4
-  - کانفینگ_رایگان_کانال_Gonabadvpnn_1-0f7e
-  - ConfigX2ray-e6d7
-  - کانفیگ_شبانه_proxie-b69f
-  - configLINE3-c6f5
-  - کانفینگ_رایگان_کانال_Gonabadvpnn_5-3979
-  - Telegram-a92c
-  - Telegram-e2e6
-  - کانفیگ_اختصاصی_چنلproxie-a024
-  - Telegram-2e26
-  - configLINE-5134
-  - کانفیگ_روزانه_proxie-44d0
-  - configLINE2-3dfd
-  - Telegram-b8b1
-  - configLINE4-4df3
-  - کانفیگ_روزانهproxie-52c0
-  - کانفیگ_روزانهproxie-7acf
-  - Telegram-b40b
-  - ConfigX2ray-3349
-- name: ✅ CF-Access (Auto)
+  - Channel_id_ShadowProxy66-b9b0
+  - Channel_id_ShadowProxy66-0465
+  - Channel_id_ShadowProxy66-0cc3
+  - ShadowProxy66-f8fc
+  - CA-d5f7
+  - ShadowProxy66-f218
+  - Channel_id_ShadowProxy66-beaf
+  - Channel_id_ShadowProxy66-77e1
+  - 𝗝𝗼𝗶𝗻__vpnplusee_free__کانال_ما-8ca8
+  - ShadowProxy66-2da8
+  - Channel_id_ShadowProxy66-b4da
+  - Gonabadvpnn____بیا_کانالمون__1-60d9
+  - کانفینگ_رایگان_کانال_Gonabadvpnn_4-8f1d
+  - کانفینگ_رایگان_کانال_Gonabadvpnn_1-edde
+  - Gonabadvpnn____بیا_کانالمون__2-78ca
+  - Channel_id_ShadowProxy66-de18
+  - Channel_id_ShadowProxy66-d49e
+  - ChannelidShadowProxy66-81d0
+  - Armenia_Monster-4b82
+  - Gonabadvpnn____بیا_کانالمون-e6c5
+  - Gonabadvpnn____بیا_کانالمون__3-f635
+  - ShadowProxy66-c113
+  - ShadowProxy66-7db9
+  - TheNetherlands_AzadNet-6546
+  - US-77da
+  - Channel_id_ShadowProxy66-a946
+  - ShadowProxy66-7008
+  - Channel_id_ShadowProxy66-ed75
+  - ShadowProxy66-3497
+  - 𝗚𝗲𝗿𝗺𝗮𝗻𝘆__VConfing-7666
+  - کانفینگ_رایگان_کانال_Gonabadvpnn_2-bb7f
+  - Channel_id_ShadowProxy66-c72b
+  - CA-9bd3
+  - US-5cf9
+  - ShadowProxy66-5fb3
+  - US-50cc
+  - Channel_id_ShadowProxy66-ccd9
+  - کانفینگ_رایگان_کانال_Gonabadvpnn_3-af43
+  - ShadowProxy66-d393
+  - ShadowProxy66-e413
+  - Channel_id_ShadowProxy66-3680
+  - Channel_id_ShadowProxy66-d626
+  - Germany_ServerStack_Inc-6b18
+  - 1ConfigX2ray-57e0
+  - کانفیگ_اختصاصی_چنلproxie-6d3e
+  - configLINE-a67d
+  - configLINE2-c8ac
+  - Telegram-2ca0
+  - کانفیگ_شبانه_proxie-c095
+  - Telegram-5db2
+  - کانفینگ_رایگان_کانال_Gonabadvpnn_5-38d9
+  - کانفیگ_روزانهproxie-9ba5
+  - configLINE3-4bc4
+  - کانفیگ_روزانه_proxie-5836
+  - Telegram-d32a
+  - کانفیگ_روزانهproxie-cc0a
+  - configLINE4-9d3e
+- name: ⚡ Auto-Select
   type: url-test
   proxies:
-  - ShadowProxy66-c257
-  - کانفینگ_رایگان_کانال_Gonabadvpnn_3-5dd9
-  - کانفینگ_رایگان_کانال_Gonabadvpnn_2-2c4a
-  - ShadowProxy66-1fb7
-  - Gonabadvpnn____بیا_کانالمون-70d4
-  - CA-64bf
-  - کانفینگ_رایگان_کانال_Gonabadvpnn_4-3b6b
-  - TheNetherlands_AzadNet-c5f2
-  - Gonabadvpnn____بیا_کانالمون__3-d0b6
-  - ShadowProxy66-613b
-  - US-d407
-  - Gonabadvpnn____بیا_کانالمون__1-6855
-  - ShadowProxy66-48ec
-  - Armenia_Monster-6e3c
-  - ShadowProxy66-44b9
-  - 𝗝𝗼𝗶𝗻__vpnplusee_free__کانال_ما-dfec
-  - ChannelidShadowProxy66-9df9
-  - Germany_ServerStack_Inc-28fa
-  - US-fe72
-  - ShadowProxy66-2f05
-  - CA-1802
-  - ShadowProxy66-8f20
-  - US-1c0f
-  - ShadowProxy66-ccfd
-  - Gonabadvpnn____بیا_کانالمون__2-fa61
-  - ShadowProxy66-6276
-  - ShadowProxy66-72e4
-  - کانفینگ_رایگان_کانال_Gonabadvpnn_1-0f7e
-  url: http://www.gstatic.com/generate_204
-  interval: 300
-- name: ♻️ All-Auto
-  type: url-test
-  proxies:
-  - ShadowProxy66-c257
-  - کانفینگ_رایگان_کانال_Gonabadvpnn_3-5dd9
-  - کانفینگ_رایگان_کانال_Gonabadvpnn_2-2c4a
-  - ShadowProxy66-1fb7
-  - Gonabadvpnn____بیا_کانالمون-70d4
-  - CA-64bf
-  - کانفینگ_رایگان_کانال_Gonabadvpnn_4-3b6b
-  - TheNetherlands_AzadNet-c5f2
-  - Gonabadvpnn____بیا_کانالمون__3-d0b6
-  - ShadowProxy66-613b
-  - US-d407
-  - Gonabadvpnn____بیا_کانالمون__1-6855
-  - ShadowProxy66-48ec
-  - Armenia_Monster-6e3c
-  - ShadowProxy66-44b9
-  - 𝗝𝗼𝗶𝗻__vpnplusee_free__کانال_ما-dfec
-  - ChannelidShadowProxy66-9df9
-  - Germany_ServerStack_Inc-28fa
-  - US-fe72
-  - ShadowProxy66-2f05
-  - CA-1802
-  - ShadowProxy66-8f20
-  - US-1c0f
-  - ShadowProxy66-ccfd
-  - Gonabadvpnn____بیا_کانالمون__2-fa61
-  - ShadowProxy66-6276
-  - ShadowProxy66-72e4
-  - کانفینگ_رایگان_کانال_Gonabadvpnn_1-0f7e
-  - ConfigX2ray-e6d7
-  - کانفیگ_شبانه_proxie-b69f
-  - configLINE3-c6f5
-  - کانفینگ_رایگان_کانال_Gonabadvpnn_5-3979
-  - Telegram-a92c
-  - Telegram-e2e6
-  - کانفیگ_اختصاصی_چنلproxie-a024
-  - Telegram-2e26
-  - configLINE-5134
-  - کانفیگ_روزانه_proxie-44d0
-  - configLINE2-3dfd
-  - Telegram-b8b1
-  - configLINE4-4df3
-  - کانفیگ_روزانهproxie-52c0
-  - کانفیگ_روزانهproxie-7acf
-  - Telegram-b40b
-  - ConfigX2ray-3349
+  - Channel_id_ShadowProxy66-b9b0
+  - Channel_id_ShadowProxy66-0465
+  - Channel_id_ShadowProxy66-0cc3
+  - ShadowProxy66-f8fc
+  - CA-d5f7
+  - ShadowProxy66-f218
+  - Channel_id_ShadowProxy66-beaf
+  - Channel_id_ShadowProxy66-77e1
+  - 𝗝𝗼𝗶𝗻__vpnplusee_free__کانال_ما-8ca8
+  - ShadowProxy66-2da8
+  - Channel_id_ShadowProxy66-b4da
+  - Gonabadvpnn____بیا_کانالمون__1-60d9
+  - کانفینگ_رایگان_کانال_Gonabadvpnn_4-8f1d
+  - کانفینگ_رایگان_کانال_Gonabadvpnn_1-edde
+  - Gonabadvpnn____بیا_کانالمون__2-78ca
+  - Channel_id_ShadowProxy66-de18
+  - Channel_id_ShadowProxy66-d49e
+  - ChannelidShadowProxy66-81d0
+  - Armenia_Monster-4b82
+  - Gonabadvpnn____بیا_کانالمون-e6c5
+  - Gonabadvpnn____بیا_کانالمون__3-f635
+  - ShadowProxy66-c113
+  - ShadowProxy66-7db9
+  - TheNetherlands_AzadNet-6546
+  - US-77da
+  - Channel_id_ShadowProxy66-a946
+  - ShadowProxy66-7008
+  - Channel_id_ShadowProxy66-ed75
+  - ShadowProxy66-3497
+  - 𝗚𝗲𝗿𝗺𝗮𝗻𝘆__VConfing-7666
+  - کانفینگ_رایگان_کانال_Gonabadvpnn_2-bb7f
+  - Channel_id_ShadowProxy66-c72b
+  - CA-9bd3
+  - US-5cf9
+  - ShadowProxy66-5fb3
+  - US-50cc
+  - Channel_id_ShadowProxy66-ccd9
+  - کانفینگ_رایگان_کانال_Gonabadvpnn_3-af43
+  - ShadowProxy66-d393
+  - ShadowProxy66-e413
+  - Channel_id_ShadowProxy66-3680
+  - Channel_id_ShadowProxy66-d626
+  - Germany_ServerStack_Inc-6b18
+  - 1ConfigX2ray-57e0
+  - کانفیگ_اختصاصی_چنلproxie-6d3e
+  - configLINE-a67d
+  - configLINE2-c8ac
+  - Telegram-2ca0
+  - کانفیگ_شبانه_proxie-c095
+  - Telegram-5db2
+  - کانفینگ_رایگان_کانال_Gonabadvpnn_5-38d9
+  - کانفیگ_روزانهproxie-9ba5
+  - configLINE3-4bc4
+  - کانفیگ_روزانه_proxie-5836
+  - Telegram-d32a
+  - کانفیگ_روزانهproxie-cc0a
+  - configLINE4-9d3e
   url: http://www.gstatic.com/generate_204
   interval: 300
 rules:
-- IP-CIDR,173.245.48.0/20,✅ CF-Access (Auto)
-- IP-CIDR,103.21.244.0/22,✅ CF-Access (Auto)
-- IP-CIDR,103.22.200.0/22,✅ CF-Access (Auto)
-- IP-CIDR,103.31.4.0/22,✅ CF-Access (Auto)
-- IP-CIDR,141.101.64.0/18,✅ CF-Access (Auto)
-- IP-CIDR,108.162.192.0/18,✅ CF-Access (Auto)
-- IP-CIDR,190.93.240.0/20,✅ CF-Access (Auto)
-- IP-CIDR,188.114.96.0/20,✅ CF-Access (Auto)
-- IP-CIDR,197.234.240.0/22,✅ CF-Access (Auto)
-- IP-CIDR,198.41.128.0/17,✅ CF-Access (Auto)
-- IP-CIDR,162.158.0.0/15,✅ CF-Access (Auto)
-- IP-CIDR,104.16.0.0/13,✅ CF-Access (Auto)
-- IP-CIDR,172.64.0.0/13,✅ CF-Access (Auto)
-- IP-CIDR,131.0.72.0/22,✅ CF-Access (Auto)
 - GEOIP,IR,DIRECT
+- DOMAIN-SUFFIX,ir,DIRECT
+- DOMAIN-KEYWORD,digikala,DIRECT
+- DOMAIN-KEYWORD,snapp,DIRECT
+- DOMAIN-KEYWORD,tapsi,DIRECT
+- DOMAIN-KEYWORD,sheypoor,DIRECT
+- DOMAIN-KEYWORD,divar,DIRECT
+- DOMAIN-SUFFIX,shaparak.ir,DIRECT
+- IP-CIDR,185.143.232.0/22,DIRECT
+- IP-CIDR,91.239.100.0/22,DIRECT
+- IP-CIDR,87.247.160.0/20,DIRECT
 - MATCH,PROXY
