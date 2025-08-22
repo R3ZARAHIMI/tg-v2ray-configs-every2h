@@ -4,7 +4,7 @@ on:
   schedule:
     # اجرا در ساعت ۱۰:۱۲ به وقت ایران
     - cron: '42 6 * * *'
-    # اجرا در ساعت ۱۴:۱8 به وقت ایران
+    # اجرا در ساعت ۱۴:۱۸ به وقت ایران
     - cron: '48 10 * * *'
     # اجرا در ساعت ۱۸:۳۶ به وقت ایران
     - cron: '6 15 * * *'
@@ -41,10 +41,8 @@ jobs:
           GROUPS_LIST: ${{ secrets.GROUPS_LIST }}
 
       - name: Commit and Push new configs
-        run: |
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
-          git add Config-jo.yaml Config_jo.txt
-          # فقط در صورت وجود تغییرات، کامیت کن
-          git diff --staged --quiet || git commit -m "Update VPN configs (GitHub Actions)"
-          git push
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Update V2Ray configs (Pro & Lite)"
+          file_pattern: "*.yaml *.txt"
+
