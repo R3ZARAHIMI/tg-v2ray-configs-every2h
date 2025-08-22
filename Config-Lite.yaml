@@ -7,19 +7,9 @@ external-controller: 127.0.0.1:9090
 dns:
   enable: true
   listen: 0.0.0.0:53
-  default-nameserver:
+  nameserver:
   - 8.8.8.8
   - 1.1.1.1
-  enhanced-mode: fake-ip
-  fake-ip-range: 198.18.0.1/16
-  fallback:
-  - https://dns.google/dns-query
-  - https://cloudflare-dns.com/dns-query
-  fallback-filter:
-    geoip: true
-    ipcidr:
-    - 240.0.0.0/4
-    - 0.0.0.0/32
 proxies:
 - name: ChannelidShadowProxy66-2874
   type: ss
@@ -828,38 +818,7 @@ proxy-groups:
   - کانفینگ_رایگان_کانال_Gonabadvpnn_1-279d
   url: http://www.gstatic.com/generate_204
   interval: 300
-- name: 🇮🇷 Iran
-  type: select
-  proxies:
-  - DIRECT
-  - PROXY
-- name: 🛑 Block-Ads
-  type: select
-  proxies:
-  - REJECT
-  - DIRECT
-rule-providers:
-  iran_domains:
-    type: http
-    behavior: domain
-    url: https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/iran-domains.txt
-    path: ./rules/iran_domains.txt
-    interval: 86400
-  blocked_domains:
-    type: http
-    behavior: domain
-    url: https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/blocked-domains.txt
-    path: ./rules/blocked_domains.txt
-    interval: 86400
-  ad_domains:
-    type: http
-    behavior: domain
-    url: https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/ad-domains.txt
-    path: ./rules/ad_domains.txt
-    interval: 86400
 rules:
-- RULE-SET,ad_domains,🛑 Block-Ads
-- RULE-SET,blocked_domains,PROXY
-- RULE-SET,iran_domains,🇮🇷 Iran
-- GEOIP,IR,🇮🇷 Iran
+- DOMAIN-SUFFIX,ir,DIRECT
+- GEOIP,IR,DIRECT
 - MATCH,PROXY
