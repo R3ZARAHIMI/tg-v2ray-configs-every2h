@@ -20,17 +20,18 @@
 
 ### لیست خام کانفیگ‌ها (برای V2RayNG, Nekoray و ...)
 ```
-[https://raw.githubusercontent.com/R3ZARAHIMI/tg-v2ray-configs-every2h/main/Config_jo.txt](https://raw.githubusercontent.com/R3ZARAHIMI/tg-v2ray-configs-every2h/main/Config_jo.txt)
+https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config_jo.txt
+
 ```
 
 ### پروفایل Clash حرفه‌ای (برای Clash for Windows, Clash Verge و ...)
 ```
-[https://raw.githubusercontent.com/R3ZARAHIMI/tg-v2ray-configs-every2h/main/Config-jo.yaml](https://raw.githubusercontent.com/R3ZARAHIMI/tg-v2ray-configs-every2h/main/Config-jo.yaml)
+https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config-jo.yaml
 ```
 
 ### پروفایل Clash ساده (سازگار با کلاینت‌های قدیمی‌تر)
 ```
-[https://raw.githubusercontent.com/R3ZARAHIMI/tg-v2ray-configs-every2h/main/Config-Lite.yaml](https://raw.githubusercontent.com/R3ZARAHIMI/tg-v2ray-configs-every2h/main/Config-Lite.yaml)
+https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config-Lite.yaml
 ```
 
 ⚠️ **توجه:** این کانفیگ‌ها از منابع عمومی جمع‌آوری شده‌اند و هیچ تضمینی برای پایداری یا امنیت آن‌ها وجود ندارد. با مسئولیت خود از آن‌ها استفاده کنید.
@@ -119,17 +120,19 @@ To use, copy the links below into your preferred client.
 
 ### 原始配置列表 (适用于 V2RayNG, Nekoray 等)
 ```
-[https://raw.githubusercontent.com/R3ZARAHIMI/tg-v2ray-configs-every2h/main/Config_jo.txt](https://raw.githubusercontent.com/R3ZARAHIMI/tg-v2ray-configs-every2h/main/Config_jo.txt)
+https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config_jo.txt
+
 ```
 
 ### Clash 专业配置文件 (适用于 Clash for Windows, Clash Verge 等)
 ```
-[https://raw.githubusercontent.com/R3ZARAHIMI/tg-v2ray-configs-every2h/main/Config-jo.yaml](https://raw.githubusercontent.com/R3ZARAHIMI/tg-v2ray-configs-every2h/main/Config-jo.yaml)
+https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config-jo.yaml
+
 ```
 
 ### Clash 简化配置文件 (兼容旧版客户端)
 ```
-[https://raw.githubusercontent.com/R3ZARAHIMI/tg-v2ray-configs-every2h/main/Config-Lite.yaml](https://raw.githubusercontent.com/R3ZARAHIMI/tg-v2ray-configs-every2h/main/Config-Lite.yaml)
+https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config-Lite.yaml
 ```
 
 ⚠️ **免责声明:** 这些配置均收集自公共来源，不保证其稳定性或安全性，请自行承担使用风险。
