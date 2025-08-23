@@ -1,5 +1,5 @@
 # 🚀 V2Ray & Clash Config Collector
-
+[![GitHub stars](https://img.shields.io/github/stars/R3ZARAHIMI/7?style=social)](https://github.com/R3ZARAHIMI/7/stargazers) [![GitHub forks](https://img.shields.io/github/forks/R3ZARAHIMI/7?style=social)](https://github.com/R3ZARAHIMI/7/network/members)
 
 این پروژه به صورت خودکار هر ۲ ساعت یکبار، جدیدترین کانفیگ‌های V2Ray، VLESS، Shadowsocks و... را از کانال‌های عمومی تلگرام جمع‌آوری و در قالب لینک‌های اشتراک ارائه می‌دهد.
 
