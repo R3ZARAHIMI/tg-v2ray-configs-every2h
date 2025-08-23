@@ -6,7 +6,6 @@ import yaml
 import os
 import uuid
 from urllib.parse import urlparse, parse_qs, unquote
-import ipaddress
 from pyrogram import Client
 from pyrogram.errors import FloodWait
 from typing import Optional, Dict, Any, Set, List
@@ -14,12 +13,6 @@ from typing import Optional, Dict, Any, Set, List
 # =================================================================================
 # بخش تنظیمات و ثابت‌ها
 # =================================================================================
-CLOUDFLARE_IPV4_RANGES = [
-    '173.245.48.0/20', '103.21.244.0/22', '103.22.200.0/22', '103.31.4.0/22',
-    '141.101.64.0/18', '108.162.192.0/18', '190.93.240.0/20', '188.114.96.0/20',
-    '197.234.240.0/22', '198.41.128.0/17', '162.158.0.0/15', '104.16.0.0/13',
-    '172.64.0.0/13', '131.0.72.0/22'
-]
 
 # خواندن متغیرهای محیطی
 API_ID = int(os.environ.get("API_ID"))
@@ -31,7 +24,7 @@ CHANNEL_SEARCH_LIMIT = int(os.environ.get('CHANNEL_SEARCH_LIMIT', 5))
 GROUP_SEARCH_LIMIT = int(os.environ.get('GROUP_SEARCH_LIMIT', 600))
 
 # تعریف نام فایل‌های خروجی
-OUTPUT_YAML_PRO = "Config-jo.yaml"       # نسخه حرفه‌ای
+OUTPUT_YAML_PRO = "Config-jo.yaml"      # نسخه حرفه‌ای
 OUTPUT_YAML_LITE = "Config-Lite.yaml"     # نسخه سازگار برای بعضی کلاینت‌های کلش 
 OUTPUT_TXT = "Config_jo.txt"              # لیست خام کانفیگ‌ها
 
@@ -69,16 +62,6 @@ class V2RayExtractor:
     def __init__(self):
         self.raw_configs: Set[str] = set()
         self.client = Client("my_account", api_id=API_ID, api_hash=API_HASH, session_string=SESSION_STRING)
-        self.cf_networks = [ipaddress.ip_network(r) for r in CLOUDFLARE_IPV4_RANGES]
-
-    def _is_cloudflare_ip(self, ip_str: str) -> bool:
-        try:
-            ip = ipaddress.ip_address(ip_str)
-            if not ip.is_global or ip.version != 4: return False
-            for network in self.cf_networks:
-                if ip in network: return True
-            return False
-        except ValueError: return False
 
     @staticmethod
     def _generate_unique_name(original_name: str, prefix: str = "config") -> str:
@@ -269,7 +252,6 @@ class V2RayExtractor:
         print("\n" + "="*40)
         print("⚙️ شروع پردازش و ساخت فایل‌های کانفیگ...")
 
-        # مرحله ۱: فیلتر کردن و دسته‌بندی کانفیگ‌ها
         if not self.raw_configs:
             print("⚠️ هیچ کانفیگی در چت‌ها یافت نشد. فایل‌های خروجی خالی خواهند بود.")
             for f in [OUTPUT_YAML_PRO, OUTPUT_YAML_LITE, OUTPUT_TXT]: open(f, "w").close()
@@ -281,9 +263,17 @@ class V2RayExtractor:
         valid_configs = set()
         for url in self.raw_configs:
             try:
+                # فیلتر اول: حذف کانفیگ‌های تست سرعت
                 hostname = urlparse(url).hostname
                 if hostname and 'speedtest' in hostname.lower():
                     continue
+
+                # فیلتر دوم: حذف کانفیگ‌های VLESS بدون امنیت (TLS/REALITY)
+                if url.startswith('vless://'):
+                    query = parse_qs(urlparse(url).query)
+                    if query.get('security', ['none'])[0] == 'none':
+                        continue
+                
                 valid_configs.add(url)
             except Exception:
                 pass
