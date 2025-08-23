@@ -34,7 +34,6 @@ https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config-jo.yaml
 https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config-Lite.yaml
 ```
 
-⚠️ **توجه:** این کانفیگ‌ها از منابع عمومی جمع‌آوری شده‌اند و هیچ تضمینی برای پایداری یا امنیت آن‌ها وجود ندارد. با مسئولیت خود از آن‌ها استفاده کنید.
 
 </details>
 
@@ -67,7 +66,6 @@ https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config-jo.yaml
 https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config-Lite.yaml
 ```
 
-⚠️ **Disclaimer:** These configs are collected from public sources. There is no guarantee of their stability or security. Use them at your own risk.
 
 </details>
 
@@ -103,7 +101,6 @@ https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config-Lite.yaml
 
 ```
 
-⚠️ **Отказ от ответственности:** Эти конфигурации собраны из общедоступных источников. Стабильность и безопасность не гарантируются. Используйте их на свой страх и риск.
 
 </details>
 
@@ -138,6 +135,5 @@ https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config-jo.yaml
 https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config-Lite.yaml
 ```
 
-⚠️ **免责声明:** 这些配置均收集自公共来源，不保证其稳定性或安全性，请自行承担使用风险。
 
 </details>
