@@ -54,17 +54,17 @@ To use, copy the links below into your preferred client.
 
 ### Raw Config List (for V2RayNG, Nekoray, etc.)
 ```
-[https://raw.githubusercontent.com/R3ZARAHIMI/tg-v2ray-configs-every2h/main/Config_jo.txt](https://raw.githubusercontent.com/R3ZARAHIMI/tg-v2ray-configs-every2h/main/Config_jo.txt)
+https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config_jo.txt
 ```
 
 ### Pro Clash Profile (for Clash for Windows, Clash Verge, etc.)
 ```
-[https://raw.githubusercontent.com/R3ZARAHIMI/tg-v2ray-configs-every2h/main/Config-jo.yaml](https://raw.githubusercontent.com/R3ZARAHIMI/tg-v2ray-configs-every2h/main/Config-jo.yaml)
+https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config-jo.yaml
 ```
 
 ### Lite Clash Profile (Compatible with older clients)
 ```
-[https://raw.githubusercontent.com/R3ZARAHIMI/tg-v2ray-configs-every2h/main/Config-Lite.yaml](https://raw.githubusercontent.com/R3ZARAHIMI/tg-v2ray-configs-every2h/main/Config-Lite.yaml)
+https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config-Lite.yaml
 ```
 
 ⚠️ **Disclaimer:** These configs are collected from public sources. There is no guarantee of their stability or security. Use them at your own risk.
@@ -87,17 +87,20 @@ To use, copy the links below into your preferred client.
 
 ### Список необработанных конфигураций (для V2RayNG, Nekoray и т.д.)
 ```
-[https://raw.githubusercontent.com/R3ZARAHIMI/tg-v2ray-configs-every2h/main/Config_jo.txt](https://raw.githubusercontent.com/R3ZARAHIMI/tg-v2ray-configs-every2h/main/Config_jo.txt)
+https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config_jo.txt
+
 ```
 
 ### Профессиональный профиль Clash (для Clash for Windows, Clash Verge и т.д.)
 ```
-[https://raw.githubusercontent.com/R3ZARAHIMI/tg-v2ray-configs-every2h/main/Config-jo.yaml](https://raw.githubusercontent.com/R3ZARAHIMI/tg-v2ray-configs-every2h/main/Config-jo.yaml)
+https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config-jo.yaml
+
 ```
 
 ### Облегченный профиль Clash (совместим со старыми клиентами)
 ```
-[https://raw.githubusercontent.com/R3ZARAHIMI/tg-v2ray-configs-every2h/main/Config-Lite.yaml](https://raw.githubusercontent.com/R3ZARAHIMI/tg-v2ray-configs-every2h/main/Config-Lite.yaml)
+https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config-Lite.yaml
+
 ```
 
 ⚠️ **Отказ от ответственности:** Эти конфигурации собраны из общедоступных источников. Стабильность и безопасность не гарантируются. Используйте их на свой страх и риск.
