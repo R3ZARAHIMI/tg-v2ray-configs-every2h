@@ -13,14 +13,14 @@
 - **پشتیبانی از پروتکل‌های مختلف:** VLESS, VMess, Shadowsocks, Trojan, Hysteria2.
 - **فیلتر هوشمند:** کانفیگ‌های ناامن (VLESS بدون TLS/Reality) و کانفیگ‌های تست سرعت به صورت خودکار حذف می‌شوند.
 - **خروجی‌های متنوع:** ارائه لینک‌های خام و پروفایل‌های بهینه شده برای Clash.
+- **سبک بودن:** اسکریپت و پروفایل‌های خروجی بهینه هستند.
 
 ## 🔗 لینک‌های اشتراک (Subscription Links)
 برای استفاده، لینک‌های زیر را در کلاینت مورد نظر خود کپی کنید.
 
-### لیست خام کانفیگ‌ها (برای V2RayNG, Nekoray و ...)
+### لیست خام کانفیگ‌ها (برای V2RayNG, ✅Hiddify و ...)
 ```
 https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config_jo.txt
-
 ```
 
 ### پروفایل Clash حرفه‌ای (برای Clash for Windows, Clash Verge و ...)
@@ -46,11 +46,12 @@ https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config-Lite.yaml
 - **Multiple Protocol Support:** VLESS, VMess, Shadowsocks, Trojan, Hysteria2.
 - **Smart Filtering:** Insecure configs (VLESS without TLS/Reality) and speedtest configs are automatically removed.
 - **Multiple Outputs:** Provides raw subscription links and optimized profiles for Clash.
+- **Lightweight:** The script and output profiles are optimized and lightweight.
 
 ## 🔗 Subscription Links
 To use, copy the links below into your preferred client.
 
-### Raw Config List (for V2RayNG, Nekoray, etc.)
+### Raw Config List (for V2RayNG, ✅Hiddify, etc.)
 ```
 https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config_jo.txt
 ```
@@ -78,26 +79,24 @@ https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config-Lite.yaml
 - **Поддержка нескольких протоколов:** VLESS, VMess, Shadowsocks, Trojan, Hysteria2.
 - **Умная фильтрация:** Небезопасные конфигурации (VLESS без TLS/Reality) и конфигурации для тестирования скорости удаляются автоматически.
 - **Различные форматы вывода:** Предоставляются необработанные ссылки для подписки и оптимизированные профили для Clash.
+- **Легковесность:** Скрипт и выходные профили оптимизированы и легки.
 
 ## 🔗 Ссылки на подписку
 Для использования скопируйте приведенные ниже ссылки в ваш клиент.
 
-### Список необработанных конфигураций (для V2RayNG, Nekoray и т.д.)
+### Список необработанных конфигураций (для V2RayNG, ✅Hiddify и т.д.)
 ```
 https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config_jo.txt
-
 ```
 
 ### Профессиональный профиль Clash (для Clash for Windows, Clash Verge и т.д.)
 ```
 https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config-jo.yaml
-
 ```
 
 ### Облегченный профиль Clash (совместим со старыми клиентами)
 ```
 https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config-Lite.yaml
-
 ```
 
 
@@ -113,20 +112,19 @@ https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config-Lite.yaml
 - **支持多种协议:** VLESS, VMess, Shadowsocks, Trojan, Hysteria2。
 - **智能过滤:** 自动移除不安全的配置（没有TLS/Reality的VLESS）和测速配置。
 - **多种输出格式:** 提供原始订阅链接和为Clash优化的配置文件。
+- **轻量化:** 脚本和输出配置文件都经过了优化，非常轻量。
 
 ## 🔗 订阅链接
 复制以下链接到您的客户端即可使用。
 
-### 原始配置列表 (适用于 V2RayNG, Nekoray 等)
+### 原始配置列表 (适用于 V2RayNG, ✅Hiddify 等)
 ```
 https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config_jo.txt
-
 ```
 
 ### Clash 专业配置文件 (适用于 Clash for Windows, Clash Verge 等)
 ```
 https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config-jo.yaml
-
 ```
 
 ### Clash 简化配置文件 (兼容旧版客户端)
