@@ -1,6 +1,5 @@
 # 🚀 V2Ray & Clash Config Collector
 
-[![Update Configs](https://github.com/R3ZARAHIMI/tg-v2ray-configs-every2h/actions/workflows/main.yml/badge.svg)](https://github.com/R3ZARAHIMI/tg-v2ray-configs-every2h/actions)
 
 این پروژه به صورت خودکار هر ۲ ساعت یکبار، جدیدترین کانفیگ‌های V2Ray، VLESS، Shadowsocks و... را از کانال‌های عمومی تلگرام جمع‌آوری و در قالب لینک‌های اشتراک ارائه می‌دهد.
 
