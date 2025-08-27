@@ -9,11 +9,15 @@
 <summary>🇮🇷 **فارسی (Persian)**</summary>
 
 ## ⚙️ ویژگی‌ها
-- **به‌روزرسانی خودکار:** لیست کانفیگ‌ها هر ۲ ساعت یکبار به‌روز می‌شود.
-- **پشتیبانی از پروتکل‌های مختلف:** VLESS, VMess, Shadowsocks, Trojan, Hysteria2.
-- **فیلتر هوشمند:** کانفیگ‌های ناامن (VLESS بدون TLS/Reality) و به صورت خودکار حذف می‌شوند.
-- **خروجی‌های متنوع:** ارائه لینک‌های خام و پروفایل‌های بهینه شده برای Clash.
-- **سبک بودن:** اسکریپت و پروفایل‌های خروجی بهینه هستند.
+ه‌روزرسانی خودکار: لیست کانفیگ‌ها هر ۲ ساعت یکبار به‌روز می‌شود.
+
+پشتیبانی از پروتکل‌های مختلف: VLESS, VMess, Shadowsocks, Trojan, Hysteria2.
+
+فیلتر هوشمند: کانفیگ‌های ناامن (VLESS بدون TLS/Reality) به صورت خودکار حذف می‌شوند.
+
+خروجی‌های متنوع: ارائه لینک‌های خام و پروفایل‌های بهینه شده برای Clash و Sing-box.
+
+سبک بودن: اسکریپت و پروفایل‌های خروجی بهینه هستند.
 
 ## 🔗 لینک‌های اشتراک (Subscription Links)
 برای استفاده، لینک‌های زیر را در کلاینت مورد نظر خود کپی کنید.
@@ -28,9 +32,9 @@ https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config_jo.txt
 https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config-jo.yaml
 ```
 
-### پروفایل Clash ساده (سازگار با کلاینت‌های قدیمی‌تر)
+### پروفایل Sing-Box (برای Sing-Box, Hiddify و ...)
 ```
-https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config-Lite.yaml
+https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config_jo.json
 ```
 
 
@@ -42,12 +46,15 @@ https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config-Lite.yaml
 <summary>🇬🇧 **English**</summary>
 
 ## ⚙️ Features
-- **Automatic Updates:** The config list is updated every 2 hours.
-- **Multiple Protocol Support:** VLESS, VMess, Shadowsocks, Trojan, Hysteria2.
-- **Smart Filtering:** Insecure configs (VLESS without TLS/Reality) and speedtest configs are automatically removed.
-- **Multiple Outputs:** Provides raw subscription links and optimized profiles for Clash.
-- **Lightweight:** The script and output profiles are optimized and lightweight.
+Automatic Updates: The config list is updated every 2 hours.
 
+Multiple Protocol Support: VLESS, VMess, Shadowsocks, Trojan, Hysteria2.
+
+Smart Filtering: Insecure configs (VLESS without TLS/Reality) are automatically removed.
+
+Multiple Outputs: Provides raw subscription links and optimized profiles for Clash and Sing-box.
+
+Lightweight: The script and output profiles are optimized.
 ## 🔗 Subscription Links
 To use, copy the links below into your preferred client.
 
@@ -61,9 +68,9 @@ https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config_jo.txt
 https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config-jo.yaml
 ```
 
-### Lite Clash Profile (Compatible with older clients)
+### Sing-Box Profile (for Sing-Box, Hiddify, etc.)
 ```
-https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config-Lite.yaml
+https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config_jo.json
 ```
 
 
@@ -75,11 +82,15 @@ https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config-Lite.yaml
 <summary>🇷🇺 **Русский (Russian)**</summary>
 
 ## ⚙️ Особенности
-- **Автоматические обновления:** Список конфигураций обновляется каждые 2 часа.
-- **Поддержка нескольких протоколов:** VLESS, VMess, Shadowsocks, Trojan, Hysteria2.
-- **Умная фильтрация:** Небезопасные конфигурации (VLESS без TLS/Reality) и конфигурации для тестирования скорости удаляются автоматически.
-- **Различные форматы вывода:** Предоставляются необработанные ссылки для подписки и оптимизированные профили для Clash.
-- **Легковесность:** Скрипт и выходные профили оптимизированы и легки.
+Автоматические обновления: Список конфигураций обновляется каждые 2 часа.
+
+Поддержка нескольких протоколов: VLESS, VMess, Shadowsocks, Trojan, Hysteria2.
+
+Умная фильтрация: Небезопасные конфигурации (VLESS без TLS/Reality) удаляются автоматически.
+
+Различные форматы вывода: Предоставляются необработанные ссылки для подписки и оптимизированные профили для Clash и Sing-box.
+
+Легковесность: Скрипт и выходные профили оптимизированы.
 
 ## 🔗 Ссылки на подписку
 Для использования скопируйте приведенные ниже ссылки в ваш клиент.
@@ -94,9 +105,9 @@ https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config_jo.txt
 https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config-jo.yaml
 ```
 
-### Облегченный профиль Clash (совместим со старыми клиентами)
+### Профиль Sing-Box (для Sing-Box, Hiddify и т.д.)
 ```
-https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config-Lite.yaml
+https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config_jo.json
 ```
 
 
@@ -107,12 +118,19 @@ https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config-Lite.yaml
 <details>
 <summary>🇨🇳 **中文 (Chinese)**</summary>
 
-## ⚙️ 功能
-- **自动更新:** 配置列表每2小时更新一次。
-- **支持多种协议:** VLESS, VMess, Shadowsocks, Trojan, Hysteria2。
-- **智能过滤:** 自动移除不安全的配置（没有TLS/Reality的VLESS）和测速配置。
-- **多种输出格式:** 提供原始订阅链接和为Clash优化的配置文件。
-- **轻量化:** 脚本和输出配置文件都经过了优化，非常轻量。
+⚙️ 功能
+
+    自动更新: 配置列表每2小时更新一次。
+
+    支持多种协议: VLESS, VMess, Shadowsocks, Trojan, Hysteria2。
+
+    智能过滤: 自动移除不安全的配置 (没有TLS/Reality的VLESS)。
+
+    多种输出格式: 提供原始订阅链接以及为Clash和Sing-box优化的配置文件。
+
+    轻量化: 脚本和输出配置文件都经过了优化。
+
+
 
 ## 🔗 订阅链接
 复制以下链接到您的客户端即可使用。
@@ -127,9 +145,9 @@ https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config_jo.txt
 https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config-jo.yaml
 ```
 
-### Clash 简化配置文件 (兼容旧版客户端)
+### Sing-Box 配置文件 (适用于 Sing-Box, Hiddify 等)
 ```
-https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config-Lite.yaml
+https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config_jo.json
 ```
 
 
