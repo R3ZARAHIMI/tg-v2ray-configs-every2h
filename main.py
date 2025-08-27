@@ -230,8 +230,11 @@ class V2RayExtractor:
                 if proxy.get('tls'):
                     outbound['tls'] = {'enabled': True, 'server_name': proxy.get('servername')}
                     if proxy.get('reality-opts'):
-                        # افزودن فینگرپرینت برای سازگاری با REALITY
-                        outbound['tls']['fingerprint'] = 'chrome'
+                        # اصلاح ساختار uTLS برای REALITY
+                        outbound['tls']['utls'] = {
+                            'enabled': True,
+                            'fingerprint': 'chrome'
+                        }
                         outbound['tls']['reality'] = {
                             'enabled': True, 
                             'public_key': proxy['reality-opts']['public-key'], 
@@ -343,7 +346,7 @@ class V2RayExtractor:
             return
             
         print(f"👍 {len(proxies_list_clash)} کانفیگ معتبر برای فایل نهایی یافت شد.")
-        all_proxy_names = [p['name'] for p in proxies_list_clash]
+        all_proxy_names = [p['name'] for p in proxies_list_clاش]
 
         # ساخت و ذخیره فایل حرفه‌ای (Pro)
         try:
