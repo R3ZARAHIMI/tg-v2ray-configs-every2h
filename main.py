@@ -411,7 +411,7 @@ class V2RayExtractor:
         }
 
     def build_sing_box_config(self, proxies_clash: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """ساخت کانفیگ مدرن و کامل برای Sing-box"""
+        """ساخت کانفیگ مدرن و کامل برای Sing-box بر اساس الگوی موفق"""
         outbounds = []
         for proxy in proxies_clash:
             sb_outbound = self.convert_to_singbox_outbound(proxy)
@@ -422,16 +422,28 @@ class V2RayExtractor:
         
         return {
             "log": {
-                "level": "info",
+                "level": "warn",
                 "timestamp": True
             },
             "dns": {
                 "servers": [
-                    {"tag": "dns_proxy", "address": "https://1.1.1.1/dns-query", "detour": "PROXY"},
-                    {"tag": "dns_direct", "address": "8.8.8.8", "detour": "direct"}
+                    {
+                        "tag": "dns-proxy",
+                        "address": "https://1.1.1.1/dns-query",
+                        "detour": "PROXY"
+                    },
+                    {
+                        "tag": "dns-direct",
+                        "address": "8.8.8.8",
+                        "detour": "direct"
+                    }
+                ],
+                "rules": [
+                    { "rule_set": ["iran-domains", "iran-ips"], "server": "dns-direct" },
+                    { "outbound": "any", "server": "dns-proxy" }
                 ],
                 "strategy": "ipv4_only",
-                "final": "dns_proxy"
+                "final": "dns-proxy"
             },
             "inbounds": [
                 {
@@ -448,7 +460,8 @@ class V2RayExtractor:
                 {
                     "type": "selector",
                     "tag": "PROXY",
-                    "outbounds": ["auto", "direct", *proxy_tags]
+                    "outbounds": ["auto", "direct", *proxy_tags],
+                    "default": "auto"
                 },
                 {
                     "type": "urltest",
@@ -478,7 +491,6 @@ class V2RayExtractor:
                     {"protocol": "dns", "outbound": "dns-out"},
                     {"rule_set": ["iran-domains", "iran-ips"], "outbound": "direct"},
                     {"ip_is_private": True, "outbound": "direct"},
-                    {"outbound": "PROXY"}
                 ],
                 "final": "PROXY"
             }
