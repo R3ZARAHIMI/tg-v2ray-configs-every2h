@@ -403,7 +403,7 @@ class V2RayExtractor:
         }
 
     def build_sing_box_config(self, proxies_clash: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """ساخت فایل کانفیگ JSON برای Sing-box"""
+        """ساخت فایل کانفیگ JSON برای Sing-box با استفاده از Rule Set"""
         outbounds = []
         for proxy in proxies_clash:
             sb_outbound = self.convert_to_singbox_outbound(proxy)
@@ -438,10 +438,18 @@ class V2RayExtractor:
                 *outbounds
             ],
             "route": {
+                "rule_set": [
+                    {
+                        "tag": "iran-domains",
+                        "type": "remote",
+                        "format": "source",
+                        "url": "https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/iran-domains.txt",
+                        "download_detour": "direct"
+                    }
+                ],
                 "rules": [
                     {"ip_is_private": True, "outbound": "direct"},
-                    {"domain_suffix": ".ir", "outbound": "direct"},
-                    {"geosite": "ir", "outbound": "direct"},
+                    {"rule_set": "iran-domains", "outbound": "direct"},
                     {"outbound": "PROXY"}
                 ]
             }
