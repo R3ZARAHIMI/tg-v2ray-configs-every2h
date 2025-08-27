@@ -213,12 +213,18 @@ class V2RayExtractor:
     def convert_to_singbox_outbound(self, proxy: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """تبدیل فرمت دیکشنری پراکسی به فرمت outbound برای Sing-box"""
         try:
+            # اصلاح نام پراکسی برای سازگاری با Sing-box
+            proxy_type_singbox = proxy['type']
+            if proxy_type_singbox == 'ss':
+                proxy_type_singbox = 'shadowsocks'
+
             outbound = {
-                "type": proxy['type'],
+                "type": proxy_type_singbox,
                 "tag": proxy['name'],
                 "server": proxy['server'],
                 "server_port": proxy['port']
             }
+            
             if proxy['type'] == 'vless':
                 outbound['uuid'] = proxy['uuid']
                 outbound['flow'] = ''
