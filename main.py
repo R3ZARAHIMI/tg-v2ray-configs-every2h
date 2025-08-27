@@ -411,7 +411,7 @@ class V2RayExtractor:
         }
 
     def build_sing_box_config(self, proxies_clash: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """ساخت فایل کانفیگ JSON برای Sing-box با استفاده از Rule Set"""
+        """ساخت کانفیگ مدرن و کامل برای Sing-box"""
         outbounds = []
         for proxy in proxies_clash:
             sb_outbound = self.convert_to_singbox_outbound(proxy)
@@ -421,16 +421,30 @@ class V2RayExtractor:
         proxy_tags = [p['tag'] for p in outbounds]
         
         return {
-            "log": {"level": "info", "output": "box.log", "timestamp": True},
+            "log": {
+                "level": "info",
+                "timestamp": True
+            },
             "dns": {
                 "servers": [
-                    {"address": "8.8.8.8"}, {"address": "1.1.1.1"}
-                ]
+                    {"tag": "dns_proxy", "address": "https://1.1.1.1/dns-query", "detour": "PROXY"},
+                    {"tag": "dns_direct", "address": "8.8.8.8", "detour": "direct"}
+                ],
+                "strategy": "ipv4_only",
+                "final": "dns_proxy"
             },
             "inbounds": [
-                {"type": "mixed", "listen": "0.0.0.0", "listen_port": 2080}
+                {
+                    "type": "mixed",
+                    "listen": "0.0.0.0",
+                    "listen_port": 2080
+                }
             ],
             "outbounds": [
+                {"type": "direct", "tag": "direct"},
+                {"type": "block", "tag": "block"},
+                {"type": "dns", "tag": "dns-out"},
+                *outbounds,
                 {
                     "type": "selector",
                     "tag": "PROXY",
@@ -439,11 +453,9 @@ class V2RayExtractor:
                 {
                     "type": "urltest",
                     "tag": "auto",
-                    "outbounds": proxy_tags
-                },
-                {"type": "direct", "tag": "direct"},
-                {"type": "block", "tag": "block"},
-                *outbounds
+                    "outbounds": proxy_tags,
+                    "url": "http://www.gstatic.com/generate_204"
+                }
             ],
             "route": {
                 "rule_set": [
@@ -463,10 +475,12 @@ class V2RayExtractor:
                     }
                 ],
                 "rules": [
-                    {"ip_is_private": True, "outbound": "direct"},
+                    {"protocol": "dns", "outbound": "dns-out"},
                     {"rule_set": ["iran-domains", "iran-ips"], "outbound": "direct"},
+                    {"ip_is_private": True, "outbound": "direct"},
                     {"outbound": "PROXY"}
-                ]
+                ],
+                "final": "PROXY"
             }
         }
 
