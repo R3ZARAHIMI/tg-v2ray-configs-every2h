@@ -24,9 +24,9 @@ CHANNEL_SEARCH_LIMIT = int(os.environ.get('CHANNEL_SEARCH_LIMIT', 5))
 GROUP_SEARCH_LIMIT = int(os.environ.get('GROUP_SEARCH_LIMIT', 600))
 
 # تعریف نام فایل‌های خروجی
-OUTPUT_YAML_PRO = "Config-jo.yaml"      # نسخه حرفه‌ای
-OUTPUT_TXT = "Config_jo.txt"              # لیست خام کانفیگ‌ها
-OUTPUT_JSON_CONFIG_JO = "Config_jo.json"     # فایل کانفیگ برای Sing-box
+OUTPUT_YAML_PRO = "Config-jo.yaml"
+OUTPUT_TXT = "Config_jo.txt"
+OUTPUT_JSON_CONFIG_JO = "Config_jo.json"
 
 # الگوهای Regex برای یافتن انواع کانفیگ
 V2RAY_PATTERNS = [
@@ -213,7 +213,6 @@ class V2RayExtractor:
     def convert_to_singbox_outbound(self, proxy: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """تبدیل فرمت دیکشنری پراکسی به فرمت outbound برای Sing-box"""
         try:
-            # اصلاح نام پراکسی برای سازگاری با Sing-box
             proxy_type_singbox = proxy['type']
             if proxy_type_singbox == 'ss':
                 proxy_type_singbox = 'shadowsocks'
@@ -403,7 +402,7 @@ class V2RayExtractor:
             ]
         }
 
-def build_sing_box_config(self, proxies_clash: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def build_sing_box_config(self, proxies_clash: List[Dict[str, Any]]) -> Dict[str, Any]:
         """ساخت فایل کانفیگ JSON برای Sing-box"""
         outbounds = []
         for proxy in proxies_clash:
@@ -442,7 +441,6 @@ def build_sing_box_config(self, proxies_clash: List[Dict[str, Any]]) -> Dict[str
                 "rules": [
                     {"ip_is_private": True, "outbound": "direct"},
                     {"domain_suffix": ".ir", "outbound": "direct"},
-                    # تغییر از geoip به geosite برای سازگاری
                     {"geosite": "ir", "outbound": "direct"},
                     {"outbound": "PROXY"}
                 ]
