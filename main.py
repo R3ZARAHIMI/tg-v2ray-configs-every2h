@@ -427,29 +427,22 @@ class V2RayExtractor:
             },
             "dns": {
                 "servers": [
-                    {
-                        "tag": "dns-proxy",
-                        "address": "https://1.1.1.1/dns-query",
-                        "detour": "PROXY"
-                    },
-                    {
-                        "tag": "dns-direct",
-                        "address": "8.8.8.8",
-                        "detour": "direct"
-                    }
+                    { "tag": "dns_proxy", "address": "https://1.1.1.1/dns-query", "detour": "PROXY" },
+                    { "tag": "dns_direct", "address": "8.8.8.8", "detour": "direct" },
                 ],
                 "rules": [
-                    { "rule_set": ["iran-domains", "iran-ips"], "server": "dns-direct" },
-                    { "outbound": "any", "server": "dns-proxy" }
+                    { "rule_set": ["geosite-ir", "geoip-ir"], "server": "dns_direct" },
+                    { "outbound": "any", "server": "dns_proxy" }
                 ],
                 "strategy": "ipv4_only",
-                "final": "dns-proxy"
+                "final": "dns_proxy"
             },
             "inbounds": [
                 {
                     "type": "mixed",
                     "listen": "0.0.0.0",
-                    "listen_port": 2080
+                    "listen_port": 2080,
+                    "sniff": True
                 }
             ],
             "outbounds": [
@@ -467,20 +460,21 @@ class V2RayExtractor:
                     "type": "urltest",
                     "tag": "auto",
                     "outbounds": proxy_tags,
-                    "url": "http://www.gstatic.com/generate_204"
+                    "url": "http://www.gstatic.com/generate_204",
+                    "interval": "5m"
                 }
             ],
             "route": {
                 "rule_set": [
                     {
-                        "tag": "iran-domains",
+                        "tag": "geosite-ir",
                         "type": "remote",
                         "format": "binary",
                         "url": "https://cdn.jsdelivr.net/gh/Chocolate4U/Iran-sing-box-rules@rule-set/geosite-ir.srs",
                         "download_detour": "direct"
                     },
                     {
-                        "tag": "iran-ips",
+                        "tag": "geoip-ir",
                         "type": "remote",
                         "format": "binary",
                         "url": "https://cdn.jsdelivr.net/gh/Chocolate4U/Iran-sing-box-rules@rule-set/geoip-ir.srs",
@@ -489,8 +483,8 @@ class V2RayExtractor:
                 ],
                 "rules": [
                     {"protocol": "dns", "outbound": "dns-out"},
-                    {"rule_set": ["iran-domains", "iran-ips"], "outbound": "direct"},
-                    {"ip_is_private": True, "outbound": "direct"},
+                    {"rule_set": ["geosite-ir", "geoip-ir"], "outbound": "direct"},
+                    {"ip_is_private": True, "outbound": "direct"}
                 ],
                 "final": "PROXY"
             }
