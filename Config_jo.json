@@ -1,18 +1,23 @@
 {
     "log": {
         "level": "info",
-        "output": "box.log",
         "timestamp": true
     },
     "dns": {
         "servers": [
             {
-                "address": "8.8.8.8"
+                "tag": "dns_proxy",
+                "address": "https://1.1.1.1/dns-query",
+                "detour": "PROXY"
             },
             {
-                "address": "1.1.1.1"
+                "tag": "dns_direct",
+                "address": "8.8.8.8",
+                "detour": "direct"
             }
-        ]
+        ],
+        "strategy": "ipv4_only",
+        "final": "dns_proxy"
     },
     "inbounds": [
         {
@@ -23,60 +28,6 @@
     ],
     "outbounds": [
         {
-            "type": "selector",
-            "tag": "PROXY",
-            "outbounds": [
-                "auto",
-                "direct",
-                "v2ray_configs_pool-dd11",
-                "210-21c8",
-                "𝗚𝗲𝗿𝗺𝗮𝗻𝘆__VConfing-e7c7",
-                "کانفینگ_رایگان_کانال_Gonabadvpnn_24-9ff1",
-                "By_EbraSha_ss-AT-902e",
-                "209-0935",
-                "vless-f4548fd4",
-                "Join_proxie_for_more-5d62",
-                "210-0afb",
-                "2httpstmeConfigX2ray-778f",
-                "56ConfigX2ray-3d7d",
-                "By_EbraSha_ss-PT-1ae2",
-                "configLINE-e92e",
-                "By_EbraSha_vless-IL-c09c",
-                "کانفینگ_رایگان_کانال_Gonabadvpnn_26-0a74",
-                "gonabad_vpn_30-fd8f",
-                "configLINE4-4dc0",
-                "TLS-ALLConfigX2ray-2d5f",
-                "کانفیگ_روزانهproxie-6654",
-                "configLINE2-b6ab"
-            ]
-        },
-        {
-            "type": "urltest",
-            "tag": "auto",
-            "outbounds": [
-                "v2ray_configs_pool-dd11",
-                "210-21c8",
-                "𝗚𝗲𝗿𝗺𝗮𝗻𝘆__VConfing-e7c7",
-                "کانفینگ_رایگان_کانال_Gonabadvpnn_24-9ff1",
-                "By_EbraSha_ss-AT-902e",
-                "209-0935",
-                "vless-f4548fd4",
-                "Join_proxie_for_more-5d62",
-                "210-0afb",
-                "2httpstmeConfigX2ray-778f",
-                "56ConfigX2ray-3d7d",
-                "By_EbraSha_ss-PT-1ae2",
-                "configLINE-e92e",
-                "By_EbraSha_vless-IL-c09c",
-                "کانفینگ_رایگان_کانال_Gonabadvpnn_26-0a74",
-                "gonabad_vpn_30-fd8f",
-                "configLINE4-4dc0",
-                "TLS-ALLConfigX2ray-2d5f",
-                "کانفیگ_روزانهproxie-6654",
-                "configLINE2-b6ab"
-            ]
-        },
-        {
             "type": "direct",
             "tag": "direct"
         },
@@ -85,8 +36,178 @@
             "tag": "block"
         },
         {
+            "type": "dns",
+            "tag": "dns-out"
+        },
+        {
             "type": "vless",
-            "tag": "v2ray_configs_pool-dd11",
+            "tag": "209-5a37",
+            "server": "104.21.62.144",
+            "server_port": 443,
+            "uuid": "32015fc3-dc7f-46b8-b1a9-ccfc8b75fcde",
+            "flow": "",
+            "tls": {
+                "enabled": true,
+                "server_name": "sauron.melkore.ir"
+            }
+        },
+        {
+            "type": "vmess",
+            "tag": "کانفیگ_روزانهproxie-3b10",
+            "server": "104.21.62.144",
+            "server_port": 443,
+            "uuid": "79e0b95b-0775-4bb5-87a9-9f1c9ada42c5",
+            "alter_id": 0,
+            "security": "zero",
+            "tls": {
+                "enabled": true,
+                "server_name": null
+            }
+        },
+        {
+            "type": "vless",
+            "tag": "configLINE4-2b05",
+            "server": "172.66.40.99",
+            "server_port": 443,
+            "uuid": "f12306c3-40f7-4543-afd0-534a91b1cdf3",
+            "flow": "",
+            "tls": {
+                "enabled": true,
+                "server_name": "hE136.maShkesTan.CoM"
+            },
+            "transport": {
+                "type": "ws",
+                "path": "/telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE?ed=2048",
+                "headers": {
+                    "Host": "hE136.maShkesTan.CoM"
+                }
+            }
+        },
+        {
+            "type": "vmess",
+            "tag": "کانفینگ_رایگان_کانال_Gonabadvpnn_26-004b",
+            "server": "64.227.45.92",
+            "server_port": 20086,
+            "uuid": "5e02bc01-42a7-4609-b20a-4d93feea65c6",
+            "alter_id": 0,
+            "security": "auto",
+            "transport": {
+                "type": "ws",
+                "path": "/",
+                "headers": {
+                    "Host": "64.227.45.92"
+                }
+            }
+        },
+        {
+            "type": "shadowsocks",
+            "tag": "By_EbraSha_ss-AT-fbd7",
+            "server": "77.110.110.117",
+            "server_port": 443,
+            "method": "chacha20-ietf-poly1305",
+            "password": "9JeYy8SkViXuSHVs9GFeSe"
+        },
+        {
+            "type": "vless",
+            "tag": "By_EbraSha_vless-IL-5d16",
+            "server": "ilta-wzxrxkdhbjpnprhkkpplsjwawhssvollvxzdhqshiqckwdgrdm.orbnet.xyz",
+            "server_port": 443,
+            "uuid": "0e8a6896-ad90-4a3b-89a3-77d64aa409e2",
+            "flow": "",
+            "tls": {
+                "enabled": true,
+                "server_name": "i2pd.website",
+                "utls": {
+                    "enabled": true,
+                    "fingerprint": "chrome"
+                },
+                "reality": {
+                    "enabled": true,
+                    "public_key": "YVDo7U4O-AT2fa5H9E7hyYHKgfZd1vB6UdbAf2ggWQE",
+                    "short_id": "55e6af1a35e64a98"
+                }
+            }
+        },
+        {
+            "type": "vless",
+            "tag": "210-3649",
+            "server": "104.21.62.144",
+            "server_port": 443,
+            "uuid": "040ec06e-60c8-4818-a46e-eb17cf310606",
+            "flow": "",
+            "tls": {
+                "enabled": true,
+                "server_name": "sauron.melkore.ir"
+            }
+        },
+        {
+            "type": "vless",
+            "tag": "gonabad_vpn_30-2f2d",
+            "server": "172.67.74.133",
+            "server_port": 443,
+            "uuid": "3d7dd548-5456-4f28-8019-393fbfab3312",
+            "flow": "",
+            "tls": {
+                "enabled": true,
+                "server_name": "app-stg.gopay.co.id.servpn.my.id"
+            },
+            "transport": {
+                "type": "ws",
+                "path": "/sg3/?-JKVPN_TELEGRAM_CHANEL_JKVPN_JKVPN_JKVPN",
+                "headers": {
+                    "Host": "app-stg.gopay.co.id.servpn.my.id"
+                }
+            }
+        },
+        {
+            "type": "shadowsocks",
+            "tag": "By_EbraSha_ss-PT-5945",
+            "server": "185.231.233.173",
+            "server_port": 990,
+            "method": "chacha20-ietf-poly1305",
+            "password": "f8f7aCzcPKbsF8p3"
+        },
+        {
+            "type": "vless",
+            "tag": "کانفینگ_رایگان_کانال_Gonabadvpnn_24-3031",
+            "server": "172.66.40.99",
+            "server_port": 443,
+            "uuid": "787c6fc8-aed8-4b4e-971b-e093cbf1699e",
+            "flow": "",
+            "tls": {
+                "enabled": true,
+                "server_name": "az52.mashkestan.com"
+            },
+            "transport": {
+                "type": "ws",
+                "path": "/telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE?ed=2048",
+                "headers": {
+                    "Host": "az52.mashkestan.com"
+                }
+            }
+        },
+        {
+            "type": "vless",
+            "tag": "2httpstmeConfigX2ray-fa39",
+            "server": "172.66.40.99",
+            "server_port": 443,
+            "uuid": "f12306c3-40f7-4543-afd0-534a91b1cdf3",
+            "flow": "",
+            "tls": {
+                "enabled": true,
+                "server_name": "hE136.maShkesTan.CoM"
+            },
+            "transport": {
+                "type": "ws",
+                "path": "/telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE?ed=2048",
+                "headers": {
+                    "Host": "hE136.maShkesTan.CoM"
+                }
+            }
+        },
+        {
+            "type": "vless",
+            "tag": "v2ray_configs_pool-be2e",
             "server": "amazon-4.cristiano.name.ng",
             "server_port": 443,
             "uuid": "4c26ebc3-7784-46d8-b52a-7b0ccae6f4b4",
@@ -107,19 +228,7 @@
         },
         {
             "type": "vless",
-            "tag": "210-21c8",
-            "server": "104.21.62.144",
-            "server_port": 443,
-            "uuid": "57bcea09-fb76-4e8b-b7e3-fd1862bbacd9",
-            "flow": "",
-            "tls": {
-                "enabled": true,
-                "server_name": "sauron.melkore.ir"
-            }
-        },
-        {
-            "type": "vless",
-            "tag": "𝗚𝗲𝗿𝗺𝗮𝗻𝘆__VConfing-e7c7",
+            "tag": "𝗚𝗲𝗿𝗺𝗮𝗻𝘆__VConfing-e76d",
             "server": "91.99.117.197",
             "server_port": 8443,
             "uuid": "5687971f-8cd9-4e52-f4c5-4ff290a1f7f2",
@@ -140,10 +249,22 @@
         },
         {
             "type": "vless",
-            "tag": "کانفینگ_رایگان_کانال_Gonabadvpnn_24-9ff1",
+            "tag": "Join_proxie_for_more-5a07",
+            "server": "104.21.62.144",
+            "server_port": 443,
+            "uuid": "9e843f2e-a992-438e-89a4-4f5c2606d856",
+            "flow": "",
+            "tls": {
+                "enabled": true,
+                "server_name": "sauron.melkore.ir"
+            }
+        },
+        {
+            "type": "vless",
+            "tag": "56ConfigX2ray-5642",
             "server": "172.66.40.99",
             "server_port": 443,
-            "uuid": "787c6fc8-aed8-4b4e-971b-e093cbf1699e",
+            "uuid": "c3375fd7-68f9-4b6c-9304-ccdeb029689e",
             "flow": "",
             "tls": {
                 "enabled": true,
@@ -158,19 +279,11 @@
             }
         },
         {
-            "type": "shadowsocks",
-            "tag": "By_EbraSha_ss-AT-902e",
-            "server": "77.110.110.117",
-            "server_port": 443,
-            "method": "chacha20-ietf-poly1305",
-            "password": "9JeYy8SkViXuSHVs9GFeSe"
-        },
-        {
             "type": "vless",
-            "tag": "209-0935",
+            "tag": "210-5232",
             "server": "104.21.62.144",
             "server_port": 443,
-            "uuid": "32015fc3-dc7f-46b8-b1a9-ccfc8b75fcde",
+            "uuid": "57bcea09-fb76-4e8b-b7e3-fd1862bbacd9",
             "flow": "",
             "tls": {
                 "enabled": true,
@@ -179,7 +292,26 @@
         },
         {
             "type": "vless",
-            "tag": "vless-f4548fd4",
+            "tag": "configLINE2-0b5a",
+            "server": "172.66.40.99",
+            "server_port": 443,
+            "uuid": "8f06a3f8-ad6c-4852-83db-9a5d7649d15c",
+            "flow": "",
+            "tls": {
+                "enabled": true,
+                "server_name": "az52.mashkestan.com"
+            },
+            "transport": {
+                "type": "ws",
+                "path": "/telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE?ed=2048",
+                "headers": {
+                    "Host": "az52.mashkestan.com"
+                }
+            }
+        },
+        {
+            "type": "vless",
+            "tag": "vless-0bb99d27",
             "server": "bakrie.ac.id.servpn.my.id",
             "server_port": 443,
             "uuid": "4181c93f-0a91-48e3-bf9d-0e2c548734a5",
@@ -198,77 +330,7 @@
         },
         {
             "type": "vless",
-            "tag": "Join_proxie_for_more-5d62",
-            "server": "104.21.62.144",
-            "server_port": 443,
-            "uuid": "9e843f2e-a992-438e-89a4-4f5c2606d856",
-            "flow": "",
-            "tls": {
-                "enabled": true,
-                "server_name": "sauron.melkore.ir"
-            }
-        },
-        {
-            "type": "vless",
-            "tag": "210-0afb",
-            "server": "104.21.62.144",
-            "server_port": 443,
-            "uuid": "040ec06e-60c8-4818-a46e-eb17cf310606",
-            "flow": "",
-            "tls": {
-                "enabled": true,
-                "server_name": "sauron.melkore.ir"
-            }
-        },
-        {
-            "type": "vless",
-            "tag": "2httpstmeConfigX2ray-778f",
-            "server": "172.66.40.99",
-            "server_port": 443,
-            "uuid": "f12306c3-40f7-4543-afd0-534a91b1cdf3",
-            "flow": "",
-            "tls": {
-                "enabled": true,
-                "server_name": "hE136.maShkesTan.CoM"
-            },
-            "transport": {
-                "type": "ws",
-                "path": "/telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE?ed=2048",
-                "headers": {
-                    "Host": "hE136.maShkesTan.CoM"
-                }
-            }
-        },
-        {
-            "type": "vless",
-            "tag": "56ConfigX2ray-3d7d",
-            "server": "172.66.40.99",
-            "server_port": 443,
-            "uuid": "c3375fd7-68f9-4b6c-9304-ccdeb029689e",
-            "flow": "",
-            "tls": {
-                "enabled": true,
-                "server_name": "az52.mashkestan.com"
-            },
-            "transport": {
-                "type": "ws",
-                "path": "/telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE?ed=2048",
-                "headers": {
-                    "Host": "az52.mashkestan.com"
-                }
-            }
-        },
-        {
-            "type": "shadowsocks",
-            "tag": "By_EbraSha_ss-PT-1ae2",
-            "server": "185.231.233.173",
-            "server_port": 990,
-            "method": "chacha20-ietf-poly1305",
-            "password": "f8f7aCzcPKbsF8p3"
-        },
-        {
-            "type": "vless",
-            "tag": "configLINE-e92e",
+            "tag": "configLINE-bf09",
             "server": "172.66.40.99",
             "server_port": 443,
             "uuid": "c3375fd7-68f9-4b6c-9304-ccdeb029689e",
@@ -287,82 +349,7 @@
         },
         {
             "type": "vless",
-            "tag": "By_EbraSha_vless-IL-c09c",
-            "server": "ilta-wzxrxkdhbjpnprhkkpplsjwawhssvollvxzdhqshiqckwdgrdm.orbnet.xyz",
-            "server_port": 443,
-            "uuid": "0e8a6896-ad90-4a3b-89a3-77d64aa409e2",
-            "flow": "",
-            "tls": {
-                "enabled": true,
-                "server_name": "i2pd.website",
-                "utls": {
-                    "enabled": true,
-                    "fingerprint": "chrome"
-                },
-                "reality": {
-                    "enabled": true,
-                    "public_key": "YVDo7U4O-AT2fa5H9E7hyYHKgfZd1vB6UdbAf2ggWQE",
-                    "short_id": "55e6af1a35e64a98"
-                }
-            }
-        },
-        {
-            "type": "vmess",
-            "tag": "کانفینگ_رایگان_کانال_Gonabadvpnn_26-0a74",
-            "server": "64.227.45.92",
-            "server_port": 20086,
-            "uuid": "5e02bc01-42a7-4609-b20a-4d93feea65c6",
-            "alter_id": 0,
-            "security": "auto",
-            "transport": {
-                "type": "ws",
-                "path": "/",
-                "headers": {
-                    "Host": "64.227.45.92"
-                }
-            }
-        },
-        {
-            "type": "vless",
-            "tag": "gonabad_vpn_30-fd8f",
-            "server": "172.67.74.133",
-            "server_port": 443,
-            "uuid": "3d7dd548-5456-4f28-8019-393fbfab3312",
-            "flow": "",
-            "tls": {
-                "enabled": true,
-                "server_name": "app-stg.gopay.co.id.servpn.my.id"
-            },
-            "transport": {
-                "type": "ws",
-                "path": "/sg3/?-JKVPN_TELEGRAM_CHANEL_JKVPN_JKVPN_JKVPN",
-                "headers": {
-                    "Host": "app-stg.gopay.co.id.servpn.my.id"
-                }
-            }
-        },
-        {
-            "type": "vless",
-            "tag": "configLINE4-4dc0",
-            "server": "172.66.40.99",
-            "server_port": 443,
-            "uuid": "f12306c3-40f7-4543-afd0-534a91b1cdf3",
-            "flow": "",
-            "tls": {
-                "enabled": true,
-                "server_name": "hE136.maShkesTan.CoM"
-            },
-            "transport": {
-                "type": "ws",
-                "path": "/telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE?ed=2048",
-                "headers": {
-                    "Host": "hE136.maShkesTan.CoM"
-                }
-            }
-        },
-        {
-            "type": "vless",
-            "tag": "TLS-ALLConfigX2ray-2d5f",
+            "tag": "TLS-ALLConfigX2ray-2f56",
             "server": "172.66.40.99",
             "server_port": 443,
             "uuid": "telegram-id-Arfilter",
@@ -380,36 +367,59 @@
             }
         },
         {
-            "type": "vmess",
-            "tag": "کانفیگ_روزانهproxie-6654",
-            "server": "104.21.62.144",
-            "server_port": 443,
-            "uuid": "79e0b95b-0775-4bb5-87a9-9f1c9ada42c5",
-            "alter_id": 0,
-            "security": "zero",
-            "tls": {
-                "enabled": true,
-                "server_name": null
-            }
+            "type": "selector",
+            "tag": "PROXY",
+            "outbounds": [
+                "auto",
+                "direct",
+                "209-5a37",
+                "کانفیگ_روزانهproxie-3b10",
+                "configLINE4-2b05",
+                "کانفینگ_رایگان_کانال_Gonabadvpnn_26-004b",
+                "By_EbraSha_ss-AT-fbd7",
+                "By_EbraSha_vless-IL-5d16",
+                "210-3649",
+                "gonabad_vpn_30-2f2d",
+                "By_EbraSha_ss-PT-5945",
+                "کانفینگ_رایگان_کانال_Gonabadvpnn_24-3031",
+                "2httpstmeConfigX2ray-fa39",
+                "v2ray_configs_pool-be2e",
+                "𝗚𝗲𝗿𝗺𝗮𝗻𝘆__VConfing-e76d",
+                "Join_proxie_for_more-5a07",
+                "56ConfigX2ray-5642",
+                "210-5232",
+                "configLINE2-0b5a",
+                "vless-0bb99d27",
+                "configLINE-bf09",
+                "TLS-ALLConfigX2ray-2f56"
+            ]
         },
         {
-            "type": "vless",
-            "tag": "configLINE2-b6ab",
-            "server": "172.66.40.99",
-            "server_port": 443,
-            "uuid": "8f06a3f8-ad6c-4852-83db-9a5d7649d15c",
-            "flow": "",
-            "tls": {
-                "enabled": true,
-                "server_name": "az52.mashkestan.com"
-            },
-            "transport": {
-                "type": "ws",
-                "path": "/telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE?ed=2048",
-                "headers": {
-                    "Host": "az52.mashkestan.com"
-                }
-            }
+            "type": "urltest",
+            "tag": "auto",
+            "outbounds": [
+                "209-5a37",
+                "کانفیگ_روزانهproxie-3b10",
+                "configLINE4-2b05",
+                "کانفینگ_رایگان_کانال_Gonabadvpnn_26-004b",
+                "By_EbraSha_ss-AT-fbd7",
+                "By_EbraSha_vless-IL-5d16",
+                "210-3649",
+                "gonabad_vpn_30-2f2d",
+                "By_EbraSha_ss-PT-5945",
+                "کانفینگ_رایگان_کانال_Gonabadvpnn_24-3031",
+                "2httpstmeConfigX2ray-fa39",
+                "v2ray_configs_pool-be2e",
+                "𝗚𝗲𝗿𝗺𝗮𝗻𝘆__VConfing-e76d",
+                "Join_proxie_for_more-5a07",
+                "56ConfigX2ray-5642",
+                "210-5232",
+                "configLINE2-0b5a",
+                "vless-0bb99d27",
+                "configLINE-bf09",
+                "TLS-ALLConfigX2ray-2f56"
+            ],
+            "url": "http://www.gstatic.com/generate_204"
         }
     ],
     "route": {
@@ -431,8 +441,8 @@
         ],
         "rules": [
             {
-                "ip_is_private": true,
-                "outbound": "direct"
+                "protocol": "dns",
+                "outbound": "dns-out"
             },
             {
                 "rule_set": [
@@ -442,8 +452,13 @@
                 "outbound": "direct"
             },
             {
+                "ip_is_private": true,
+                "outbound": "direct"
+            },
+            {
                 "outbound": "PROXY"
             }
-        ]
+        ],
+        "final": "PROXY"
     }
 }
