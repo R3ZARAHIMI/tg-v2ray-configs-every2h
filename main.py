@@ -230,15 +230,14 @@ class V2RayExtractor:
                 if proxy.get('tls'):
                     outbound['tls'] = {'enabled': True, 'server_name': proxy.get('servername')}
                     if proxy.get('reality-opts'):
-                        # اصلاح ساختار uTLS برای REALITY
                         outbound['tls']['utls'] = {
                             'enabled': True,
                             'fingerprint': 'chrome'
                         }
                         outbound['tls']['reality'] = {
                             'enabled': True, 
-                            'public_key': proxy['reality-opts']['public-key'], 
-                            'short_id': proxy['reality-opts']['short-id']
+                            'public_key': proxy['reality-opts']['public_key'], 
+                            'short_id': proxy['reality-opts']['short_id']
                         }
                 if proxy.get('network') == 'ws':
                     outbound['transport'] = {'type': 'ws', 'path': proxy['ws-opts']['path'], 'headers': {'Host': proxy['ws-opts']['headers']['Host']}}
@@ -346,7 +345,7 @@ class V2RayExtractor:
             return
             
         print(f"👍 {len(proxies_list_clash)} کانفیگ معتبر برای فایل نهایی یافت شد.")
-        all_proxy_names = [p['name'] for p in proxies_list_clاش]
+        all_proxy_names = [p['name'] for p in proxies_list_clash]
 
         # ساخت و ذخیره فایل حرفه‌ای (Pro)
         try:
