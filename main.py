@@ -427,15 +427,15 @@ class V2RayExtractor:
             },
             "dns": {
                 "servers": [
-                    { "tag": "dns_proxy", "address": "https://1.1.1.1/dns-query", "detour": "PROXY" },
-                    { "tag": "dns_direct", "address": "8.8.8.8", "detour": "direct" },
+                    { "tag": "dns-remote", "address": "https://8.8.8.8/dns-query", "detour": "PROXY" },
+                    { "tag": "dns-direct", "address": "8.8.8.8", "detour": "direct" }
                 ],
                 "rules": [
-                    { "rule_set": ["geosite-ir", "geoip-ir"], "server": "dns_direct" },
-                    { "outbound": "any", "server": "dns_proxy" }
+                    { "domain_suffix": ".ir", "server": "dns-direct" },
+                    { "rule_set": ["geosite-ir", "geoip-ir"], "server": "dns-direct" }
                 ],
-                "strategy": "ipv4_only",
-                "final": "dns_proxy"
+                "final": "dns-remote",
+                "strategy": "ipv4_only"
             },
             "inbounds": [
                 {
@@ -453,7 +453,7 @@ class V2RayExtractor:
                 {
                     "type": "selector",
                     "tag": "PROXY",
-                    "outbounds": ["auto", "direct", *proxy_tags],
+                    "outbounds": ["auto", *proxy_tags],
                     "default": "auto"
                 },
                 {
