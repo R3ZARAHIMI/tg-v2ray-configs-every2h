@@ -42,7 +42,7 @@ V2RAY_PATTERNS = [
 BASE64_PATTERN = re.compile(r"([A-Za-z0-9+/=]{50,})", re.MULTILINE)
 
 def process_lists():
-    """خواندن و پردازش لیست کانال‌ها و گروه‌ها از متغیرهای محیطی"""
+    """خواندن و پردازش لیست کانال‌ها وグループ‌ها از متغیرهای محیطی"""
     channels = [ch.strip() for ch in CHANNELS_STR.split(',')] if CHANNELS_STR else []
     if channels: print(f"✅ {len(channels)} کانال از سکرت‌ها خوانده شد.")
     else: print("⚠️ هشدار: سکرت CHANNELS_LIST پیدا نشد یا خالی است.")
@@ -211,102 +211,102 @@ class V2RayExtractor:
             return None
     
     def convert_to_singbox_outbound(self, proxy: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-    """تبدیل فرمت دیکشنری پراکسی به فرمت outbound برای Sing-box"""
-    try:
-        outbound = {
-            "tag": proxy['name'],
-            "server": proxy['server'],
-            "server_port": proxy['port']
-        }
+        """تبدیل فرمت دیکشنری پراکسی به فرمت outbound برای Sing-box"""
+        try:
+            outbound = {
+                "tag": proxy['name'],
+                "server": proxy['server'],
+                "server_port": proxy['port']
+            }
 
-        if proxy['type'] == 'vless':
-            outbound.update({
-                "type": "vless",
-                "uuid": proxy['uuid'],
-                "network": proxy.get('network', 'tcp'),
-                "packet_encoding": "",
-                "tcp_fast_open": True,
-                "tcp_multi_path": True
-            })
+            if proxy['type'] == 'vless':
+                outbound.update({
+                    "type": "vless",
+                    "uuid": proxy['uuid'],
+                    "network": proxy.get('network', 'tcp'),
+                    "packet_encoding": "",
+                    "tcp_fast_open": True,
+                    "tcp_multi_path": True
+                })
 
-            if proxy.get('tls'):
-                outbound["tls"] = {
-                    "enabled": True,
-                    "insecure": False,
-                    "server_name": proxy.get('servername', proxy['server']),
-                    "record_fragment": False,
-                    "utls": {
+                if proxy.get('tls'):
+                    outbound["tls"] = {
                         "enabled": True,
-                        "fingerprint": "randomized"
+                        "insecure": False,
+                        "server_name": proxy.get('servername', proxy['server']),
+                        "record_fragment": False,
+                        "utls": {
+                            "enabled": True,
+                            "fingerprint": "randomized"
+                        }
                     }
-                }
 
-            if proxy.get('network') == 'ws' and proxy.get('ws-opts'):
-                outbound["transport"] = {
-                    "type": "ws",
-                    "path": proxy['ws-opts']['path'],
-                    "headers": proxy['ws-opts']['headers'],
-                    "early_data_header_name": "Sec-WebSocket-Protocol",
-                    "max_early_data": 2560
-                }
+                if proxy.get('network') == 'ws' and proxy.get('ws-opts'):
+                    outbound["transport"] = {
+                        "type": "ws",
+                        "path": proxy['ws-opts']['path'],
+                        "headers": proxy['ws-opts']['headers'],
+                        "early_data_header_name": "Sec-WebSocket-Protocol",
+                        "max_early_data": 2560
+                    }
 
-        elif proxy['type'] == 'vmess':
-            outbound.update({
-                "type": "vmess",
-                "uuid": proxy['uuid'],
-                "security": proxy.get('cipher', 'auto'),
-                "alterId": proxy.get('alterId', 0)
-            })
+            elif proxy['type'] == 'vmess':
+                outbound.update({
+                    "type": "vmess",
+                    "uuid": proxy['uuid'],
+                    "security": proxy.get('cipher', 'auto'),
+                    "alterId": proxy.get('alterId', 0)
+                })
 
-            if proxy.get('tls'):
-                outbound["tls"] = {
-                    "enabled": True,
-                    "insecure": False,
-                    "server_name": proxy.get('servername', proxy['server']),
-                    "record_fragment": False,
-                    "utls": {
+                if proxy.get('tls'):
+                    outbound["tls"] = {
                         "enabled": True,
-                        "fingerprint": "randomized"
+                        "insecure": False,
+                        "server_name": proxy.get('servername', proxy['server']),
+                        "record_fragment": False,
+                        "utls": {
+                            "enabled": True,
+                            "fingerprint": "randomized"
+                        }
                     }
-                }
 
-            if proxy.get('network') == 'ws' and proxy.get('ws-opts'):
-                outbound["transport"] = {
-                    "type": "ws",
-                    "path": proxy['ws-opts']['path'],
-                    "headers": proxy['ws-opts']['headers']
-                }
+                if proxy.get('network') == 'ws' and proxy.get('ws-opts'):
+                    outbound["transport"] = {
+                        "type": "ws",
+                        "path": proxy['ws-opts']['path'],
+                        "headers": proxy['ws-opts']['headers']
+                    }
 
-        elif proxy['type'] == 'trojan':
-            outbound.update({
-                "type": "trojan",
-                "password": proxy['password'],
-                "tls": {
-                    "enabled": True,
-                    "insecure": False,
-                    "server_name": proxy.get('sni', proxy['server']),
-                    "record_fragment": False,
-                    "utls": {
+            elif proxy['type'] == 'trojan':
+                outbound.update({
+                    "type": "trojan",
+                    "password": proxy['password'],
+                    "tls": {
                         "enabled": True,
-                        "fingerprint": "randomized"
+                        "insecure": False,
+                        "server_name": proxy.get('sni', proxy['server']),
+                        "record_fragment": False,
+                        "utls": {
+                            "enabled": True,
+                            "fingerprint": "randomized"
+                        }
                     }
-                }
-            })
+                })
 
-        elif proxy['type'] == 'ss':
-            outbound.update({
-                "type": "shadowsocks",
-                "method": proxy['cipher'],
-                "password": proxy['password']
-            })
+            elif proxy['type'] == 'ss':
+                outbound.update({
+                    "type": "shadowsocks",
+                    "method": proxy['cipher'],
+                    "password": proxy['password']
+                })
 
-        else:
+            else:
+                return None
+
+            return outbound
+        except Exception as e:
+            print(f"❌ خطا در تبدیل به فرمت Sing-box برای {proxy.get('name')}: {e}")
             return None
-
-        return outbound
-    except Exception as e:
-        print(f"❌ خطا در تبدیل به فرمت Sing-box برای {proxy.get('name')}: {e}")
-        return None
 
     def extract_configs_from_text(self, text: str) -> Set[str]:
         found_configs = set()
@@ -355,7 +355,7 @@ class V2RayExtractor:
             for f in [OUTPUT_YAML_PRO, OUTPUT_TXT, OUTPUT_JSON_CONFIG_JO]: open(f, "w").close()
             return
 
-        print(f"⚙️ پردازش {len(self.raw_configs)} کانفیگ یافت شده...")
+        print(f"⚙️ پردازش {len(self.raw_configs)} کانфиگ یافت شده...")
         proxies_list_clash, parse_errors = [], 0
         
         valid_configs = set()
@@ -451,104 +451,104 @@ class V2RayExtractor:
         }
 
     def build_sing_box_config(self, proxies_clash: List[Dict[str, Any]]) -> Dict[str, Any]:
-    """ساخت کانفیگ مدرن و کامل برای Sing-box"""
-    outbounds = []
-    for proxy in proxies_clash:
-        sb_outbound = self.convert_to_singbox_outbound(proxy)
-        if sb_outbound:
-            outbounds.append(sb_outbound)
+        """ساخت کانفیگ مدرن و کامل برای Sing-box"""
+        outbounds = []
+        for proxy in proxies_clash:
+            sb_outbound = self.convert_to_singbox_outbound(proxy)
+            if sb_outbound:
+                outbounds.append(sb_outbound)
 
-    proxy_tags = [p['tag'] for p in outbounds]
-    
-    return {
-        "log": {
-            "level": "warn",
-            "timestamp": True
-        },
-        "dns": {
-            "servers": [
-                {
-                    "tag": "dns-remote",
-                    "address": "https://8.8.8.8/dns-query",
-                    "detour": "✅ Selector"
-                },
-                {
-                    "tag": "dns-direct", 
-                    "address": "8.8.8.8",
-                    "detour": "direct"
-                }
-            ],
-            "rules": [
-                {
-                    "domain": ["raw.githubusercontent.com"],
-                    "server": "dns-direct"
-                },
-                {
-                    "clash_mode": "Direct",
-                    "server": "dns-direct"
-                },
-                {
-                    "clash_mode": "Global", 
-                    "server": "dns-remote"
-                }
-            ],
-            "strategy": "ipv4_only",
-            "independent_cache": True
-        },
-        "inbounds": [
-            {
-                "type": "mixed",
-                "tag": "mixed-in",
-                "listen": "0.0.0.0",
-                "listen_port": 2080
-            }
-        ],
-        "outbounds": [
-            {
-                "type": "selector",
-                "tag": "✅ Selector",
-                "outbounds": ["💦 Best Ping 💥", *proxy_tags]
+        proxy_tags = [p['tag'] for p in outbounds]
+        
+        return {
+            "log": {
+                "level": "warn",
+                "timestamp": True
             },
-            {
-                "type": "urltest",
-                "tag": "💦 Best Ping 💥",
-                "outbounds": proxy_tags,
-                "url": "https://www.gstatic.com/generate_204",
-                "interval": "30s"
+            "dns": {
+                "servers": [
+                    {
+                        "tag": "dns-remote",
+                        "address": "https://8.8.8.8/dns-query",
+                        "detour": "✅ Selector"
+                    },
+                    {
+                        "tag": "dns-direct", 
+                        "address": "8.8.8.8",
+                        "detour": "direct"
+                    }
+                ],
+                "rules": [
+                    {
+                        "domain": ["raw.githubusercontent.com"],
+                        "server": "dns-direct"
+                    },
+                    {
+                        "clash_mode": "Direct",
+                        "server": "dns-direct"
+                    },
+                    {
+                        "clash_mode": "Global", 
+                        "server": "dns-remote"
+                    }
+                ],
+                "strategy": "ipv4_only",
+                "independent_cache": True
             },
-            *outbounds,
-            {
-                "type": "direct",
-                "tag": "direct"
-            }
-        ],
-        "route": {
-            "rules": [
+            "inbounds": [
                 {
-                    "clash_mode": "Direct",
-                    "outbound": "direct"
-                },
-                {
-                    "clash_mode": "Global",
-                    "outbound": "✅ Selector"
-                },
-                {
-                    "protocol": "dns",
-                    "action": "hijack-dns"
+                    "type": "mixed",
+                    "tag": "mixed-in",
+                    "listen": "0.0.0.0",
+                    "listen_port": 2080
                 }
             ],
-            "final": "✅ Selector"
-        },
-        "experimental": {
-            "clash_api": {
-                "external_controller": "127.0.0.1:9090",
-                "external_ui": "ui",
-                "external_ui_download_url": "https://github.com/MetaCubeX/metacubexd/archive/refs/heads/gh-pages.zip",
-                "external_ui_download_detour": "direct",
-                "default_mode": "Rule"
+            "outbounds": [
+                {
+                    "type": "selector",
+                    "tag": "✅ Selector",
+                    "outbounds": ["💦 Best Ping 💥", *proxy_tags]
+                },
+                {
+                    "type": "urltest",
+                    "tag": "💦 Best Ping 💥",
+                    "outbounds": proxy_tags,
+                    "url": "https://www.gstatic.com/generate_204",
+                    "interval": "30s"
+                },
+                *outbounds,
+                {
+                    "type": "direct",
+                    "tag": "direct"
+                }
+            ],
+            "route": {
+                "rules": [
+                    {
+                        "clash_mode": "Direct",
+                        "outbound": "direct"
+                    },
+                    {
+                        "clash_mode": "Global",
+                        "outbound": "✅ Selector"
+                    },
+                    {
+                        "protocol": "dns",
+                        "action": "hijack-dns"
+                    }
+                ],
+                "final": "✅ Selector"
+            },
+            "experimental": {
+                "clash_api": {
+                    "external_controller": "127.0.0.1:9090",
+                    "external_ui": "ui",
+                    "external_ui_download_url": "https://github.com/MetaCubeX/metacubexd/archive/refs/heads/gh-pages.zip",
+                    "external_ui_download_detour": "direct",
+                    "default_mode": "Rule"
+                }
             }
         }
-    }
 
 async def main():
     print("🚀 شروع برنامه استخراج کانفیگ...")
