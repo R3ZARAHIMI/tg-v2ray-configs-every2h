@@ -236,8 +236,8 @@ class V2RayExtractor:
                         }
                         outbound['tls']['reality'] = {
                             'enabled': True, 
-                            'public_key': proxy['reality-opts']['public_key'], 
-                            'short_id': proxy['reality-opts']['short_id']
+                            'public_key': proxy['reality-opts']['public-key'], 
+                            'short_id': proxy['reality-opts']['short-id']
                         }
                 if proxy.get('network') == 'ws':
                     outbound['transport'] = {'type': 'ws', 'path': proxy['ws-opts']['path'], 'headers': {'Host': proxy['ws-opts']['headers']['Host']}}
@@ -451,7 +451,7 @@ class V2RayExtractor:
                         "tag": "iran-domains",
                         "type": "remote",
                         "format": "source",
-                        "url": "https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/iran-domains.txt",
+                        "url": "https://cdn.jsdelivr.net/gh/bootmortis/iran-clash-rules@main/iran-domains.txt",
                         "download_detour": "direct"
                     }
                 ],
