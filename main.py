@@ -450,14 +450,21 @@ class V2RayExtractor:
                     {
                         "tag": "iran-domains",
                         "type": "remote",
-                        "format": "source",
-                        "url": "https://cdn.jsdelivr.net/gh/bootmortis/iran-clash-rules@main/iran-domains.txt",
+                        "format": "binary",
+                        "url": "https://cdn.jsdelivr.net/gh/Chocolate4U/Iran-sing-box-rules@rule-set/geosite-ir.srs",
+                        "download_detour": "direct"
+                    },
+                    {
+                        "tag": "iran-ips",
+                        "type": "remote",
+                        "format": "binary",
+                        "url": "https://cdn.jsdelivr.net/gh/Chocolate4U/Iran-sing-box-rules@rule-set/geoip-ir.srs",
                         "download_detour": "direct"
                     }
                 ],
                 "rules": [
                     {"ip_is_private": True, "outbound": "direct"},
-                    {"rule_set": "iran-domains", "outbound": "direct"},
+                    {"rule_set": ["iran-domains", "iran-ips"], "outbound": "direct"},
                     {"outbound": "PROXY"}
                 ]
             }
