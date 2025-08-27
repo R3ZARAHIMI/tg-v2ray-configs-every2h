@@ -25,8 +25,8 @@ GROUP_SEARCH_LIMIT = int(os.environ.get('GROUP_SEARCH_LIMIT', 600))
 
 # تعریف نام فایل‌های خروجی
 OUTPUT_YAML_PRO = "Config-jo.yaml"      # نسخه حرفه‌ای
-OUTPUT_YAML_LITE = "Config-Lite.yaml"     # نسخه سازگار برای بعضی کلاینت‌های کلش 
 OUTPUT_TXT = "Config_jo.txt"              # لیست خام کانفیگ‌ها
+OUTPUT_JSON_CONFIG_JO = "Config_jo.json"     # فایل کانفیگ برای Sing-box
 
 # الگوهای Regex برای یافتن انواع کانفیگ
 V2RAY_PATTERNS = [
@@ -209,6 +209,51 @@ class V2RayExtractor:
         except Exception as e:
             print(f"❌ خطا در پارس tuic: {e}")
             return None
+    
+    def convert_to_singbox_outbound(self, proxy: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """تبدیل فرمت دیکشنری پراکسی به فرمت outbound برای Sing-box"""
+        try:
+            outbound = {
+                "type": proxy['type'],
+                "tag": proxy['name'],
+                "server": proxy['server'],
+                "server_port": proxy['port']
+            }
+            if proxy['type'] == 'vless':
+                outbound['uuid'] = proxy['uuid']
+                outbound['flow'] = ''
+                if proxy.get('tls'):
+                    outbound['tls'] = {'enabled': True, 'server_name': proxy.get('servername')}
+                    if proxy.get('reality-opts'):
+                        outbound['tls']['reality'] = {'enabled': True, 'public_key': proxy['reality-opts']['public-key'], 'short_id': proxy['reality-opts']['short-id']}
+                if proxy.get('network') == 'ws':
+                    outbound['transport'] = {'type': 'ws', 'path': proxy['ws-opts']['path'], 'headers': {'Host': proxy['ws-opts']['headers']['Host']}}
+            elif proxy['type'] == 'vmess':
+                outbound['uuid'] = proxy['uuid']
+                outbound['alter_id'] = proxy.get('alterId', 0)
+                outbound['security'] = proxy.get('cipher', 'auto')
+                if proxy.get('tls'):
+                    outbound['tls'] = {'enabled': True, 'server_name': proxy.get('servername')}
+                if proxy.get('network') == 'ws':
+                    outbound['transport'] = {'type': 'ws', 'path': proxy['ws-opts']['path'], 'headers': {'Host': proxy['ws-opts']['headers']['Host']}}
+            elif proxy['type'] == 'trojan':
+                outbound['password'] = proxy['password']
+                outbound['tls'] = {'enabled': True, 'server_name': proxy.get('sni')}
+            elif proxy['type'] == 'ss':
+                outbound['method'] = proxy['cipher']
+                outbound['password'] = proxy['password']
+            elif proxy['type'] == 'hysteria2':
+                outbound['password'] = proxy['auth']
+                outbound['tls'] = {'enabled': True, 'server_name': proxy.get('sni'), 'insecure': proxy.get('skip-cert-verify')}
+            elif proxy['type'] == 'tuic':
+                outbound['uuid'] = proxy['uuid']
+                outbound['password'] = proxy['password']
+                outbound['tls'] = {'enabled': True, 'server_name': proxy.get('sni'), 'insecure': proxy.get('skip-cert-verify')}
+            else: return None
+            return outbound
+        except Exception as e:
+            print(f"❌ خطا در تبدیل به فرمت Sing-box برای {proxy.get('name')}: {e}")
+            return None
 
     def extract_configs_from_text(self, text: str) -> Set[str]:
         found_configs = set()
@@ -254,68 +299,61 @@ class V2RayExtractor:
 
         if not self.raw_configs:
             print("⚠️ هیچ کانفیگی در چت‌ها یافت نشد. فایل‌های خروجی خالی خواهند بود.")
-            for f in [OUTPUT_YAML_PRO, OUTPUT_YAML_LITE, OUTPUT_TXT]: open(f, "w").close()
+            for f in [OUTPUT_YAML_PRO, OUTPUT_TXT, OUTPUT_JSON_CONFIG_JO]: open(f, "w").close()
             return
 
         print(f"⚙️ پردازش {len(self.raw_configs)} کانفیگ یافت شده...")
-        proxies_list, parse_errors = [], 0
+        proxies_list_clash, parse_errors = [], 0
         
         valid_configs = set()
         for url in self.raw_configs:
             try:
-                # فیلتر اول: حذف کانفیگ‌های تست سرعت
                 hostname = urlparse(url).hostname
-                if hostname and 'speedtest' in hostname.lower():
-                    continue
-
-                # فیلتر دوم: حذف کانفیگ‌های VLESS بدون امنیت (TLS/REALITY)
+                if hostname and 'speedtest' in hostname.lower(): continue
                 if url.startswith('vless://'):
                     query = parse_qs(urlparse(url).query)
-                    if query.get('security', ['none'])[0] == 'none':
-                        continue
-                
+                    if query.get('security', ['none'])[0] == 'none': continue
                 valid_configs.add(url)
-            except Exception:
-                pass
+            except Exception: pass
 
         for url in valid_configs:
             proxy = self.parse_config_for_clash(url)
             if proxy:
-                proxies_list.append(proxy)
+                proxies_list_clash.append(proxy)
             else:
                 parse_errors += 1
 
         if parse_errors > 0:
             print(f"⚠️ {parse_errors} کانفیگ به دلیل خطا در پارسینگ نادیده گرفته شد.")
 
-        if not proxies_list:
+        if not proxies_list_clash:
             print("⚠️ هیچ کانفیگ معتبری برای ساخت فایل‌ها پیدا نشد.")
-            for f in [OUTPUT_YAML_PRO, OUTPUT_YAML_LITE, OUTPUT_TXT]: open(f, "w").close()
+            for f in [OUTPUT_YAML_PRO, OUTPUT_TXT, OUTPUT_JSON_CONFIG_JO]: open(f, "w").close()
             return
             
-        print(f"👍 {len(proxies_list)} کانفیگ معتبر برای فایل نهایی یافت شد.")
-        all_proxy_names = [p['name'] for p in proxies_list]
+        print(f"👍 {len(proxies_list_clash)} کانفیگ معتبر برای فایل نهایی یافت شد.")
+        all_proxy_names = [p['name'] for p in proxies_list_clash]
 
-        # مرحله ۲: ساخت و ذخیره فایل حرفه‌ای (Pro)
+        # ساخت و ذخیره فایل حرفه‌ای (Pro)
         try:
             os.makedirs('rules', exist_ok=True)
-            pro_config = self.build_pro_config(proxies_list, all_proxy_names)
+            pro_config = self.build_pro_config(proxies_list_clash, all_proxy_names)
             with open(OUTPUT_YAML_PRO, 'w', encoding='utf-8') as f:
                 yaml.dump(pro_config, f, allow_unicode=True, sort_keys=False, indent=2, width=1000)
             print(f"✅ فایل حرفه‌ای {OUTPUT_YAML_PRO} با موفقیت ساخته شد.")
         except Exception as e:
             print(f"❌ خطا در ساخت فایل حرفه‌ای: {e}")
 
-        # مرحله ۳: ساخت و ذخیره فایل سازگار (Lite)
+        # ساخت و ذخیره فایل Sing-box
         try:
-            lite_config = self.build_lite_config(proxies_list, all_proxy_names)
-            with open(OUTPUT_YAML_LITE, 'w', encoding='utf-8') as f:
-                yaml.dump(lite_config, f, allow_unicode=True, sort_keys=False, indent=2, width=1000)
-            print(f"✅ فایل سازگار {OUTPUT_YAML_LITE} (برای ClashMI) با موفقیت ساخته شد.")
+            singbox_config = self.build_sing_box_config(proxies_list_clash)
+            with open(OUTPUT_JSON_CONFIG_JO, 'w', encoding='utf-8') as f:
+                json.dump(singbox_config, f, ensure_ascii=False, indent=4)
+            print(f"✅ فایل Sing-box {OUTPUT_JSON_CONFIG_JO} با موفقیت ساخته شد.")
         except Exception as e:
-            print(f"❌ خطا در ساخت فایل سازگار: {e}")
-
-        # مرحله ۴: ذخیره فایل متنی
+            print(f"❌ خطا در ساخت فایل Sing-box: {e}")
+        
+        # ذخیره فایل متنی
         with open(OUTPUT_TXT, 'w', encoding='utf-8') as f:
             f.write("\n".join(sorted(list(valid_configs))))
         print(f"✅ فایل متنی {OUTPUT_TXT} با موفقیت ذخیره شد.")
@@ -359,30 +397,49 @@ class V2RayExtractor:
             ]
         }
 
-    def build_lite_config(self, proxies, proxy_names):
-        """ساخت کانفیگ ساده و سازگار برای کلاینت‌های قدیمی"""
+    def build_sing_box_config(self, proxies_clash: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """ساخت فایل کانفیگ JSON برای Sing-box"""
+        outbounds = []
+        for proxy in proxies_clash:
+            sb_outbound = self.convert_to_singbox_outbound(proxy)
+            if sb_outbound:
+                outbounds.append(sb_outbound)
+
+        proxy_tags = [p['tag'] for p in outbounds]
+        
         return {
-            'port': 7890,
-            'socks-port': 7891,
-            'allow-lan': True,
-            'mode': 'rule',
-            'log-level': 'info',
-            'external-controller': '127.0.0.1:9090',
-            'dns': {
-                'enable': True,
-                'listen': '0.0.0.0:53',
-                'nameserver': ['8.8.8.8', '1.1.1.1']
+            "log": {"level": "info", "output": "box.log", "timestamp": True},
+            "dns": {
+                "servers": [
+                    {"address": "8.8.8.8"}, {"address": "1.1.1.1"}
+                ]
             },
-            'proxies': proxies,
-            'proxy-groups': [
-                {'name': 'PROXY', 'type': 'select', 'proxies': ['⚡ Auto-Select', 'DIRECT', *proxy_names]},
-                {'name': '⚡ Auto-Select', 'type': 'url-test', 'proxies': proxy_names, 'url': 'http://www.gstatic.com/generate_204', 'interval': 300}
+            "inbounds": [
+                {"type": "mixed", "listen": "0.0.0.0", "listen_port": 2080}
             ],
-            'rules': [
-                'DOMAIN-SUFFIX,ir,DIRECT',
-                'GEOIP,IR,DIRECT',
-                'MATCH,PROXY'
-            ]
+            "outbounds": [
+                {
+                    "type": "selector",
+                    "tag": "PROXY",
+                    "outbounds": ["auto", "direct", *proxy_tags]
+                },
+                {
+                    "type": "urltest",
+                    "tag": "auto",
+                    "outbounds": proxy_tags
+                },
+                {"type": "direct", "tag": "direct"},
+                {"type": "block", "tag": "block"},
+                *outbounds
+            ],
+            "route": {
+                "rules": [
+                    {"ip_is_private": True, "outbound": "direct"},
+                    {"domain_suffix": ".ir", "outbound": "direct"},
+                    {"geoip": "ir", "outbound": "direct"},
+                    {"outbound": "PROXY"}
+                ]
+            }
         }
 
 
