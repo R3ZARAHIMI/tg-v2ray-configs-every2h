@@ -230,7 +230,13 @@ class V2RayExtractor:
                 if proxy.get('tls'):
                     outbound['tls'] = {'enabled': True, 'server_name': proxy.get('servername')}
                     if proxy.get('reality-opts'):
-                        outbound['tls']['reality'] = {'enabled': True, 'public_key': proxy['reality-opts']['public-key'], 'short_id': proxy['reality-opts']['short-id']}
+                        # افزودن فینگرپرینت برای سازگاری با REALITY
+                        outbound['tls']['fingerprint'] = 'chrome'
+                        outbound['tls']['reality'] = {
+                            'enabled': True, 
+                            'public_key': proxy['reality-opts']['public-key'], 
+                            'short_id': proxy['reality-opts']['short-id']
+                        }
                 if proxy.get('network') == 'ws':
                     outbound['transport'] = {'type': 'ws', 'path': proxy['ws-opts']['path'], 'headers': {'Host': proxy['ws-opts']['headers']['Host']}}
             elif proxy['type'] == 'vmess':
