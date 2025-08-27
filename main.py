@@ -234,7 +234,6 @@ class V2RayExtractor:
                         "enabled": True,
                         "insecure": False,
                         "server_name": proxy.get('servername', proxy['server']),
-                        "record_fragment": False,
                         "utls": {
                             "enabled": True,
                             "fingerprint": "randomized"
@@ -275,7 +274,6 @@ class V2RayExtractor:
                         "enabled": True,
                         "insecure": False,
                         "server_name": proxy.get('servername', proxy['server']),
-                        "record_fragment": False,
                         "utls": {
                             "enabled": True,
                             "fingerprint": "randomized"
@@ -298,7 +296,6 @@ class V2RayExtractor:
                         "enabled": True,
                         "insecure": False,
                         "server_name": proxy.get('sni', proxy['server']),
-                        "record_fragment": False,
                         "utls": {
                             "enabled": True,
                             "fingerprint": "randomized"
