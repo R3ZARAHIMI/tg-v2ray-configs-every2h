@@ -403,7 +403,7 @@ class V2RayExtractor:
             ]
         }
 
-    def build_sing_box_config(self, proxies_clash: List[Dict[str, Any]]) -> Dict[str, Any]:
+def build_sing_box_config(self, proxies_clash: List[Dict[str, Any]]) -> Dict[str, Any]:
         """ساخت فایل کانفیگ JSON برای Sing-box"""
         outbounds = []
         for proxy in proxies_clash:
@@ -442,12 +442,12 @@ class V2RayExtractor:
                 "rules": [
                     {"ip_is_private": True, "outbound": "direct"},
                     {"domain_suffix": ".ir", "outbound": "direct"},
-                    {"geoip": "ir", "outbound": "direct"},
+                    # تغییر از geoip به geosite برای سازگاری
+                    {"geosite": "ir", "outbound": "direct"},
                     {"outbound": "PROXY"}
                 ]
             }
         }
-
 
 async def main():
     print("🚀 شروع برنامه استخراج کانفیگ...")
