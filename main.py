@@ -8,7 +8,7 @@ import uuid
 from urllib.parse import urlparse, parse_qs, unquote
 from pyrogram import Client
 from pyrogram.errors import FloodWait
-from typing import Optional, Dict, Any, Set, List
+from typing import Optional, Dict, Any, Set, List, Tuple
 
 # =================================================================================
 # بخش تنظیمات و ثابت‌ها
@@ -27,6 +27,8 @@ GROUP_SEARCH_LIMIT = int(os.environ.get('GROUP_SEARCH_LIMIT', 600))
 OUTPUT_YAML_PRO = "Config-jo.yaml"
 OUTPUT_TXT = "Config_jo.txt"
 OUTPUT_JSON_CONFIG_JO = "Config_jo.json"
+OUTPUT_ORIGINAL_CONFIGS = "Original-Configs.txt"
+
 
 # الگوهای Regex برای یافتن انواع کانفیگ
 V2RAY_PATTERNS = [
@@ -62,13 +64,6 @@ class V2RayExtractor:
     def __init__(self):
         self.raw_configs: Set[str] = set()
         self.client = Client("my_account", api_id=API_ID, api_hash=API_HASH, session_string=SESSION_STRING)
-
-    @staticmethod
-    def _generate_unique_name(original_name: str, prefix: str = "config") -> str:
-        if not original_name: return f"{prefix}-{str(uuid.uuid4())[:8]}"
-        cleaned_name = re.sub(r'[^\w\s\-\_\u0600-\u06FF]', '', original_name).replace(' ', '_').strip('_-')
-        if not cleaned_name: return f"{prefix}-{str(uuid.uuid4())[:8]}"
-        return f"{cleaned_name}-{str(uuid.uuid4())[:4]}"
 
     def _is_valid_shadowsocks(self, ss_url: str) -> bool:
         try:
@@ -140,7 +135,7 @@ class V2RayExtractor:
             if config.get('net') == 'ws':
                 host_header = config.get('host', '').strip() or config.get('add', '').strip()
                 if host_header: ws_opts = {'path': config.get('path', '/'), 'headers': {'Host': host_header}}
-            return {'name': self._generate_unique_name(original_name, "vmess"), 'type': 'vmess', 'server': config.get('add'), 'port': int(config.get('port', 443)), 'uuid': config.get('id'), 'alterId': int(config.get('aid', 0)), 'cipher': config.get('scy', 'auto'), 'tls': config.get('tls') == 'tls', 'network': config.get('net', 'tcp'), 'udp': True, 'ws-opts': ws_opts}
+            return {'name': original_name, 'type': 'vmess', 'server': config.get('add'), 'port': int(config.get('port', 443)), 'uuid': config.get('id'), 'alterId': int(config.get('aid', 0)), 'cipher': config.get('scy', 'auto'), 'tls': config.get('tls') == 'tls', 'network': config.get('net', 'tcp'), 'udp': True, 'ws-opts': ws_opts}
         except Exception as e:
             print(f"❌ خطا در پارس vmess: {e}")
             return None
@@ -157,7 +152,7 @@ class V2RayExtractor:
             if query.get('security', [''])[0] == 'reality':
                 pbk = query.get('pbk', [None])[0]
                 if pbk: reality_opts = {'public-key': pbk, 'short-id': query.get('sid', [''])[0]}
-            return {'name': self._generate_unique_name(original_name, "vless"), 'type': 'vless', 'server': parsed.hostname, 'port': parsed.port or 443, 'uuid': parsed.username, 'udp': True, 'tls': query.get('security', [''])[0] in ['tls', 'reality'], 'network': query.get('type', ['tcp'])[0], 'servername': query.get('sni', [None])[0], 'ws-opts': ws_opts, 'reality-opts': reality_opts}
+            return {'name': original_name, 'type': 'vless', 'server': parsed.hostname, 'port': parsed.port or 443, 'uuid': parsed.username, 'udp': True, 'tls': query.get('security', [''])[0] in ['tls', 'reality'], 'network': query.get('type', ['tcp'])[0], 'servername': query.get('sni', [None])[0], 'ws-opts': ws_opts, 'reality-opts': reality_opts}
         except Exception as e:
             print(f"❌ خطا در پارس vless: {e}")
             return None
@@ -168,7 +163,7 @@ class V2RayExtractor:
             query = parse_qs(parsed.query)
             original_name = unquote(parsed.fragment) if parsed.fragment else ''
             sni = query.get('peer', [None])[0] or query.get('sni', [None])[0] or parsed.hostname
-            return {'name': self._generate_unique_name(original_name, "trojan"), 'type': 'trojan', 'server': parsed.hostname, 'port': parsed.port or 443, 'password': parsed.username, 'udp': True, 'sni': sni}
+            return {'name': original_name, 'type': 'trojan', 'server': parsed.hostname, 'port': parsed.port or 443, 'password': parsed.username, 'udp': True, 'sni': sni}
         except Exception as e:
             print(f"❌ خطا در پارس trojan: {e}")
             return None
@@ -184,7 +179,7 @@ class V2RayExtractor:
                 except: user_info = unquote(user_info_part)
             cipher, password = user_info.split(':', 1) if ':' in user_info else (None, None)
             if cipher and password:
-                return {'name': self._generate_unique_name(original_name, 'ss'), 'type': 'ss', 'server': parsed.hostname, 'port': parsed.port, 'cipher': cipher, 'password': password, 'udp': True}
+                return {'name': original_name, 'type': 'ss', 'server': parsed.hostname, 'port': parsed.port, 'cipher': cipher, 'password': password, 'udp': True}
             return None
         except Exception as e:
             print(f"❌ خطا در پارس shadowsocks: {e}")
@@ -195,7 +190,7 @@ class V2RayExtractor:
             parsed = urlparse(hy2_url)
             query = parse_qs(parsed.query)
             original_name = unquote(parsed.fragment) if parsed.fragment else ''
-            return {'name': self._generate_unique_name(original_name, "hysteria2"), 'type': 'hysteria2', 'server': parsed.hostname, 'port': parsed.port or 443, 'auth': parsed.username, 'up': query.get('up', ['100 Mbps'])[0], 'down': query.get('down', ['100 Mbps'])[0], 'obfs': query.get('obfs', [''])[0] or None, 'sni': query.get('sni', [parsed.hostname])[0], 'skip-cert-verify': query.get('insecure', ['false'])[0].lower() == 'true'}
+            return {'name': original_name, 'type': 'hysteria2', 'server': parsed.hostname, 'port': parsed.port or 443, 'auth': parsed.username, 'up': query.get('up', ['100 Mbps'])[0], 'down': query.get('down', ['100 Mbps'])[0], 'obfs': query.get('obfs', [''])[0] or None, 'sni': query.get('sni', [parsed.hostname])[0], 'skip-cert-verify': query.get('insecure', ['false'])[0].lower() == 'true'}
         except Exception as e:
             print(f"❌ خطا در پارس hysteria2: {e}")
             return None
@@ -205,7 +200,7 @@ class V2RayExtractor:
             parsed = urlparse(tuic_url)
             query = parse_qs(parsed.query)
             original_name = unquote(parsed.fragment) if parsed.fragment else ''
-            return {'name': self._generate_unique_name(original_name, "tuic"), 'type': 'tuic', 'server': parsed.hostname, 'port': parsed.port or 443, 'uuid': parsed.username, 'password': query.get('password', [''])[0], 'udp': True, 'sni': query.get('sni', [parsed.hostname])[0], 'skip-cert-verify': query.get('allow_insecure', ['false'])[0].lower() == 'true'}
+            return {'name': original_name, 'type': 'tuic', 'server': parsed.hostname, 'port': parsed.port or 443, 'uuid': parsed.username, 'password': query.get('password', [''])[0], 'udp': True, 'sni': query.get('sni', [parsed.hostname])[0], 'skip-cert-verify': query.get('allow_insecure', ['false'])[0].lower() == 'true'}
         except Exception as e:
             print(f"❌ خطا در پارس tuic: {e}")
             return None
@@ -384,7 +379,7 @@ class V2RayExtractor:
 
         if not self.raw_configs:
             print("⚠️ هیچ کانفیگی در چت‌ها یافت نشد. فایل‌های خروجی خالی خواهند بود.")
-            for f in [OUTPUT_YAML_PRO, OUTPUT_TXT, OUTPUT_JSON_CONFIG_JO]: open(f, "w").close()
+            for f in [OUTPUT_YAML_PRO, OUTPUT_TXT, OUTPUT_JSON_CONFIG_JO, OUTPUT_ORIGINAL_CONFIGS]: open(f, "w").close()
             return
 
         print(f"⚙️ پردازش {len(self.raw_configs)} کانفیگ یافت شده...")
@@ -401,10 +396,15 @@ class V2RayExtractor:
                 valid_configs.add(url)
             except Exception: pass
 
+        original_configs_to_save = []
+        config_counter = 1
         for url in valid_configs:
             proxy = self.parse_config_for_clash(url)
             if proxy:
+                original_configs_to_save.append(url)
+                proxy['name'] = f"Config_jo-{config_counter:02d}"
                 proxies_list_clash.append(proxy)
+                config_counter += 1
             else:
                 parse_errors += 1
 
@@ -413,7 +413,7 @@ class V2RayExtractor:
 
         if not proxies_list_clash:
             print("⚠️ هیچ کانفیگ معتبری برای ساخت فایل‌ها پیدا نشد.")
-            for f in [OUTPUT_YAML_PRO, OUTPUT_TXT, OUTPUT_JSON_CONFIG_JO]: open(f, "w").close()
+            for f in [OUTPUT_YAML_PRO, OUTPUT_TXT, OUTPUT_JSON_CONFIG_JO, OUTPUT_ORIGINAL_CONFIGS]: open(f, "w").close()
             return
             
         print(f"👍 {len(proxies_list_clash)} کانفیگ معتبر برای فایل نهایی یافت شد.")
@@ -442,6 +442,12 @@ class V2RayExtractor:
         with open(OUTPUT_TXT, 'w', encoding='utf-8') as f:
             f.write("\n".join(sorted(list(valid_configs))))
         print(f"✅ فایل متنی {OUTPUT_TXT} با موفقیت ذخیره شد.")
+
+        # ذخیره فایل کانفیگ‌های اصلی
+        with open(OUTPUT_ORIGINAL_CONFIGS, 'w', encoding='utf-8') as f:
+            f.write("\n".join(sorted(original_configs_to_save)))
+        print(f"✅ فایل کانفیگ‌های اصلی {OUTPUT_ORIGINAL_CONFIGS} با موفقیت ذخیره شد.")
+
 
     def build_pro_config(self, proxies, proxy_names):
         """ساخت کانفیگ حرفه‌ای با قابلیت‌های پیشرفته"""
