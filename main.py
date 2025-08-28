@@ -5,10 +5,10 @@ import json
 import yaml
 import os
 import uuid
-from urllib.parse import urlparse, parse_qs, unquote
+from urllib.parse import urlparse, parse_qs, unquote, urlunparse
 from pyrogram import Client
 from pyrogram.errors import FloodWait
-from typing import Optional, Dict, Any, Set, List, Tuple
+from typing import Optional, Dict, Any, Set, List
 
 # =================================================================================
 # بخش تنظیمات و ثابت‌ها
@@ -28,7 +28,6 @@ OUTPUT_YAML_PRO = "Config-jo.yaml"
 OUTPUT_TXT = "Config_jo.txt"
 OUTPUT_JSON_CONFIG_JO = "Config_jo.json"
 OUTPUT_ORIGINAL_CONFIGS = "Original-Configs.txt"
-
 
 # الگوهای Regex برای یافتن انواع کانفیگ
 V2RAY_PATTERNS = [
@@ -397,13 +396,29 @@ class V2RayExtractor:
             except Exception: pass
 
         original_configs_to_save = []
+        renamed_txt_configs = []
         config_counter = 1
-        for url in valid_configs:
+        for url in sorted(list(valid_configs)):
             proxy = self.parse_config_for_clash(url)
             if proxy:
                 original_configs_to_save.append(url)
-                proxy['name'] = f"Config_jo-{config_counter:02d}"
+                
+                # تغییر نام کانفیگ
+                new_name = f"Config_jo-{config_counter:02d}"
+                proxy['name'] = new_name
                 proxies_list_clash.append(proxy)
+                
+                # ساخت کانفیگ متنی با نام جدید
+                try:
+                    parsed_url = list(urlparse(url))
+                    parsed_url[5] = new_name  # [5] is the fragment component
+                    new_url = urlunparse(parsed_url)
+                    renamed_txt_configs.append(new_url)
+                except Exception:
+                    # Fallback for URLs that might have issues with parsing/unparsing
+                    base_url = url.split('#')[0]
+                    renamed_txt_configs.append(f"{base_url}#{new_name}")
+
                 config_counter += 1
             else:
                 parse_errors += 1
@@ -438,16 +453,15 @@ class V2RayExtractor:
         except Exception as e:
             print(f"❌ خطا در ساخت فایل Sing-box: {e}")
         
-        # ذخیره فایل متنی
+        # ذخیره فایل متنی با نام‌های جدید
         with open(OUTPUT_TXT, 'w', encoding='utf-8') as f:
-            f.write("\n".join(sorted(list(valid_configs))))
+            f.write("\n".join(sorted(renamed_txt_configs)))
         print(f"✅ فایل متنی {OUTPUT_TXT} با موفقیت ذخیره شد.")
 
         # ذخیره فایل کانفیگ‌های اصلی
         with open(OUTPUT_ORIGINAL_CONFIGS, 'w', encoding='utf-8') as f:
             f.write("\n".join(sorted(original_configs_to_save)))
         print(f"✅ فایل کانفیگ‌های اصلی {OUTPUT_ORIGINAL_CONFIGS} با موفقیت ذخیره شد.")
-
 
     def build_pro_config(self, proxies, proxy_names):
         """ساخت کانفیگ حرفه‌ای با قابلیت‌های پیشرفته"""
