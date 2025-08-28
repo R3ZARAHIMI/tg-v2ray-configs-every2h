@@ -34,10 +34,8 @@ V2RAY_PATTERNS = [
     re.compile(r'(vmess:\/\/[^\s\'\"<>`]+)'),
     re.compile(r'(trojan:\/\/[^\s\'\"<>`]+)'),
     re.compile(r'(ss:\/\/[^\s\'\"<>`]+)'),
-    re.compile(r'(ssr:\/\/[^\s\'\"<>`]+)'),
     re.compile(r"(hy2://[^\s'\"<>`]+)"),
     re.compile(r"(hysteria2://[^\s'\"<>`]+)"),
-    re.compile(r"(hysteria://[^\s'\"<>`]+)"),
     re.compile(r"(tuic://[^\s'\"<>`]+)")
 ]
 
@@ -116,20 +114,16 @@ class V2RayExtractor:
                 return bool(urlparse(config_url).hostname and urlparse(config_url).username)
             elif config_url.startswith('ss://'):
                 return self._is_valid_shadowsocks(config_url)
-            elif config_url.startswith(('ssr://', 'hysteria://', 'hysteria2://', 'hy2://', 'tuic://')):
-                return True # اعتبارسنجی ساده‌تر برای این پروتکل‌ها
-            return False
+            return True
         except: return False
 
-    def parse_config(self, config_url: str) -> Optional[Dict[str, Any]]:
+    def parse_config_for_clash(self, config_url: str) -> Optional[Dict[str, Any]]:
         try:
             if config_url.startswith('vmess://'): return self.parse_vmess(config_url)
             elif config_url.startswith('vless://'): return self.parse_vless(config_url)
             elif config_url.startswith('trojan://'): return self.parse_trojan(config_url)
             elif config_url.startswith('ss://'): return self.parse_shadowsocks(config_url)
-            elif config_url.startswith('ssr://'): return self.parse_ssr(config_url)
             elif config_url.startswith(('hysteria2://', 'hy2://')): return self.parse_hysteria2(config_url)
-            elif config_url.startswith('hysteria://'): return self.parse_hysteria(config_url)
             elif config_url.startswith('tuic://'): return self.parse_tuic(config_url)
             return None
         except Exception as e:
@@ -146,8 +140,10 @@ class V2RayExtractor:
             if config.get('net') == 'ws':
                 host_header = config.get('host', '').strip() or config.get('add', '').strip()
                 if host_header: ws_opts = {'path': config.get('path', '/'), 'headers': {'Host': host_header}}
-            return {'name': self._generate_unique_name(original_name, "vmess"), 'type': 'vmess', 'server': config.get('add'), 'port': int(config.get('port', 443)), 'uuid': config.get('id'), 'alterId': int(config.get('aid', 0)), 'cipher': config.get('scy', 'auto'), 'tls': config.get('tls') == 'tls', 'network': config.get('net', 'tcp'), 'udp': True, 'ws-opts': ws_opts, 'servername': config.get('sni')}
-        except: return None
+            return {'name': self._generate_unique_name(original_name, "vmess"), 'type': 'vmess', 'server': config.get('add'), 'port': int(config.get('port', 443)), 'uuid': config.get('id'), 'alterId': int(config.get('aid', 0)), 'cipher': config.get('scy', 'auto'), 'tls': config.get('tls') == 'tls', 'network': config.get('net', 'tcp'), 'udp': True, 'ws-opts': ws_opts}
+        except Exception as e:
+            print(f"❌ خطا در پارس vmess: {e}")
+            return None
 
     def parse_vless(self, vless_url: str) -> Optional[Dict[str, Any]]:
         try:
@@ -161,13 +157,10 @@ class V2RayExtractor:
             if query.get('security', [''])[0] == 'reality':
                 pbk = query.get('pbk', [None])[0]
                 if pbk: reality_opts = {'public-key': pbk, 'short-id': query.get('sid', [''])[0]}
-            
-            grpc_opts = None
-            if query.get('type', [''])[0] == 'grpc':
-                grpc_opts = {'grpc-service-name': query.get('serviceName', [''])[0]}
-
-            return {'name': self._generate_unique_name(original_name, "vless"), 'type': 'vless', 'server': parsed.hostname, 'port': parsed.port or 443, 'uuid': parsed.username, 'udp': True, 'tls': query.get('security', [''])[0] in ['tls', 'reality'], 'network': query.get('type', ['tcp'])[0], 'servername': query.get('sni', [None])[0], 'flow': query.get('flow', [None])[0], 'ws-opts': ws_opts, 'grpc-opts': grpc_opts, 'reality-opts': reality_opts}
-        except: return None
+            return {'name': self._generate_unique_name(original_name, "vless"), 'type': 'vless', 'server': parsed.hostname, 'port': parsed.port or 443, 'uuid': parsed.username, 'udp': True, 'tls': query.get('security', [''])[0] in ['tls', 'reality'], 'network': query.get('type', ['tcp'])[0], 'servername': query.get('sni', [None])[0], 'ws-opts': ws_opts, 'reality-opts': reality_opts}
+        except Exception as e:
+            print(f"❌ خطا در پارس vless: {e}")
+            return None
 
     def parse_trojan(self, trojan_url: str) -> Optional[Dict[str, Any]]:
         try:
@@ -176,133 +169,172 @@ class V2RayExtractor:
             original_name = unquote(parsed.fragment) if parsed.fragment else ''
             sni = query.get('peer', [None])[0] or query.get('sni', [None])[0] or parsed.hostname
             return {'name': self._generate_unique_name(original_name, "trojan"), 'type': 'trojan', 'server': parsed.hostname, 'port': parsed.port or 443, 'password': parsed.username, 'udp': True, 'sni': sni}
-        except: return None
+        except Exception as e:
+            print(f"❌ خطا در پارس trojan: {e}")
+            return None
 
     def parse_shadowsocks(self, ss_url: str) -> Optional[Dict[str, Any]]:
         try:
             parsed = urlparse(ss_url)
             original_name = unquote(parsed.fragment) if parsed.fragment else ''
-            user_info_part = parsed.netloc.split('@')[0]
-            user_info = base64.b64decode(user_info_part + '=' * (-len(user_info_part) % 4)).decode('utf-8')
-            cipher, password = user_info.split(':', 1)
-            return {'name': self._generate_unique_name(original_name, 'ss'), 'type': 'ss', 'server': parsed.hostname, 'port': parsed.port, 'cipher': cipher, 'password': password, 'udp': True}
-        except: return None
-
-    def parse_ssr(self, ssr_url: str) -> Optional[Dict[str, Any]]:
-        try:
-            decoded_url = base64.urlsafe_b64decode(ssr_url.split('://')[1] + '==').decode('utf-8')
-            parts = decoded_url.split(':')
-            server = parts[0]
-            port = int(parts[1])
-            protocol = parts[2]
-            cipher = parts[3]
-            obfs = parts[4]
-            password_encoded = parts[5].split('/?')[0]
-            password = base64.urlsafe_b64decode(password_encoded + '==').decode('utf-8')
-            
-            params_str = decoded_url.split('/?')[1]
-            params = parse_qs(params_str)
-            
-            obfs_param_encoded = params.get('obfsparam', [''])[0]
-            obfs_param = base64.urlsafe_b64decode(obfs_param_encoded + '==').decode('utf-8')
-            
-            protocol_param_encoded = params.get('protoparam', [''])[0]
-            protocol_param = base64.urlsafe_b64decode(protocol_param_encoded + '==').decode('utf-8')
-
-            original_name = unquote(params.get('remarks', [''])[0])
-
-            return {'name': self._generate_unique_name(original_name, "ssr"), 'type': 'ssr', 'server': server, 'port': port, 'password': password, 'cipher': cipher, 'obfs': obfs, 'protocol': protocol, 'obfs-param': obfs_param, 'protocol-param': protocol_param, 'udp': True}
-        except: return None
+            user_info = ''
+            if '@' in parsed.netloc:
+                user_info_part = parsed.netloc.split('@')[0]
+                try: user_info = base64.b64decode(user_info_part + '=' * (4 - len(user_info_part) % 4)).decode('utf-8')
+                except: user_info = unquote(user_info_part)
+            cipher, password = user_info.split(':', 1) if ':' in user_info else (None, None)
+            if cipher and password:
+                return {'name': self._generate_unique_name(original_name, 'ss'), 'type': 'ss', 'server': parsed.hostname, 'port': parsed.port, 'cipher': cipher, 'password': password, 'udp': True}
+            return None
+        except Exception as e:
+            print(f"❌ خطا در پارس shadowsocks: {e}")
+            return None
 
     def parse_hysteria2(self, hy2_url: str) -> Optional[Dict[str, Any]]:
         try:
             parsed = urlparse(hy2_url)
             query = parse_qs(parsed.query)
             original_name = unquote(parsed.fragment) if parsed.fragment else ''
-            return {'name': self._generate_unique_name(original_name, "hysteria2"), 'type': 'hysteria2', 'server': parsed.hostname, 'port': parsed.port or 443, 'password': parsed.username, 'sni': query.get('sni', [parsed.hostname])[0], 'insecure': query.get('insecure', ['0'])[0] == '1', 'obfs': query.get('obfs', [None])[0], 'obfs-password': query.get('obfs-password', [None])[0]}
-        except: return None
-        
-    def parse_hysteria(self, hy_url: str) -> Optional[Dict[str, Any]]:
-        try:
-            parsed = urlparse(hy_url)
-            query = parse_qs(parsed.query)
-            original_name = unquote(parsed.fragment) if parsed.fragment else ''
-            return {'name': self._generate_unique_name(original_name, "hysteria"), 'type': 'hysteria', 'server': parsed.hostname, 'port': parsed.port or 443, 'auth': query.get('auth', [None])[0], 'protocol': query.get('protocol', ['udp'])[0], 'up': query.get('upmbps', [None])[0], 'down': query.get('downmbps', [None])[0], 'insecure': query.get('insecure', ['0'])[0] == '1', 'sni': query.get('peer', [None])[0] or query.get('sni', [None])[0], 'obfs': query.get('obfs', [None])[0]}
-        except: return None
+            return {'name': self._generate_unique_name(original_name, "hysteria2"), 'type': 'hysteria2', 'server': parsed.hostname, 'port': parsed.port or 443, 'auth': parsed.username, 'up': query.get('up', ['100 Mbps'])[0], 'down': query.get('down', ['100 Mbps'])[0], 'obfs': query.get('obfs', [''])[0] or None, 'sni': query.get('sni', [parsed.hostname])[0], 'skip-cert-verify': query.get('insecure', ['false'])[0].lower() == 'true'}
+        except Exception as e:
+            print(f"❌ خطا در پارس hysteria2: {e}")
+            return None
 
     def parse_tuic(self, tuic_url: str) -> Optional[Dict[str, Any]]:
         try:
             parsed = urlparse(tuic_url)
             query = parse_qs(parsed.query)
             original_name = unquote(parsed.fragment) if parsed.fragment else ''
-            return {'name': self._generate_unique_name(original_name, "tuic"), 'type': 'tuic', 'server': parsed.hostname, 'port': parsed.port or 443, 'uuid': parsed.username, 'password': query.get('password', [''])[0], 'udp': True, 'sni': query.get('sni', [parsed.hostname])[0], 'insecure': query.get('allow_insecure', ['0'])[0] == '1', 'congestion-controller': query.get('congestion_control', ['bbr'])[0], 'udp-relay-mode': query.get('udp_relay_mode', ['native'])[0], 'alpn': query.get('alpn', [None])[0]}
-        except: return None
+            return {'name': self._generate_unique_name(original_name, "tuic"), 'type': 'tuic', 'server': parsed.hostname, 'port': parsed.port or 443, 'uuid': parsed.username, 'password': query.get('password', [''])[0], 'udp': True, 'sni': query.get('sni', [parsed.hostname])[0], 'skip-cert-verify': query.get('allow_insecure', ['false'])[0].lower() == 'true'}
+        except Exception as e:
+            print(f"❌ خطا در پارس tuic: {e}")
+            return None
 
     def convert_to_singbox_outbound(self, proxy: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """تبدیل امن و سخت‌گیرانه‌تر فرمت دیکشنری پراکسی به فرمت outbound برای Sing-box.
+        این نسخه اعتبارسنجی‌های لازم را انجام می‌دهد و ورودی‌های خراب یا فاقد اطلاعات لازم را کنار می‌گذارد.
+        """
         try:
             ptype = proxy.get('type')
-            if not ptype: return None
-            
-            sb_type = {'ss': 'shadowsocks', 'ssr': 'shadowsocksr', 'hy2': 'hysteria2'}.get(ptype, ptype)
-            server, port, tag = proxy.get('server'), proxy.get('port'), proxy.get('name')
-            if not server or not port: return None
+            if not ptype:
+                return None
 
-            out: Dict[str, Any] = {"type": sb_type, "tag": tag, "server": server, "server_port": port}
+            # نوع در خروجی sing-box برای ss باید 'shadowsocks' باشد
+            sb_type = 'shadowsocks' if ptype == 'ss' else ptype
+
+            server = proxy.get('server')
+            if not server:
+                print(f"⚠️ رد کردن {ptype} بدون سرور مشخص: {proxy.get('name')}")
+                return None
+
+            # port به عدد تبدیل می‌شود و در صورت نامعتبر به 443 بازمی‌گردیم
+            try:
+                port = int(proxy.get('port') or 443)
+            except Exception:
+                port = 443
+
+            tag = proxy.get('name') or f"{ptype}-{server}:{port}"
+
+            out: Dict[str, Any] = {
+                "type": sb_type,
+                "tag": tag,
+                "server": server,
+                "server_port": port
+            }
+
+            # الگو برای بررسی UUID
+            uuid_re = re.compile(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$')
 
             if ptype == 'vless':
-                out.update({"uuid": proxy.get('uuid'), "flow": proxy.get('flow', '')})
+                uid = proxy.get('uuid')
+                if not uid or not uuid_re.match(uid):
+                    print(f"⚠️ رد کردن vless بدون uuid معتبر: {tag}")
+                    return None
+                out.update({"uuid": uid, "flow": proxy.get('flow', '')})
+
                 if proxy.get('tls'):
                     out['tls'] = {"enabled": True, "server_name": proxy.get('servername')}
                     ro = proxy.get('reality-opts')
-                    if ro and ro.get('public-key'):
+                    if ro:
                         out['tls'].setdefault('utls', {"enabled": True, "fingerprint": "chrome"})
                         out['tls']['reality'] = {"enabled": True, "public_key": ro.get('public-key'), "short_id": ro.get('short-id')}
-                
-                network = proxy.get('network')
-                if network == 'ws' and proxy.get('ws-opts'):
-                    ws = proxy.get('ws-opts') or {}
-                    headers = (ws.get('headers') or {}).get('Host')
-                    out['transport'] = {"type": "ws", "path": ws.get('path', '/'), "headers": {"Host": headers} if headers else {}}
-                elif network == 'grpc' and proxy.get('grpc-opts'):
-                    grpc = proxy.get('grpc-opts') or {}
-                    out['transport'] = {"type": "grpc", "service_name": grpc.get('grpc-service-name')}
 
-            elif ptype == 'vmess':
-                out.update({"uuid": proxy.get('uuid'), "alter_id": proxy.get('alterId', 0), "security": proxy.get('cipher', 'auto')})
-                if proxy.get('tls'):
-                    out['tls'] = {"enabled": True, "server_name": proxy.get('servername')}
                 if proxy.get('network') == 'ws' and proxy.get('ws-opts'):
                     ws = proxy.get('ws-opts') or {}
-                    headers = (ws.get('headers') or {}).get('Host')
-                    out['transport'] = {"type": "ws", "path": ws.get('path', '/'), "headers": {"Host": headers} if headers else {}}
+                    headers = {}
+                    host = (ws.get('headers') or {}).get('Host')
+                    if host:
+                        headers['Host'] = host
+                    out['transport'] = {"type": "ws", "path": ws.get('path', '/'), "headers": headers}
+
+            elif ptype == 'vmess':
+                # vmess ممکن است از کلیدهای متفاوتی برای id استفاده کند
+                uid = proxy.get('uuid') or proxy.get('id') or proxy.get('id')
+                if not uid or not uuid_re.match(uid):
+                    print(f"⚠️ رد کردن vmess بدون uuid معتبر: {tag}")
+                    return None
+
+                try:
+                    alter_id = int(proxy.get('alterId') or proxy.get('aid') or 0)
+                except Exception:
+                    alter_id = 0
+
+                security = (proxy.get('cipher') or proxy.get('security') or 'auto').lower()
+                if security not in ('auto', 'none', 'aes-128-gcm', 'chacha20-poly1305'):
+                    security = 'auto'
+
+                out.update({"uuid": uid, "alter_id": alter_id, "security": security})
+
+                if proxy.get('tls'):
+                    out['tls'] = {"enabled": True, "server_name": proxy.get('servername')}
+
+                if proxy.get('network') == 'ws' and proxy.get('ws-opts'):
+                    ws = proxy.get('ws-opts') or {}
+                    headers = {}
+                    host = (ws.get('headers') or {}).get('Host')
+                    if host:
+                        headers['Host'] = host
+                    out['transport'] = {"type": "ws", "path": ws.get('path', '/'), "headers": headers}
 
             elif ptype == 'trojan':
-                out.update({"password": proxy.get('password')})
-                if proxy.get('sni'):
-                    out['tls'] = {"enabled": True, "server_name": proxy.get('sni')}
-            
-            elif ptype in ['ss', 'ssr']:
-                out.update({"method": proxy.get('cipher'), "password": proxy.get('password')})
-                if ptype == 'ssr':
-                    out.update({"obfs": proxy.get('obfs'), "obfs_param": proxy.get('obfs-param'), "protocol": proxy.get('protocol'), "protocol_param": proxy.get('protocol-param')})
+                pw = proxy.get('password')
+                if not pw:
+                    print(f"⚠️ رد کردن trojan بدون password: {tag}")
+                    return None
+                out.update({"password": pw})
+                # sni ممکن است در کلیدهای مختلف ذخیره شده باشد
+                sni = proxy.get('sni') or proxy.get('servername') or None
+                if proxy.get('tls') is not False:
+                    out['tls'] = {"enabled": True, "server_name": sni}
+
+            elif ptype == 'ss':
+                method = proxy.get('cipher') or proxy.get('method')
+                pw = proxy.get('password')
+                if not method or not pw:
+                    print(f"⚠️ رد کردن ss نامعتبر: {tag}")
+                    return None
+                out.update({"method": method, "password": pw})
 
             elif ptype == 'hysteria2':
-                 out.update({"password": proxy.get('password')})
-                 out['tls'] = {"enabled": True, "server_name": proxy.get('sni'), "insecure": proxy.get('insecure', False)}
-                 if proxy.get('obfs'):
-                     out['obfs'] = {"type": proxy.get('obfs'), "password": proxy.get('obfs-password')}
-
-            elif ptype == 'hysteria':
-                out.update({"auth": proxy.get('auth'), "up_mbps": int(proxy.get('up') or 10), "down_mbps": int(proxy.get('down') or 50)})
-                out['tls'] = {"enabled": True, "server_name": proxy.get('sni'), "insecure": proxy.get('insecure', False), "alpn": [proxy.get('alpn')] if proxy.get('alpn') else []}
-                if proxy.get('obfs'):
-                    out['obfs'] = {"type": "salamander", "password": proxy.get('obfs')}
+                auth = proxy.get('auth') or proxy.get('password')
+                if not auth:
+                    print(f"⚠️ رد کردن hysteria2 بدون auth: {tag}")
+                    return None
+                out.update({"password": auth})
+                out['tls'] = {"enabled": bool(proxy.get('tls', True)), "server_name": proxy.get('sni') or proxy.get('server'), "insecure": bool(proxy.get('skip-cert-verify'))}
 
             elif ptype == 'tuic':
-                out.update({"uuid": proxy.get('uuid'), "password": proxy.get('password'), "congestion_control": proxy.get('congestion-controller'), "udp_relay_mode": proxy.get('udp-relay-mode')})
-                out['tls'] = {"enabled": True, "server_name": proxy.get('sni'), "insecure": proxy.get('insecure'), "alpn": [proxy.get('alpn')] if proxy.get('alpn') else []}
-            
-            else: return None
+                uid = proxy.get('uuid')
+                pw = proxy.get('password') or proxy.get('auth')
+                if not uid or not uuid_re.match(uid) or not pw:
+                    print(f"⚠️ رد کردن tuic نامعتبر: {tag}")
+                    return None
+                out.update({"uuid": uid, "password": pw})
+                out['tls'] = {"enabled": True, "server_name": proxy.get('sni') or proxy.get('server'), "insecure": bool(proxy.get('skip-cert-verify'))}
+
+            else:
+                return None
+
             return out
         except Exception as e:
             print(f"❌ خطا در تبدیل به فرمت Sing-box برای {proxy.get('name')}: {e}")
@@ -356,7 +388,7 @@ class V2RayExtractor:
             return
 
         print(f"⚙️ پردازش {len(self.raw_configs)} کانفیگ یافت شده...")
-        proxies_list, parse_errors = [], 0
+        proxies_list_clash, parse_errors = [], 0
         
         valid_configs = set()
         for url in self.raw_configs:
@@ -370,45 +402,49 @@ class V2RayExtractor:
             except Exception: pass
 
         for url in valid_configs:
-            proxy = self.parse_config(url)
+            proxy = self.parse_config_for_clash(url)
             if proxy:
-                proxies_list.append(proxy)
+                proxies_list_clash.append(proxy)
             else:
                 parse_errors += 1
 
         if parse_errors > 0:
             print(f"⚠️ {parse_errors} کانفیگ به دلیل خطا در پارسینگ نادیده گرفته شد.")
 
-        if not proxies_list:
+        if not proxies_list_clash:
             print("⚠️ هیچ کانفیگ معتبری برای ساخت فایل‌ها پیدا نشد.")
             for f in [OUTPUT_YAML_PRO, OUTPUT_TXT, OUTPUT_JSON_CONFIG_JO]: open(f, "w").close()
             return
             
-        print(f"👍 {len(proxies_list)} کانفیگ معتبر برای فایل نهایی یافت شد.")
-        all_proxy_names = [p['name'] for p in proxies_list]
+        print(f"👍 {len(proxies_list_clash)} کانفیگ معتبر برای فایل نهایی یافت شد.")
+        all_proxy_names = [p['name'] for p in proxies_list_clash]
 
+        # ساخت و ذخیره فایل حرفه‌ای (Pro)
         try:
             os.makedirs('rules', exist_ok=True)
-            pro_config = self.build_pro_config(proxies_list, all_proxy_names)
+            pro_config = self.build_pro_config(proxies_list_clash, all_proxy_names)
             with open(OUTPUT_YAML_PRO, 'w', encoding='utf-8') as f:
                 yaml.dump(pro_config, f, allow_unicode=True, sort_keys=False, indent=2, width=1000)
-            print(f"✅ فایل Clash {OUTPUT_YAML_PRO} با موفقیت ساخته شد.")
+            print(f"✅ فایل حرفه‌ای {OUTPUT_YAML_PRO} با موفقیت ساخته شد.")
         except Exception as e:
-            print(f"❌ خطا در ساخت فایل Clash: {e}")
+            print(f"❌ خطا در ساخت فایل حرفه‌ای: {e}")
 
+        # ساخت و ذخیره فایل Sing-box
         try:
-            singbox_config = self.build_sing_box_config(proxies_list)
+            singbox_config = self.build_sing_box_config(proxies_list_clash)
             with open(OUTPUT_JSON_CONFIG_JO, 'w', encoding='utf-8') as f:
                 json.dump(singbox_config, f, ensure_ascii=False, indent=4)
             print(f"✅ فایل Sing-box {OUTPUT_JSON_CONFIG_JO} با موفقیت ساخته شد.")
         except Exception as e:
             print(f"❌ خطا در ساخت فایل Sing-box: {e}")
         
+        # ذخیره فایل متنی
         with open(OUTPUT_TXT, 'w', encoding='utf-8') as f:
             f.write("\n".join(sorted(list(valid_configs))))
         print(f"✅ فایل متنی {OUTPUT_TXT} با موفقیت ذخیره شد.")
 
     def build_pro_config(self, proxies, proxy_names):
+        """ساخت کانفیگ حرفه‌ای با قابلیت‌های پیشرفته"""
         return {
             'port': int(os.environ.get('CLASH_PORT', 7890)),
             'socks-port': int(os.environ.get('CLASH_SOCKS_PORT', 7891)),
@@ -416,7 +452,15 @@ class V2RayExtractor:
             'mode': 'rule',
             'log-level': 'info',
             'external-controller': '127.0.0.1:9090',
-            'dns': { 'enable': True, 'listen': '0.0.0.0:53', 'default-nameserver': ['8.8.8.8', '1.1.1.1'], 'enhanced-mode': 'fake-ip', 'fake-ip-range': '198.18.0.1/16', 'fallback': ['https://dns.google/dns-query', 'https://cloudflare-dns.com/dns-query'], 'fallback-filter': {'geoip': True, 'ipcidr': ['240.0.0.0/4', '0.0.0.0/32']} },
+            'dns': {
+                'enable': True,
+                'listen': '0.0.0.0:53',
+                'default-nameserver': ['8.8.8.8', '1.1.1.1'],
+                'enhanced-mode': 'fake-ip',
+                'fake-ip-range': '198.18.0.1/16',
+                'fallback': ['https://dns.google/dns-query', 'https://cloudflare-dns.com/dns-query'],
+                'fallback-filter': {'geoip': True, 'ipcidr': ['240.0.0.0/4', '0.0.0.0/32']}
+            },
             'proxies': proxies,
             'proxy-groups': [
                 {'name': 'PROXY', 'type': 'select', 'proxies': ['⚡ Auto-Select', 'DIRECT', *proxy_names]},
@@ -429,42 +473,94 @@ class V2RayExtractor:
                 'blocked_domains': {'type': 'http', 'behavior': 'domain', 'url': "https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/blocked-domains.txt", 'path': './rules/blocked_domains.txt', 'interval': 86400},
                 'ad_domains': {'type': 'http', 'behavior': 'domain', 'url': "https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/ad-domains.txt", 'path': './rules/ad_domains.txt', 'interval': 86400}
             },
-            'rules': ['RULE-SET,ad_domains,🛑 Block-Ads', 'RULE-SET,blocked_domains,PROXY', 'RULE-SET,iran_domains,🇮🇷 Iran', 'GEOIP,IR,🇮🇷 Iran', 'MATCH,PROXY']
+            'rules': [
+                'RULE-SET,ad_domains,🛑 Block-Ads',
+                'RULE-SET,blocked_domains,PROXY',
+                'RULE-SET,iran_domains,🇮🇷 Iran',
+                'GEOIP,IR,🇮🇷 Iran',
+                'MATCH,PROXY'
+            ]
         }
 
-    def build_sing_box_config(self, proxies_list: List[Dict[str, Any]]) -> Dict[str, Any]:
-        outbounds = [self.convert_to_singbox_outbound(p) for p in proxies_list]
-        outbounds = [o for o in outbounds if o is not None] # حذف کانفیگ‌های ناموفق
+    def build_sing_box_config(self, proxies_clash: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """ساخت کانفیگ مدرن و کامل برای Sing-box با رفع مشکل DNS"""
+        outbounds = []
+        for proxy in proxies_clash:
+            sb_outbound = self.convert_to_singbox_outbound(proxy)
+            if sb_outbound:
+                outbounds.append(sb_outbound)
+
         proxy_tags = [p['tag'] for p in outbounds]
         
         return {
-            "log": {"level": "warn", "timestamp": True},
+            "log": {
+                "level": "warn",
+                "timestamp": True
+            },
             "dns": {
                 "servers": [
-                    {"tag": "dns_proxy", "address": "https://dns.google/dns-query", "detour": "PROXY"},
-                    {"tag": "dns_direct", "address": "1.1.1.1"}
+                    {
+                        "tag": "dns_proxy",
+                        "address": "https://dns.google/dns-query",
+                        "detour": "PROXY"
+                    },
+                    {
+                        "tag": "dns_direct",
+                        "address": "1.1.1.1" # به طور پیش فرض از detour مستقیم استفاده میکند
+                    }
                 ],
                 "rules": [
-                    {"outbound": "PROXY", "server": "dns_proxy"},
-                    {"rule_set": ["geosite-ir", "geoip-ir"], "server": "dns_direct"},
-                    {"domain_suffix": ".ir", "server": "dns_direct"}
+                    # مهم: فقط ترافیکی که از پروکسی عبور میکند، از DNS پروکسی شده استفاده کند
+                    { "outbound": "PROXY", "server": "dns_proxy" },
+                    { "rule_set": ["geosite-ir", "geoip-ir"], "server": "dns_direct" },
+                    { "domain_suffix": ".ir", "server": "dns_direct" }
                 ],
-                "final": "dns_direct",
+                "final": "dns_direct", # پیش فرض برای جلوگیری از deadlock
                 "strategy": "ipv4_only"
             },
-            "inbounds": [{"type": "mixed", "listen": "0.0.0.0", "listen_port": 2080, "sniff": True}],
+            "inbounds": [
+                {
+                    "type": "mixed",
+                    "listen": "0.0.0.0",
+                    "listen_port": 2080,
+                    "sniff": True
+                }
+            ],
             "outbounds": [
                 {"type": "direct", "tag": "direct"},
                 {"type": "block", "tag": "block"},
                 {"type": "dns", "tag": "dns-out"},
                 *outbounds,
-                {"type": "selector", "tag": "PROXY", "outbounds": ["auto", *proxy_tags], "default": "auto"},
-                {"type": "urltest", "tag": "auto", "outbounds": proxy_tags, "url": "http://www.gstatic.com/generate_204", "interval": "5m"}
+                {
+                    "type": "selector",
+                    "tag": "PROXY",
+                    "outbounds": ["auto", *proxy_tags],
+                    "default": "auto"
+                },
+                {
+                    "type": "urltest",
+                    "tag": "auto",
+                    "outbounds": proxy_tags,
+                    "url": "http://www.gstatic.com/generate_204",
+                    "interval": "5m"
+                }
             ],
             "route": {
                 "rule_set": [
-                    {"tag": "geosite-ir", "type": "remote", "format": "binary", "url": "https://cdn.jsdelivr.net/gh/Chocolate4U/Iran-sing-box-rules@rule-set/geosite-ir.srs", "download_detour": "direct"},
-                    {"tag": "geoip-ir", "type": "remote", "format": "binary", "url": "https://cdn.jsdelivr.net/gh/Chocolate4U/Iran-sing-box-rules@rule-set/geoip-ir.srs", "download_detour": "direct"}
+                    {
+                        "tag": "geosite-ir",
+                        "type": "remote",
+                        "format": "binary",
+                        "url": "https://cdn.jsdelivr.net/gh/Chocolate4U/Iran-sing-box-rules@rule-set/geosite-ir.srs",
+                        "download_detour": "direct"
+                    },
+                    {
+                        "tag": "geoip-ir",
+                        "type": "remote",
+                        "format": "binary",
+                        "url": "https://cdn.jsdelivr.net/gh/Chocolate4U/Iran-sing-box-rules@rule-set/geoip-ir.srs",
+                        "download_detour": "direct"
+                    }
                 ],
                 "rules": [
                     {"protocol": "dns", "outbound": "dns-out"},
