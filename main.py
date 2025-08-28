@@ -367,163 +367,58 @@ class V2RayExtractor:
             return None
     
     def convert_to_singbox_outbound(self, proxy: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        """تبدیل فرمت دیکشنری پراکسی به فرمت outbound برای Sing-box"""
+        """تبدیل فرمت دیکشنری پراکسی به فرمت outbound برای Sing-box.
+        جایگزین نسخه‌های تکراری/شکسته در فایل و اطمینان از داشتن ساختار یکنواخت.
+        """
         try:
-            proxy_type_singbox = proxy['type']
-            if proxy_type_singbox == 'ss':
-                proxy_type_singbox = 'shadowsocks'
-
-            outbound = {            def convert_to_singbox_outbound(self, proxy):
-                try:
-                    ptype = proxy.get('type')
-                    sb_type = 'shadowsocks' if ptype == 'ss' else ptype
-                    out = {
-                        "type": sb_type,
-                        "tag": proxy.get('name'),
-                        "server": proxy.get('server'),
-                        "server_port": int(proxy.get('port') or 443)
-                    }
-            
-                    if ptype == 'vless':
-                        out.update({"uuid": proxy.get('uuid'), "flow": ""})
-                        if proxy.get('tls'):
-                            out['tls'] = {"enabled": True, "server_name": proxy.get('servername')}
-                            if proxy.get('reality-opts'):
-                                ro = proxy['reality-opts']
-                                out['tls'].setdefault('utls', {"enabled": True, "fingerprint": "chrome"})
-                                out['tls']['reality'] = {"enabled": True, "public_key": ro.get('public-key'), "short_id": ro.get('short-id')}
-                        if proxy.get('network') == 'ws' and proxy.get('ws-opts'):
-                            ws = proxy['ws-opts']
-                            out['transport'] = {"type": "ws", "path": ws.get('path', '/'), "headers": {"Host": ws.get('headers', {}).get('Host')}}
-            
-                    elif ptype == 'vmess':
-                        out.update({"uuid": proxy.get('uuid'), "alter_id": proxy.get('alterId', 0), "security": proxy.get('cipher', 'auto')})
-                        if proxy.get('tls'):
-                            out['tls'] = {"enabled": True, "server_name": proxy.get('servername')}
-                        if proxy.get('network') == 'ws' and proxy.get('ws-opts'):
-                            ws = proxy['ws-opts']
-                            out['transport'] = {"type": "ws", "path": ws.get('path', '/'), "headers": {"Host": ws.get('headers', {}).get('Host')}}
-            
-                    elif ptype == 'trojan':
-                        out.update({"password": proxy.get('password')})
-                        out['tls'] = {"enabled": True, "server_name": proxy.get('sni')}
-            
-                    elif ptype == 'ss':
-                        out.update({"method": proxy.get('cipher'), "password": proxy.get('password')})
-            
-                    elif ptype == 'hysteria2':
-                        out.update({"password": proxy.get('auth')})
-                        out['tls'] = {"enabled": True, "server_name": proxy.get('sni'), "insecure": bool(proxy.get('skip-cert-verify'))}
-            
-                    elif ptype == 'tuic':
-                        out.update({"uuid": proxy.get('uuid'), "password": proxy.get('password')})
-                        out['tls'] = {"enabled": True, "server_name": proxy.get('sni'), "insecure": bool(proxy.get('skip-cert-verify'))}
-            
-                    else:
-                        return None
-            
-                    return out
-                except Exception as e:
-                    print(f"❌ خطا در تبدیل به فرمت Sing-box برای {proxy.get('name')}: {e}")
-                    return None                    def convert_to_singbox_outbound(self, proxy):
-                        try:
-                            ptype = proxy.get('type')
-                            sb_type = 'shadowsocks' if ptype == 'ss' else ptype
-                            out = {
-                                "type": sb_type,
-                                "tag": proxy.get('name'),
-                                "server": proxy.get('server'),
-                                "server_port": int(proxy.get('port') or 443)
-                            }
-                    
-                            if ptype == 'vless':
-                                out.update({"uuid": proxy.get('uuid'), "flow": ""})
-                                if proxy.get('tls'):
-                                    out['tls'] = {"enabled": True, "server_name": proxy.get('servername')}
-                                    if proxy.get('reality-opts'):
-                                        ro = proxy['reality-opts']
-                                        out['tls'].setdefault('utls', {"enabled": True, "fingerprint": "chrome"})
-                                        out['tls']['reality'] = {"enabled": True, "public_key": ro.get('public-key'), "short_id": ro.get('short-id')}
-                                if proxy.get('network') == 'ws' and proxy.get('ws-opts'):
-                                    ws = proxy['ws-opts']
-                                    out['transport'] = {"type": "ws", "path": ws.get('path', '/'), "headers": {"Host": ws.get('headers', {}).get('Host')}}
-                    
-                            elif ptype == 'vmess':
-                                out.update({"uuid": proxy.get('uuid'), "alter_id": proxy.get('alterId', 0), "security": proxy.get('cipher', 'auto')})
-                                if proxy.get('tls'):
-                                    out['tls'] = {"enabled": True, "server_name": proxy.get('servername')}
-                                if proxy.get('network') == 'ws' and proxy.get('ws-opts'):
-                                    ws = proxy['ws-opts']
-                                    out['transport'] = {"type": "ws", "path": ws.get('path', '/'), "headers": {"Host": ws.get('headers', {}).get('Host')}}
-                    
-                            elif ptype == 'trojan':
-                                out.update({"password": proxy.get('password')})
-                                out['tls'] = {"enabled": True, "server_name": proxy.get('sni')}
-                    
-                            elif ptype == 'ss':
-                                out.update({"method": proxy.get('cipher'), "password": proxy.get('password')})
-                    
-                            elif ptype == 'hysteria2':
-                                out.update({"password": proxy.get('auth')})
-                                out['tls'] = {"enabled": True, "server_name": proxy.get('sni'), "insecure": bool(proxy.get('skip-cert-verify'))}
-                    
-                            elif ptype == 'tuic':
-                                out.update({"uuid": proxy.get('uuid'), "password": proxy.get('password')})
-                                out['tls'] = {"enabled": True, "server_name": proxy.get('sni'), "insecure": bool(proxy.get('skip-cert-verify'))}
-                    
-                            else:
-                                return None
-                    
-                            return out
-                        except Exception as e:
-                            print(f"❌ خطا در تبدیل به فرمت Sing-box برای {proxy.get('name')}: {e}")
-                            return None
-                "type": proxy_type_singbox,
-                "tag": proxy['name'],
-                "server": proxy['server'],
-                "server_port": proxy['port']
+            ptype = proxy.get('type')
+            sb_type = 'shadowsocks' if ptype == 'ss' else ptype
+            out = {
+                "type": sb_type,
+                "tag": proxy.get('name'),
+                "server": proxy.get('server'),
+                "server_port": int(proxy.get('port') or 443)
             }
-            
-            if proxy['type'] == 'vless':
-                outbound['uuid'] = proxy['uuid']
-                outbound['flow'] = ''
+
+            if ptype == 'vless':
+                out.update({"uuid": proxy.get('uuid'), "flow": ""})
                 if proxy.get('tls'):
-                    outbound['tls'] = {'enabled': True, 'server_name': proxy.get('servername')}
-                    if proxy.get('reality-opts'):
-                        outbound['tls']['utls'] = {
-                            'enabled': True,
-                            'fingerprint': 'chrome'
-                        }
-                        outbound['tls']['reality'] = {
-                            'enabled': True, 
-                            'public_key': proxy['reality-opts']['public-key'], 
-                            'short_id': proxy['reality-opts']['short-id']
-                        }
-                if proxy.get('network') == 'ws':
-                    outbound['transport'] = {'type': 'ws', 'path': proxy['ws-opts']['path'], 'headers': {'Host': proxy['ws-opts']['headers']['Host']}}
-            elif proxy['type'] == 'vmess':
-                outbound['uuid'] = proxy['uuid']
-                outbound['alter_id'] = proxy.get('alterId', 0)
-                outbound['security'] = proxy.get('cipher', 'auto')
+                    out['tls'] = {"enabled": True, "server_name": proxy.get('servername')}
+                    ro = proxy.get('reality-opts')
+                    if ro:
+                        out['tls'].setdefault('utls', {"enabled": True, "fingerprint": "chrome"})
+                        out['tls']['reality'] = {"enabled": True, "public_key": ro.get('public-key'), "short_id": ro.get('short-id')}
+                if proxy.get('network') == 'ws' and proxy.get('ws-opts'):
+                    ws = proxy.get('ws-opts') or {}
+                    out['transport'] = {"type": "ws", "path": ws.get('path', '/'), "headers": {"Host": (ws.get('headers') or {}).get('Host')}}
+
+            elif ptype == 'vmess':
+                out.update({"uuid": proxy.get('uuid'), "alter_id": proxy.get('alterId', 0), "security": proxy.get('cipher', 'auto')})
                 if proxy.get('tls'):
-                    outbound['tls'] = {'enabled': True, 'server_name': proxy.get('servername')}
-                if proxy.get('network') == 'ws':
-                    outbound['transport'] = {'type': 'ws', 'path': proxy['ws-opts']['path'], 'headers': {'Host': proxy['ws-opts']['headers']['Host']}}
-            elif proxy['type'] == 'trojan':
-                outbound['password'] = proxy['password']
-                outbound['tls'] = {'enabled': True, 'server_name': proxy.get('sni')}
-            elif proxy['type'] == 'ss':
-                outbound['method'] = proxy['cipher']
-                outbound['password'] = proxy['password']
-            elif proxy['type'] == 'hysteria2':
-                outbound['password'] = proxy['auth']
-                outbound['tls'] = {'enabled': True, 'server_name': proxy.get('sni'), 'insecure': proxy.get('skip-cert-verify')}
-            elif proxy['type'] == 'tuic':
-                outbound['uuid'] = proxy['uuid']
-                outbound['password'] = proxy['password']
-                outbound['tls'] = {'enabled': True, 'server_name': proxy.get('sni'), 'insecure': proxy.get('skip-cert-verify')}
-            else: return None
-            return outbound
+                    out['tls'] = {"enabled": True, "server_name": proxy.get('servername')}
+                if proxy.get('network') == 'ws' and proxy.get('ws-opts'):
+                    ws = proxy.get('ws-opts') or {}
+                    out['transport'] = {"type": "ws", "path": ws.get('path', '/'), "headers": {"Host": (ws.get('headers') or {}).get('Host')}}
+
+            elif ptype == 'trojan':
+                out.update({"password": proxy.get('password')})
+                out['tls'] = {"enabled": True, "server_name": proxy.get('sni')}
+
+            elif ptype == 'ss':
+                out.update({"method": proxy.get('cipher'), "password": proxy.get('password')})
+
+            elif ptype == 'hysteria2':
+                out.update({"password": proxy.get('auth')})
+                out['tls'] = {"enabled": True, "server_name": proxy.get('sni'), "insecure": bool(proxy.get('skip-cert-verify'))}
+
+            elif ptype == 'tuic':
+                out.update({"uuid": proxy.get('uuid'), "password": proxy.get('password')})
+                out['tls'] = {"enabled": True, "server_name": proxy.get('sni'), "insecure": bool(proxy.get('skip-cert-verify'))}
+
+            else:
+                return None
+
+            return out
         except Exception as e:
             print(f"❌ خطا در تبدیل به فرمت Sing-box برای {proxy.get('name')}: {e}")
             return None
