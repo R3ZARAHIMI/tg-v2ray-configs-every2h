@@ -42,7 +42,7 @@ V2RAY_PATTERNS = [
 BASE64_PATTERN = re.compile(r"([A-Za-z0-9+/=]{50,})", re.MULTILINE)
 
 def process_lists():
-    """خواندن و پردازش لیست کانال‌ها و گروپ‌ها از متغیرهای محیطی"""
+    """خواندن و پردازش لیست کانال‌ها و گروه‌ها از متغیرهای محیطی"""
     channels = [ch.strip() for ch in CHANNELS_STR.split(',')] if CHANNELS_STR else []
     if channels: print(f"✅ {len(channels)} کانال از سکرت‌ها خوانده شد.")
     else: print("⚠️ هشدار: سکرت CHANNELS_LIST پیدا نشد یا خالی است.")
@@ -228,7 +228,6 @@ class V2RayExtractor:
                     "tcp_multi_path": True
                 })
 
-                # TLS configuration
                 if proxy.get('tls'):
                     tls_config = {
                         "enabled": True,
@@ -239,18 +238,14 @@ class V2RayExtractor:
                             "fingerprint": "randomized"
                         }
                     }
-                    
-                    # Reality configuration
                     if proxy.get('reality-opts'):
                         tls_config["reality"] = {
                             "enabled": True,
                             "public_key": proxy['reality-opts']['public-key'],
                             "short_id": proxy['reality-opts'].get('short-id', '')
                         }
-                    
                     outbound["tls"] = tls_config
 
-                # WebSocket transport
                 if proxy.get('network') == 'ws' and proxy.get('ws-opts'):
                     outbound["transport"] = {
                         "type": "ws",
@@ -267,8 +262,6 @@ class V2RayExtractor:
                     "security": proxy.get('cipher', 'auto'),
                     "alter_id": proxy.get('alterId', 0)
                 })
-
-                # TLS configuration for VMess
                 if proxy.get('tls'):
                     outbound["tls"] = {
                         "enabled": True,
@@ -279,8 +272,6 @@ class V2RayExtractor:
                             "fingerprint": "randomized"
                         }
                     }
-
-                # WebSocket transport for VMess
                 if proxy.get('network') == 'ws' and proxy.get('ws-opts'):
                     outbound["transport"] = {
                         "type": "ws",
@@ -309,44 +300,11 @@ class V2RayExtractor:
                     "method": proxy['cipher'],
                     "password": proxy['password']
                 })
-
-            elif proxy['type'] == 'hysteria2':
-                outbound.update({
-                    "type": "hysteria2",
-                    "auth": proxy['auth'],
-                    "up": proxy.get('up', '100 Mbps'),
-                    "down": proxy.get('down', '100 Mbps'),
-                    "obfs": {
-                        "type": "salamander",
-                        "password": proxy.get('obfs')
-                    } if proxy.get('obfs') else None,
-                    "tls": {
-                        "enabled": True,
-                        "insecure": proxy.get('skip-cert-verify', False),
-                        "server_name": proxy.get('sni', proxy['server'])
-                    }
-                })
-
-            elif proxy['type'] == 'tuic':
-                outbound.update({
-                    "type": "tuic",
-                    "uuid": proxy['uuid'],
-                    "password": proxy.get('password', ''),
-                    "congestion_control": "cubic",
-                    "tls": {
-                        "enabled": True,
-                        "insecure": proxy.get('skip-cert-verify', False),
-                        "server_name": proxy.get('sni', proxy['server'])
-                    }
-                })
-
             else:
                 return None
 
-            # حذف فیلدهای None
-            outbound = {k: v for k, v in outbound.items() if v is not None}
-            
-            return outbound
+            return {k: v for k, v in outbound.items() if v is not None}
+        
         except Exception as e:
             print(f"❌ خطا در تبدیل به فرمت Sing-box برای {proxy.get('name')}: {e}")
             return None
@@ -398,7 +356,7 @@ class V2RayExtractor:
             for f in [OUTPUT_YAML_PRO, OUTPUT_TXT, OUTPUT_JSON_CONFIG_JO]: open(f, "w").close()
             return
 
-        print(f"⚙️ پردازش {len(self.raw_configs)} کانфیگ یافت شده...")
+        print(f"⚙️ پردازش {len(self.raw_configs)} کانفیگ یافت شده...")
         proxies_list_clash, parse_errors = [], 0
         
         valid_configs = set()
@@ -477,7 +435,7 @@ class V2RayExtractor:
                 {'name': 'PROXY', 'type': 'select', 'proxies': ['⚡ Auto-Select', 'DIRECT', *proxy_names]},
                 {'name': '⚡ Auto-Select', 'type': 'url-test', 'proxies': proxy_names, 'url': 'http://www.gstatic.com/generate_204', 'interval': 300},
                 {'name': '🇮🇷 Iran', 'type': 'select', 'proxies': ['DIRECT', 'PROXY']},
-                {'name': '🛡️ Block-Ads', 'type': 'select', 'proxies': ['REJECT', 'DIRECT']}
+                {'name': '🛑 Block-Ads', 'type': 'select', 'proxies': ['REJECT', 'DIRECT']}
             ],
             'rule-providers': {
                 'iran_domains': {'type': 'http', 'behavior': 'domain', 'url': "https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/iran-domains.txt", 'path': './rules/iran_domains.txt', 'interval': 86400},
@@ -485,7 +443,7 @@ class V2RayExtractor:
                 'ad_domains': {'type': 'http', 'behavior': 'domain', 'url': "https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/ad-domains.txt", 'path': './rules/ad_domains.txt', 'interval': 86400}
             },
             'rules': [
-                'RULE-SET,ad_domains,🛡️ Block-Ads',
+                'RULE-SET,ad_domains,🛑 Block-Ads',
                 'RULE-SET,blocked_domains,PROXY',
                 'RULE-SET,iran_domains,🇮🇷 Iran',
                 'GEOIP,IR,🇮🇷 Iran',
@@ -494,7 +452,7 @@ class V2RayExtractor:
         }
 
     def build_sing_box_config(self, proxies_clash: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """ساخت کانفیگ مدرن و کامل برای Sing-box"""
+        """ساخت کانفیگ مدرن و کامل برای Sing-box بر اساس الگوی موفق"""
         outbounds = []
         for proxy in proxies_clash:
             sb_outbound = self.convert_to_singbox_outbound(proxy)
@@ -510,160 +468,65 @@ class V2RayExtractor:
             },
             "dns": {
                 "servers": [
-                    {
-                        "tag": "dns-remote",
-                        "address": "https://8.8.8.8/dns-query",
-                        "detour": "✅ Selector"
-                    },
-                    {
-                        "tag": "dns-direct", 
-                        "address": "8.8.8.8",
-                        "detour": "direct"
-                    },
-                    {
-                        "tag": "dns-block",
-                        "address": "rcode://success"
-                    }
+                    { "tag": "dns-remote", "address": "https://8.8.8.8/dns-query", "detour": "✅ Selector" },
+                    { "tag": "dns-direct", "address": "8.8.8.8", "detour": "direct" }
                 ],
                 "rules": [
-                    {
-                        "domain_suffix": [".ir"],
-                        "server": "dns-direct"
-                    },
-                    {
-                        "geoip": ["ir"],
-                        "server": "dns-direct"
-                    },
-                    {
-                        "domain": ["raw.githubusercontent.com"],
-                        "server": "dns-direct"
-                    },
-                    {
-                        "clash_mode": "Direct",
-                        "server": "dns-direct"
-                    },
-                    {
-                        "clash_mode": "Global", 
-                        "server": "dns-remote"
-                    }
+                    { "rule_set": ["geosite-ir", "geoip-ir"], "server": "dns-direct" }
                 ],
                 "final": "dns-remote",
-                "strategy": "prefer_ipv4",
-                "disable_cache": False,
-                "disable_expire": False,
-                "independent_cache": True,
-                "reverse_mapping": False,
-                "fakeip": {
-                    "enabled": True,
-                    "inet4_range": "198.18.0.1/16",
-                    "inet6_range": "fc00::/18"
-                }
+                "strategy": "ipv4_only"
             },
             "inbounds": [
                 {
                     "type": "mixed",
-                    "tag": "mixed-in",
                     "listen": "0.0.0.0",
                     "listen_port": 2080,
-                    "sniff": True,
-                    "sniff_override_destination": True,
-                    "domain_strategy": "prefer_ipv4"
+                    "sniff": True
                 }
             ],
             "outbounds": [
                 {
                     "type": "selector",
                     "tag": "✅ Selector",
-                    "outbounds": ["💦 Best Ping 💥", "🔄 Load Balance", *proxy_tags, "direct"]
+                    "outbounds": ["💦 Best Ping 💥", *proxy_tags],
+                    "default": "💦 Best Ping 💥"
                 },
                 {
                     "type": "urltest",
                     "tag": "💦 Best Ping 💥",
                     "outbounds": proxy_tags,
                     "url": "https://www.gstatic.com/generate_204",
-                    "interval": "10m",
-                    "tolerance": 50
-                },
-                {
-                    "type": "urltest",
-                    "tag": "🔄 Load Balance",
-                    "outbounds": proxy_tags,
-                    "url": "https://www.gstatic.com/generate_204",
-                    "interval": "10m",
-                    "tolerance": 50
+                    "interval": "10m"
                 },
                 *outbounds,
-                {
-                    "type": "direct",
-                    "tag": "direct"
-                },
-                {
-                    "type": "dns",
-                    "tag": "dns-out"
-                },
-                {
-                    "type": "block",
-                    "tag": "block"
-                }
+                {"type": "direct", "tag": "direct"},
+                {"type": "block", "tag": "block"},
+                {"type": "dns", "tag": "dns-out"}
             ],
             "route": {
-                "rules": [
+                "rule_set": [
                     {
-                        "protocol": "dns",
-                        "outbound": "dns-out"
+                        "tag": "geosite-ir",
+                        "type": "remote",
+                        "format": "binary",
+                        "url": "https://cdn.jsdelivr.net/gh/Chocolate4U/Iran-sing-box-rules@rule-set/geosite-ir.srs",
+                        "download_detour": "direct"
                     },
                     {
-                        "clash_mode": "Direct",
-                        "outbound": "direct"
-                    },
-                    {
-                        "clash_mode": "Global",
-                        "outbound": "✅ Selector"
-                    },
-                    {
-                        "domain_suffix": [".ir"],
-                        "outbound": "direct"
-                    },
-                    {
-                        "geoip": ["private", "ir"],
-                        "outbound": "direct"
-                    },
-                    {
-                        "domain_keyword": ["iran", "tehran", "isfahan", "shiraz"],
-                        "outbound": "direct"
-                    },
-                    {
-                        "domain_suffix": [
-                            "digikala.com",
-                            "snapp.ir",
-                            "tapsi.ir",
-                            "alibaba.ir",
-                            "parspack.com",
-                            "aparat.com"
-                        ],
-                        "outbound": "direct"
+                        "tag": "geoip-ir",
+                        "type": "remote",
+                        "format": "binary",
+                        "url": "https://cdn.jsdelivr.net/gh/Chocolate4U/Iran-sing-box-rules@rule-set/geoip-ir.srs",
+                        "download_detour": "direct"
                     }
                 ],
-                "final": "✅ Selector",
-                "auto_detect_interface": True,
-                "override_android_vpn": True
-            },
-            "experimental": {
-                "clash_api": {
-                    "external_controller": "127.0.0.1:9090",
-                    "external_ui": "ui",
-                    "external_ui_download_url": "https://github.com/MetaCubeX/metacubexd/archive/refs/heads/gh-pages.zip",
-                    "external_ui_download_detour": "direct",
-                    "secret": "",
-                    "default_mode": "rule"
-                },
-                "cache_file": {
-                    "enabled": True,
-                    "path": "cache.db",
-                    "store_fakeip": True,
-                    "store_rdrc": True,
-                    "rdrc_timeout": "7d"
-                }
+                "rules": [
+                    {"protocol": "dns", "outbound": "dns-out"},
+                    {"rule_set": ["geosite-ir", "geoip-ir"], "outbound": "direct"},
+                    {"ip_is_private": True, "outbound": "direct"}
+                ],
+                "final": "✅ Selector"
             }
         }
 
