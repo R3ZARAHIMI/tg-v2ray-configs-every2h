@@ -213,98 +213,57 @@ class V2RayExtractor:
     def convert_to_singbox_outbound(self, proxy: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """تبدیل فرمت دیکشنری پراکسی به فرمت outbound برای Sing-box"""
         try:
+            proxy_type_singbox = proxy['type']
+            if proxy_type_singbox == 'ss':
+                proxy_type_singbox = 'shadowsocks'
+
             outbound = {
+                "type": proxy_type_singbox,
                 "tag": proxy['name'],
                 "server": proxy['server'],
                 "server_port": proxy['port']
             }
-
+            
             if proxy['type'] == 'vless':
-                outbound.update({
-                    "type": "vless",
-                    "uuid": proxy['uuid'],
-                    "packet_encoding": "",
-                    "tcp_fast_open": True,
-                    "tcp_multi_path": True
-                })
-
+                outbound['uuid'] = proxy['uuid']
+                outbound['flow'] = ''
                 if proxy.get('tls'):
-                    tls_config = {
-                        "enabled": True,
-                        "insecure": False,
-                        "server_name": proxy.get('servername', proxy['server']),
-                        "utls": {
-                            "enabled": True,
-                            "fingerprint": "randomized"
-                        }
-                    }
+                    outbound['tls'] = {'enabled': True, 'server_name': proxy.get('servername')}
                     if proxy.get('reality-opts'):
-                        tls_config["reality"] = {
-                            "enabled": True,
-                            "public_key": proxy['reality-opts']['public-key'],
-                            "short_id": proxy['reality-opts'].get('short-id', '')
+                        outbound['tls']['utls'] = {
+                            'enabled': True,
+                            'fingerprint': 'chrome'
                         }
-                    outbound["tls"] = tls_config
-
-                if proxy.get('network') == 'ws' and proxy.get('ws-opts'):
-                    outbound["transport"] = {
-                        "type": "ws",
-                        "path": proxy['ws-opts']['path'],
-                        "headers": proxy['ws-opts']['headers'],
-                        "early_data_header_name": "Sec-WebSocket-Protocol",
-                        "max_early_data": 2560
-                    }
-
+                        outbound['tls']['reality'] = {
+                            'enabled': True, 
+                            'public_key': proxy['reality-opts']['public-key'], 
+                            'short_id': proxy['reality-opts']['short-id']
+                        }
+                if proxy.get('network') == 'ws':
+                    outbound['transport'] = {'type': 'ws', 'path': proxy['ws-opts']['path'], 'headers': {'Host': proxy['ws-opts']['headers']['Host']}}
             elif proxy['type'] == 'vmess':
-                outbound.update({
-                    "type": "vmess",
-                    "uuid": proxy['uuid'],
-                    "security": proxy.get('cipher', 'auto'),
-                    "alter_id": proxy.get('alterId', 0)
-                })
+                outbound['uuid'] = proxy['uuid']
+                outbound['alter_id'] = proxy.get('alterId', 0)
+                outbound['security'] = proxy.get('cipher', 'auto')
                 if proxy.get('tls'):
-                    outbound["tls"] = {
-                        "enabled": True,
-                        "insecure": False,
-                        "server_name": proxy.get('servername', proxy['server']),
-                        "utls": {
-                            "enabled": True,
-                            "fingerprint": "randomized"
-                        }
-                    }
-                if proxy.get('network') == 'ws' and proxy.get('ws-opts'):
-                    outbound["transport"] = {
-                        "type": "ws",
-                        "path": proxy['ws-opts']['path'],
-                        "headers": proxy['ws-opts']['headers']
-                    }
-
+                    outbound['tls'] = {'enabled': True, 'server_name': proxy.get('servername')}
+                if proxy.get('network') == 'ws':
+                    outbound['transport'] = {'type': 'ws', 'path': proxy['ws-opts']['path'], 'headers': {'Host': proxy['ws-opts']['headers']['Host']}}
             elif proxy['type'] == 'trojan':
-                outbound.update({
-                    "type": "trojan",
-                    "password": proxy['password'],
-                    "tls": {
-                        "enabled": True,
-                        "insecure": False,
-                        "server_name": proxy.get('sni', proxy['server']),
-                        "utls": {
-                            "enabled": True,
-                            "fingerprint": "randomized"
-                        }
-                    }
-                })
-
+                outbound['password'] = proxy['password']
+                outbound['tls'] = {'enabled': True, 'server_name': proxy.get('sni')}
             elif proxy['type'] == 'ss':
-                outbound.update({
-                    "type": "shadowsocks",
-                    "method": proxy['cipher'],
-                    "password": proxy['password']
-                })
-            else:
-                return None
-
-            return {k: v for k, v in outbound.items() if v is not None}
-        
+                outbound['method'] = proxy['cipher']
+                outbound['password'] = proxy['password']
+            elif proxy['type'] == 'hysteria2':
+                outbound['password'] = proxy['auth']
+                outbound['tls'] = {'enabled': True, 'server_name': proxy.get('sni'), 'insecure': proxy.get('skip-cert-verify')}
+            elif proxy['type'] == 'tuic':
+                outbound['uuid'] = proxy['uuid']
+                outbound['password'] = proxy['password']
+                outbound['tls'] = {'enabled': True, 'server_name': proxy.get('sni'), 'insecure': proxy.get('skip-cert-verify')}
+            else: return None
+            return outbound
         except Exception as e:
             print(f"❌ خطا در تبدیل به فرمت Sing-box برای {proxy.get('name')}: {e}")
             return None
@@ -468,10 +427,11 @@ class V2RayExtractor:
             },
             "dns": {
                 "servers": [
-                    { "tag": "dns-remote", "address": "https://8.8.8.8/dns-query", "detour": "✅ Selector" },
+                    { "tag": "dns-remote", "address": "https://8.8.8.8/dns-query", "detour": "PROXY" },
                     { "tag": "dns-direct", "address": "8.8.8.8", "detour": "direct" }
                 ],
                 "rules": [
+                    { "domain_suffix": ".ir", "server": "dns-direct" },
                     { "rule_set": ["geosite-ir", "geoip-ir"], "server": "dns-direct" }
                 ],
                 "final": "dns-remote",
@@ -486,23 +446,23 @@ class V2RayExtractor:
                 }
             ],
             "outbounds": [
+                {"type": "direct", "tag": "direct"},
+                {"type": "block", "tag": "block"},
+                {"type": "dns", "tag": "dns-out"},
+                *outbounds,
                 {
                     "type": "selector",
-                    "tag": "✅ Selector",
-                    "outbounds": ["💦 Best Ping 💥", *proxy_tags],
-                    "default": "💦 Best Ping 💥"
+                    "tag": "PROXY",
+                    "outbounds": ["auto", *proxy_tags],
+                    "default": "auto"
                 },
                 {
                     "type": "urltest",
-                    "tag": "💦 Best Ping 💥",
+                    "tag": "auto",
                     "outbounds": proxy_tags,
-                    "url": "https://www.gstatic.com/generate_204",
-                    "interval": "10m"
-                },
-                *outbounds,
-                {"type": "direct", "tag": "direct"},
-                {"type": "block", "tag": "block"},
-                {"type": "dns", "tag": "dns-out"}
+                    "url": "http://www.gstatic.com/generate_204",
+                    "interval": "5m"
+                }
             ],
             "route": {
                 "rule_set": [
@@ -526,7 +486,7 @@ class V2RayExtractor:
                     {"rule_set": ["geosite-ir", "geoip-ir"], "outbound": "direct"},
                     {"ip_is_private": True, "outbound": "direct"}
                 ],
-                "final": "✅ Selector"
+                "final": "PROXY"
             }
         }
 
