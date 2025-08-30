@@ -23,61 +23,86 @@ dns:
 proxies:
 - name: Config_jo-01
   type: ss
-  server: 77.110.110.117
-  port: 443
+  server: 46.101.245.131
+  port: 44354
   cipher: chacha20-ietf-poly1305
-  password: 9JeYy8SkViXuSHVs9GFeSe
+  password: 9RviNa4tscjcmCB408vLSg
   udp: true
 - name: Config_jo-02
+  type: ss
+  server: 193.57.136.233
+  port: 443
+  cipher: chacha20-ietf-poly1305
+  password: Xir6C16cASybb6F8QlyoZf
+  udp: true
+- name: Config_jo-03
+  type: ss
+  server: 81.19.141.45
+  port: 443
+  cipher: chacha20-ietf-poly1305
+  password: Z27naSG5vb8T7LF5eYAfyo
+  udp: true
+- name: Config_jo-04
+  type: ss
+  server: 213.111.128.57
+  port: 443
+  cipher: chacha20-ietf-poly1305
+  password: ehc3S2iQqBknFrL6IecAp2
+  udp: true
+- name: Config_jo-05
   type: ss
   server: 185.213.23.226
   port: 990
   cipher: chacha20-ietf-poly1305
   password: f8f7aCzcPKbsF8p3
   udp: true
-- name: Config_jo-03
-  type: ss
-  server: 185.231.233.173
-  port: 990
-  cipher: chacha20-ietf-poly1305
-  password: f8f7aCzcPKbsF8p3
-  udp: true
-- name: Config_jo-04
+- name: Config_jo-06
   type: ss
   server: 188.214.36.155
   port: 990
   cipher: chacha20-ietf-poly1305
   password: f8f7aCzcPKbsF8p3
   udp: true
-- name: Config_jo-05
+- name: Config_jo-07
   type: ss
   server: 193.46.56.185
   port: 6683
   cipher: chacha20-ietf-poly1305
   password: iw8GoN42dciNxDBd0RwAdL
   udp: true
-- name: Config_jo-06
+- name: Config_jo-08
   type: ss
   server: 45.87.175.58
   port: 8080
   cipher: chacha20-ietf-poly1305
   password: oZIoA69Q8yhcQV8ka3Pa3A
   udp: true
-- name: Config_jo-07
+- name: Config_jo-09
   type: trojan
   server: 172.67.181.173
   port: 443
   password: f282b878-8711-45a1-8c69-5564172123c1
   udp: true
   sni: vpn.stupidworld.web.id
-- name: Config_jo-08
+- name: Config_jo-10
   type: trojan
   server: 198.62.62.67
   port: 443
   password: tg-fq521free
   udp: true
   sni: torjan.xn--xhq44j.eu.org
-- name: Config_jo-09
+- name: Config_jo-11
+  type: vless
+  server: 95.217.206.161
+  port: 443
+  uuid: 01d68a9b-be48-4c7b-b4f9-71b29c4cfaca
+  udp: true
+  tls: true
+  network: tcp
+  servername: api.chandplus.com
+  ws-opts: null
+  reality-opts: null
+- name: Config_jo-12
   type: vless
   server: 95.164.6.214
   port: 443
@@ -91,7 +116,7 @@ proxies:
     headers:
       Host: 95.164.6.214
   reality-opts: null
-- name: Config_jo-10
+- name: Config_jo-13
   type: vless
   server: 104.21.62.144
   port: 443
@@ -102,7 +127,7 @@ proxies:
   servername: sauron.melkore.ir
   ws-opts: null
   reality-opts: null
-- name: Config_jo-11
+- name: Config_jo-14
   type: vless
   server: 185.234.64.97
   port: 443
@@ -116,20 +141,21 @@ proxies:
     headers:
       Host: 185.234.64.97
   reality-opts: null
-- name: Config_jo-12
+- name: Config_jo-15
   type: vless
-  server: ilta-wzxrxkdhbjpnprhkkpplsjwawhssvollvxzdhqshiqckwdgrdm.orbnet.xyz
+  server: 104.21.67.12
   port: 443
-  uuid: 0e8a6896-ad90-4a3b-89a3-77d64aa409e2
+  uuid: 0fbf4f81-2598-4b6a-a623-0ead4cb9efa8
   udp: true
   tls: true
-  network: tcp
-  servername: i2pd.website
-  ws-opts: null
-  reality-opts:
-    public-key: YVDo7U4O-AT2fa5H9E7hyYHKgfZd1vB6UdbAf2ggWQE
-    short-id: 55e6af1a35e64a98
-- name: Config_jo-13
+  network: ws
+  servername: privasi.turah.my.id
+  ws-opts:
+    path: /Free-CF-Proxy-AD192.3.113.4-19318?ed=2048@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN
+    headers:
+      Host: privasi.turah.my.id
+  reality-opts: null
+- name: Config_jo-16
   type: vless
   server: 172.66.146.26
   port: 443
@@ -143,7 +169,7 @@ proxies:
     headers:
       Host: privasi.turah.my.id
   reality-opts: null
-- name: Config_jo-14
+- name: Config_jo-17
   type: vless
   server: 172.66.146.26
   port: 443
@@ -157,51 +183,9 @@ proxies:
     headers:
       Host: privasi.turah.my.id
   reality-opts: null
-- name: Config_jo-15
-  type: vless
-  server: 172.67.74.133
-  port: 443
-  uuid: 0fbf4f81-2598-4b6a-a623-0ead4cb9efa8
-  udp: true
-  tls: true
-  network: ws
-  servername: privasi.turah.my.id
-  ws-opts:
-    path: /Free-CF-Proxy-AD192.3.113.4-19318?ed=2048@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN
-    headers:
-      Host: privasi.turah.my.id
-  reality-opts: null
-- name: Config_jo-16
-  type: vless
-  server: privasi.turah.my.id
-  port: 443
-  uuid: 0fbf4f81-2598-4b6a-a623-0ead4cb9efa8
-  udp: true
-  tls: true
-  network: ws
-  servername: privasi.turah.my.id
-  ws-opts:
-    path: /Free-CF-Proxy-AD192.3.113.4-19318
-    headers:
-      Host: privasi.turah.my.id
-  reality-opts: null
-- name: Config_jo-17
-  type: vless
-  server: privasi.turah.my.id
-  port: 443
-  uuid: 0fbf4f81-2598-4b6a-a623-0ead4cb9efa8
-  udp: true
-  tls: true
-  network: ws
-  servername: privasi.turah.my.id
-  ws-opts:
-    path: /Free-CF-Proxy-AD192.3.113.4-19318?ed=2048@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN
-    headers:
-      Host: privasi.turah.my.id
-  reality-opts: null
 - name: Config_jo-18
   type: vless
-  server: privasi.turah.my.id
+  server: 172.66.146.26
   port: 443
   uuid: 0fbf4f81-2598-4b6a-a623-0ead4cb9efa8
   udp: true
@@ -215,7 +199,7 @@ proxies:
   reality-opts: null
 - name: Config_jo-19
   type: vless
-  server: zula.ir
+  server: 172.67.74.133
   port: 443
   uuid: 0fbf4f81-2598-4b6a-a623-0ead4cb9efa8
   udp: true
@@ -223,11 +207,53 @@ proxies:
   network: ws
   servername: privasi.turah.my.id
   ws-opts:
-    path: /Free-CF-Proxy-AD192.3.113.4-19318?ed=2048@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN
+    path: /Free-CF-Proxy-AD192.3.113.4-19318?ed=2048@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN
     headers:
       Host: privasi.turah.my.id
   reality-opts: null
 - name: Config_jo-20
+  type: vless
+  server: privasi.turah.my.id
+  port: 443
+  uuid: 0fbf4f81-2598-4b6a-a623-0ead4cb9efa8
+  udp: true
+  tls: true
+  network: ws
+  servername: privasi.turah.my.id
+  ws-opts:
+    path: /Free-CF-Proxy-AD192.3.113.4-19318
+    headers:
+      Host: privasi.turah.my.id
+  reality-opts: null
+- name: Config_jo-21
+  type: vless
+  server: privasi.turah.my.id
+  port: 443
+  uuid: 0fbf4f81-2598-4b6a-a623-0ead4cb9efa8
+  udp: true
+  tls: true
+  network: ws
+  servername: privasi.turah.my.id
+  ws-opts:
+    path: /Free-CF-Proxy-AD192.3.113.4-19318?ed=2048@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN
+    headers:
+      Host: privasi.turah.my.id
+  reality-opts: null
+- name: Config_jo-22
+  type: vless
+  server: privasi.turah.my.id
+  port: 443
+  uuid: 0fbf4f81-2598-4b6a-a623-0ead4cb9efa8
+  udp: true
+  tls: true
+  network: ws
+  servername: privasi.turah.my.id
+  ws-opts:
+    path: /Free-CF-Proxy-AD192.3.113.4-19318?ed=2048@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN
+    headers:
+      Host: privasi.turah.my.id
+  reality-opts: null
+- name: Config_jo-23
   type: vless
   server: zula.ir
   port: 443
@@ -241,7 +267,7 @@ proxies:
     headers:
       Host: privasi.turah.my.id
   reality-opts: null
-- name: Config_jo-21
+- name: Config_jo-24
   type: vless
   server: 185.236.37.23
   port: 443
@@ -252,7 +278,7 @@ proxies:
   servername: cdn2.azkhaktakhane.ir
   ws-opts: null
   reality-opts: null
-- name: Config_jo-22
+- name: Config_jo-25
   type: vless
   server: 94.26.228.10
   port: 443
@@ -265,7 +291,7 @@ proxies:
   reality-opts:
     public-key: J_jQq9-SWQZjiMhuPaFV7V2MaJ4pkKgVRaz7x6tmvy8
     short-id: 16895459a2c7768d
-- name: Config_jo-23
+- name: Config_jo-26
   type: vless
   server: japan.com
   port: 2096
@@ -279,21 +305,7 @@ proxies:
     headers:
       Host: cf-worker-ws-dev.kingo1923.workers.dev
   reality-opts: null
-- name: Config_jo-24
-  type: vless
-  server: 94.131.118.4
-  port: 443
-  uuid: 1f9671ee-59bf-4e26-be35-28b396e18635
-  udp: true
-  tls: true
-  network: ws
-  servername: null
-  ws-opts:
-    path: /yfwhodws?ed=2048@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN
-    headers:
-      Host: 94.131.118.4
-  reality-opts: null
-- name: Config_jo-25
+- name: Config_jo-27
   type: vless
   server: 94.131.118.4
   port: 443
@@ -307,7 +319,7 @@ proxies:
     headers:
       Host: 94.131.118.4
   reality-opts: null
-- name: Config_jo-26
+- name: Config_jo-28
   type: vless
   server: 172.66.138.120
   port: 443
@@ -321,7 +333,7 @@ proxies:
     headers:
       Host: rayan-confic-11.rayan-iv.dns-dynamic.net
   reality-opts: null
-- name: Config_jo-27
+- name: Config_jo-29
   type: vless
   server: 172.66.138.120
   port: 443
@@ -335,7 +347,21 @@ proxies:
     headers:
       Host: rayan-confic-11.rayan-iv.dns-dynamic.net
   reality-opts: null
-- name: Config_jo-28
+- name: Config_jo-30
+  type: vless
+  server: 185.234.66.94
+  port: 443
+  uuid: 2b25cdb0-ecb2-4caa-910d-b2e5b2309ca3
+  udp: true
+  tls: true
+  network: ws
+  servername: null
+  ws-opts:
+    path: /tqjkmwws?ed=2048@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN
+    headers:
+      Host: 185.234.66.94
+  reality-opts: null
+- name: Config_jo-31
   type: vless
   server: 104.21.62.144
   port: 443
@@ -346,21 +372,7 @@ proxies:
   servername: sauron.melkore.ir
   ws-opts: null
   reality-opts: null
-- name: Config_jo-29
-  type: vless
-  server: sourceforge.net
-  port: 443
-  uuid: 3498b967-319f-436a-9edd-12f6ede84572
-  udp: true
-  tls: true
-  network: ws
-  servername: rAyAn-cOnFiG-03.rAyAn.dNs-dYnAmIc.nEt
-  ws-opts:
-    path: /?ed=2048@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN
-    headers:
-      Host: rayan-config-03.rayan.dns-dynamic.net
-  reality-opts: null
-- name: Config_jo-30
+- name: Config_jo-32
   type: vless
   server: sourceforge.net
   port: 443
@@ -374,7 +386,7 @@ proxies:
     headers:
       Host: rayan-config-03.rayan.dns-dynamic.net
   reality-opts: null
-- name: Config_jo-31
+- name: Config_jo-33
   type: vless
   server: bakrie.ac.id.servpn.my.id
   port: 443
@@ -388,46 +400,7 @@ proxies:
     headers:
       Host: bakrie.ac.id.servpn.my.id
   reality-opts: null
-- name: Config_jo-32
-  type: vless
-  server: amazon-17.cristiano.name.ng
-  port: 443
-  uuid: 4c26ebc3-7784-46d8-b52a-7b0ccae6f4b4
-  udp: true
-  tls: true
-  network: tcp
-  servername: store.steampowered.com
-  ws-opts: null
-  reality-opts:
-    public-key: TGlPtfVzGIVpMauPRMGJj2Uu6GUiCpu5ZizIIjw-wx4
-    short-id: f5
-- name: Config_jo-33
-  type: vless
-  server: amazon-4.cristiano.name.ng
-  port: 443
-  uuid: 4c26ebc3-7784-46d8-b52a-7b0ccae6f4b4
-  udp: true
-  tls: true
-  network: tcp
-  servername: store.steampowered.com
-  ws-opts: null
-  reality-opts:
-    public-key: TGlPtfVzGIVpMauPRMGJj2Uu6GUiCpu5ZizIIjw-wx4
-    short-id: f5
 - name: Config_jo-34
-  type: vless
-  server: 91.99.117.197
-  port: 8443
-  uuid: 5687971f-8cd9-4e52-f4c5-4ff290a1f7f2
-  udp: true
-  tls: true
-  network: grpc
-  servername: www.cdn77.com
-  ws-opts: null
-  reality-opts:
-    public-key: X1ZcgEvOoRWwMQHDd4VOVUsVc0clHdcRKwVgjV9VvWs
-    short-id: ''
-- name: Config_jo-35
   type: vless
   server: 104.21.62.144
   port: 443
@@ -438,7 +411,7 @@ proxies:
   servername: sauron.melkore.ir
   ws-opts: null
   reality-opts: null
-- name: Config_jo-36
+- name: Config_jo-35
   type: vless
   server: jquery.com
   port: 443
@@ -452,7 +425,7 @@ proxies:
     headers:
       Host: rayan-config-05.rayan-ii.dns-dynamic.net
   reality-opts: null
-- name: Config_jo-37
+- name: Config_jo-36
   type: vless
   server: jquery.com
   port: 443
@@ -466,49 +439,49 @@ proxies:
     headers:
       Host: rayan-config-05.rayan-ii.dns-dynamic.net
   reality-opts: null
-- name: Config_jo-38
+- name: Config_jo-37
   type: vless
-  server: parspack.com
+  server: www.visasoutheasteurope.com
   port: 443
   uuid: 5da52d2d-1ab8-48d0-8421-8354fd6ce7d3
   udp: true
   tls: true
   network: ws
-  servername: rAyAn-cOnFiG-04.rAyAn-iI.DnS-DyNaMiC.NeT
+  servername: rAyAn-cOnFiG-06.rAyAn-iI.DnS-DyNaMiC.NeT
   ws-opts:
-    path: /?ed=2048@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN
+    path: /---@External_Net---@External_Net---@External_Net---@External_Net---@External_Net
     headers:
-      Host: rAyAn-cOnFiG-04.rAyAn-iI.DnS-DyNaMiC.NeT
+      Host: rAyAn-cOnFiG-06.rAyAn-iI.DnS-DyNaMiC.NeT
+  reality-opts: null
+- name: Config_jo-38
+  type: vless
+  server: www.visasoutheasteurope.com
+  port: 443
+  uuid: 5da52d2d-1ab8-48d0-8421-8354fd6ce7d3
+  udp: true
+  tls: true
+  network: ws
+  servername: rAyAn-cOnFiG-06.rAyAn-iI.DnS-DyNaMiC.NeT
+  ws-opts:
+    path: /---@External_Net---@External_Net---@External_Net---@External_Net---@External_Net
+    headers:
+      Host: rAyAn-cOnFiG-06.rAyAn-iI.DnS-DyNaMiC.NeT
   reality-opts: null
 - name: Config_jo-39
   type: vless
-  server: www.visasoutheasteurope.com
+  server: 185.234.66.81
   port: 443
-  uuid: 5da52d2d-1ab8-48d0-8421-8354fd6ce7d3
+  uuid: 6e812804-b0e8-4eff-9c2e-96c6fed96f1b
   udp: true
   tls: true
   network: ws
-  servername: rAyAn-cOnFiG-06.rAyAn-iI.DnS-DyNaMiC.NeT
+  servername: null
   ws-opts:
-    path: /---@External_Net---@External_Net---@External_Net---@External_Net---@External_Net
+    path: /lkjdasws
     headers:
-      Host: rAyAn-cOnFiG-06.rAyAn-iI.DnS-DyNaMiC.NeT
+      Host: 185.234.66.81
   reality-opts: null
 - name: Config_jo-40
-  type: vless
-  server: www.visasoutheasteurope.com
-  port: 443
-  uuid: 5da52d2d-1ab8-48d0-8421-8354fd6ce7d3
-  udp: true
-  tls: true
-  network: ws
-  servername: rAyAn-cOnFiG-06.rAyAn-iI.DnS-DyNaMiC.NeT
-  ws-opts:
-    path: /---@External_Net---@External_Net---@External_Net---@External_Net---@External_Net
-    headers:
-      Host: rAyAn-cOnFiG-06.rAyAn-iI.DnS-DyNaMiC.NeT
-  reality-opts: null
-- name: Config_jo-41
   type: vless
   server: ru.sfasti.ru
   port: 443
@@ -521,7 +494,7 @@ proxies:
   reality-opts:
     public-key: J_jQq9-SWQZjiMhuPaFV7V2MaJ4pkKgVRaz7x6tmvy8
     short-id: 16895459a2c7768d
-- name: Config_jo-42
+- name: Config_jo-41
   type: vless
   server: 212.95.34.16
   port: 443
@@ -535,6 +508,19 @@ proxies:
     headers:
       Host: 212.95.34.16
   reality-opts: null
+- name: Config_jo-42
+  type: vless
+  server: 45.15.170.80
+  port: 28495
+  uuid: 7e296434-2d17-48d3-928d-19eaa34aecb1
+  udp: true
+  tls: true
+  network: tcp
+  servername: dl.google.com
+  ws-opts: null
+  reality-opts:
+    public-key: KXMH8QzaRa66F6GxOR1CanBunO2uHdJvri2zCbar2RQ
+    short-id: 0ecc2c1392
 - name: Config_jo-43
   type: vless
   server: 104.21.42.56
@@ -590,17 +576,31 @@ proxies:
   type: vless
   server: 172.66.40.99
   port: 443
-  uuid: TELEGRAM-CONFiGLiNE
+  uuid: TELEGRAM-CONFiGLiNE-join
   udp: true
   tls: true
   network: ws
-  servername: bede6.mashkestan.com
+  servername: az52.mashkestan.com
   ws-opts:
     path: /telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE?ed=2048
     headers:
-      Host: bede6.mashkestan.com
+      Host: az52.mashkestan.com
   reality-opts: null
 - name: Config_jo-48
+  type: vless
+  server: 172.66.40.99
+  port: 443
+  uuid: TELEGRAM-CONFiGLiNE-join
+  udp: true
+  tls: true
+  network: ws
+  servername: az52.mashkestan.com
+  ws-opts:
+    path: /telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE?ed=2048
+    headers:
+      Host: az52.mashkestan.com
+  reality-opts: null
+- name: Config_jo-49
   type: vless
   server: 172.66.40.99
   port: 443
@@ -614,7 +614,7 @@ proxies:
     headers:
       Host: bede6.mashkestan.com
   reality-opts: null
-- name: Config_jo-49
+- name: Config_jo-50
   type: vless
   server: 104.16.145.208
   port: 443
@@ -628,7 +628,7 @@ proxies:
     headers:
       Host: rayan-config-07.rayan-iii.dns-dynamic.net
   reality-opts: null
-- name: Config_jo-50
+- name: Config_jo-51
   type: vless
   server: 104.16.148.208
   port: 443
@@ -641,20 +641,6 @@ proxies:
     path: /?ed=2048@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN
     headers:
       Host: rAyAn-cOnFiG-07.rAyAn-iIi.dNs-dYnAmIc.nEt
-  reality-opts: null
-- name: Config_jo-51
-  type: vless
-  server: laravel.com
-  port: 443
-  uuid: a0ac9cf5-f8c8-43cf-a09b-908455fb2b4b
-  udp: true
-  tls: true
-  network: ws
-  servername: rAyAn-cOnFiG-08.rAyAn-iIi.dNs-dYnAmIc.nEt
-  ws-opts:
-    path: /?ed=2048@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN
-    headers:
-      Host: rayan-config-08.rayan-iii.dns-dynamic.net
   reality-opts: null
 - name: Config_jo-52
   type: vless
@@ -680,7 +666,7 @@ proxies:
   network: ws
   servername: null
   ws-opts:
-    path: /jzonrlws?ed=2048@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN
+    path: /jzonrlws?ed=2048@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN
     headers:
       Host: 185.242.87.84
   reality-opts: null
@@ -694,25 +680,11 @@ proxies:
   network: ws
   servername: null
   ws-opts:
-    path: /jzonrlws?ed=2048@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN
-    headers:
-      Host: 185.242.87.84
-  reality-opts: null
-- name: Config_jo-55
-  type: vless
-  server: 185.242.87.84
-  port: 443
-  uuid: a3eb5fef-d11f-4bc4-a8eb-2b0069fb0b68
-  udp: true
-  tls: true
-  network: ws
-  servername: null
-  ws-opts:
     path: /jzonrlws?ed=2048@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN
     headers:
       Host: 185.242.87.84
   reality-opts: null
-- name: Config_jo-56
+- name: Config_jo-55
   type: vless
   server: 104.20.28.30
   port: 443
@@ -725,6 +697,20 @@ proxies:
     path: /Free-CF-Proxy-AT24?--TELEGRAM-ShadowProxy66
     headers:
       Host: freexxx.ndeso.web.id
+  reality-opts: null
+- name: Config_jo-56
+  type: vless
+  server: 104.16.53.11
+  port: 8443
+  uuid: ccbe6b7c-9264-40c4-8bc1-ef8f6205d7a4
+  udp: true
+  tls: true
+  network: ws
+  servername: hetzner-9.cfuk.name.ng
+  ws-opts:
+    path: /?ed=2048@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN--@HiByeVPNN
+    headers:
+      Host: hetzner-9.cfuk.name.ng
   reality-opts: null
 - name: Config_jo-57
   type: vless
@@ -768,19 +754,6 @@ proxies:
     short-id: e8ab71d0
 - name: Config_jo-60
   type: vless
-  server: 91.99.117.197
-  port: 8443
-  uuid: e78a285e-d940-41c0-9a78-70337f1503b0
-  udp: true
-  tls: true
-  network: grpc
-  servername: www.cdn77.com
-  ws-opts: null
-  reality-opts:
-    public-key: X1ZcgEvOoRWwMQHDd4VOVUsVc0clHdcRKwVgjV9VvWs
-    short-id: ''
-- name: Config_jo-61
-  type: vless
   server: 104.21.62.144
   port: 443
   uuid: f98e06c6-6b36-47f1-a0e3-77d7937c3ec7
@@ -790,7 +763,7 @@ proxies:
   servername: sauron.melkore.ir
   ws-opts: null
   reality-opts: null
-- name: Config_jo-62
+- name: Config_jo-61
   type: vless
   server: oureverydaylife.com
   port: 443
@@ -804,7 +777,7 @@ proxies:
     headers:
       Host: taochan.sylphachan.ip-ddns.com
   reality-opts: null
-- name: Config_jo-63
+- name: Config_jo-62
   type: vless
   server: 195.133.8.126
   port: 8081
@@ -817,7 +790,7 @@ proxies:
   reality-opts:
     public-key: oB-VCWWpUePBe_v3vAOLWw054ZbdUN_4X3t_FkkPNFc
     short-id: '220463'
-- name: Config_jo-64
+- name: Config_jo-63
   type: vless
   server: 172.66.40.99
   port: 443
@@ -831,7 +804,46 @@ proxies:
     headers:
       Host: kSo.2SeDkFjEuIxIjD0Ew9DvKcxoisiEk61.BlOg
   reality-opts: null
+- name: Config_jo-64
+  type: vmess
+  server: 51.38.64.209
+  port: 44023
+  uuid: 7da457da-ed0f-437d-c81d-6c35885bbea3
+  alterId: 0
+  cipher: auto
+  tls: false
+  network: tcp
+  udp: true
+  ws-opts: null
 - name: Config_jo-65
+  type: vmess
+  server: 57.129.24.125
+  port: 443
+  uuid: 03fcc618-b93d-6796-6aed-8a38c975d581
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
+  ws-opts:
+    path: /linkvws
+    headers:
+      Host: wrmelmwxlf.gktevlrqznwqqozy.fabpfs66gizmnojhcvqxwl.kytrcfzqla87gvgvs6c7kjnrubuh.cc
+- name: Config_jo-66
+  type: vmess
+  server: 57.129.28.65
+  port: 443
+  uuid: 03fcc618-b93d-6796-6aed-8a38c975d581
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
+  ws-opts:
+    path: /linkvws
+    headers:
+      Host: kapelleng.com
+- name: Config_jo-67
   type: vmess
   server: 91.99.185.216
   port: 20086
@@ -845,7 +857,7 @@ proxies:
     path: /
     headers:
       Host: 91.99.185.216
-- name: Config_jo-66
+- name: Config_jo-68
   type: vmess
   server: 172.67.71.145
   port: 80
@@ -859,7 +871,7 @@ proxies:
     path: /
     headers:
       Host: Q4.19kala.cO
-- name: Config_jo-67
+- name: Config_jo-69
   type: vmess
   server: 37.202.225.74
   port: 40521
@@ -873,7 +885,7 @@ proxies:
     path: /
     headers:
       Host: 37.202.225.74
-- name: Config_jo-68
+- name: Config_jo-70
   type: vmess
   server: l.numberone.sbs
   port: 80
@@ -958,6 +970,8 @@ proxy-groups:
   - Config_jo-66
   - Config_jo-67
   - Config_jo-68
+  - Config_jo-69
+  - Config_jo-70
 - name: ⚡ Auto-Select
   type: url-test
   proxies:
@@ -1029,6 +1043,8 @@ proxy-groups:
   - Config_jo-66
   - Config_jo-67
   - Config_jo-68
+  - Config_jo-69
+  - Config_jo-70
   url: http://www.gstatic.com/generate_204
   interval: 300
 - name: 🇮🇷 Iran
