@@ -11,10 +11,10 @@ from pyrogram.errors import FloodWait
 from typing import Optional, Dict, Any, Set, List
 
 # =================================================================================
-# بخش تنظیمات و ثابت‌ها
+# Settings and Constants Section
 # =================================================================================
 
-# خواندن متغیرهای محیطی
+# Reading environment variables
 API_ID = int(os.environ.get("API_ID"))
 API_HASH = os.environ.get("API_HASH")
 SESSION_STRING = os.environ.get("SESSION_STRING")
@@ -23,13 +23,13 @@ GROUPS_STR = os.environ.get('GROUPS_LIST')
 CHANNEL_SEARCH_LIMIT = int(os.environ.get('CHANNEL_SEARCH_LIMIT', 5))
 GROUP_SEARCH_LIMIT = int(os.environ.get('GROUP_SEARCH_LIMIT', 600))
 
-# تعریف نام فایل‌های خروجی
+# Defining output file names
 OUTPUT_YAML_PRO = "Config-jo.yaml"
 OUTPUT_TXT = "Config_jo.txt"
 OUTPUT_JSON_CONFIG_JO = "Config_jo.json"
 OUTPUT_ORIGINAL_CONFIGS = "Original-Configs.txt"
 
-# الگوهای Regex برای یافتن انواع کانفیگ
+# Regex patterns for finding various config types
 V2RAY_PATTERNS = [
     re.compile(r'(vless:\/\/[^\s\'\"<>`]+)'),
     re.compile(r'(vmess:\/\/[^\s\'\"<>`]+)'),
@@ -43,18 +43,18 @@ V2RAY_PATTERNS = [
 BASE64_PATTERN = re.compile(r"([A-Za-z0-9+/=]{50,})", re.MULTILINE)
 
 def process_lists():
-    """خواندن و پردازش لیست کانال‌ها و گروه‌ها از متغیرهای محیطی"""
+    """Read and process the list of channels and groups from environment variables"""
     channels = [ch.strip() for ch in CHANNELS_STR.split(',')] if CHANNELS_STR else []
-    if channels: print(f"✅ {len(channels)} کانال از سکرت‌ها خوانده شد.")
-    else: print("⚠️ هشدار: سکرت CHANNELS_LIST پیدا نشد یا خالی است.")
+    if channels: print(f"✅ {len(channels)} channels read from secrets.")
+    else: print("⚠️ Warning: CHANNELS_LIST secret not found or is empty.")
 
     groups = []
     if GROUPS_STR:
         try:
             groups = [int(g.strip()) for g in GROUPS_STR.split(',')]
-            print(f"✅ {len(groups)} گروه از سکرت‌ها خوانده شد.")
-        except ValueError: print("❌ خطا: سکرت GROUPS_LIST باید فقط شامل آیدی‌های عددی باشد.")
-    else: print("⚠️ هشدار: سکرت GROUPS_LIST خالی است.")
+            print(f"✅ {len(groups)} groups read from secrets.")
+        except ValueError: print("❌ Error: GROUPS_LIST secret must only contain numeric IDs.")
+    else: print("⚠️ Warning: GROUPS_LIST secret is empty.")
     return channels, groups
 
 CHANNELS, GROUPS = process_lists()
@@ -121,7 +121,7 @@ class V2RayExtractor:
             elif config_url.startswith('tuic://'): return self.parse_tuic(config_url)
             return None
         except Exception as e:
-            print(f"❌ خطا در پارس کردن کانفیگ {config_url[:50]}...: {e}")
+            print(f"❌ Error parsing config {config_url[:50]}...: {e}")
             return None
 
     def parse_vmess(self, vmess_url: str) -> Optional[Dict[str, Any]]:
@@ -136,7 +136,7 @@ class V2RayExtractor:
                 if host_header: ws_opts = {'path': config.get('path', '/'), 'headers': {'Host': host_header}}
             return {'name': original_name, 'type': 'vmess', 'server': config.get('add'), 'port': int(config.get('port', 443)), 'uuid': config.get('id'), 'alterId': int(config.get('aid', 0)), 'cipher': config.get('scy', 'auto'), 'tls': config.get('tls') == 'tls', 'network': config.get('net', 'tcp'), 'udp': True, 'ws-opts': ws_opts}
         except Exception as e:
-            print(f"❌ خطا در پارس vmess: {e}")
+            print(f"❌ Error parsing vmess: {e}")
             return None
 
     def parse_vless(self, vless_url: str) -> Optional[Dict[str, Any]]:
@@ -153,7 +153,7 @@ class V2RayExtractor:
                 if pbk: reality_opts = {'public-key': pbk, 'short-id': query.get('sid', [''])[0]}
             return {'name': original_name, 'type': 'vless', 'server': parsed.hostname, 'port': parsed.port or 443, 'uuid': parsed.username, 'udp': True, 'tls': query.get('security', [''])[0] in ['tls', 'reality'], 'network': query.get('type', ['tcp'])[0], 'servername': query.get('sni', [None])[0], 'ws-opts': ws_opts, 'reality-opts': reality_opts}
         except Exception as e:
-            print(f"❌ خطا در پارس vless: {e}")
+            print(f"❌ Error parsing vless: {e}")
             return None
 
     def parse_trojan(self, trojan_url: str) -> Optional[Dict[str, Any]]:
@@ -164,7 +164,7 @@ class V2RayExtractor:
             sni = query.get('peer', [None])[0] or query.get('sni', [None])[0] or parsed.hostname
             return {'name': original_name, 'type': 'trojan', 'server': parsed.hostname, 'port': parsed.port or 443, 'password': parsed.username, 'udp': True, 'sni': sni}
         except Exception as e:
-            print(f"❌ خطا در پارس trojan: {e}")
+            print(f"❌ Error parsing trojan: {e}")
             return None
 
     def parse_shadowsocks(self, ss_url: str) -> Optional[Dict[str, Any]]:
@@ -181,7 +181,7 @@ class V2RayExtractor:
                 return {'name': original_name, 'type': 'ss', 'server': parsed.hostname, 'port': parsed.port, 'cipher': cipher, 'password': password, 'udp': True}
             return None
         except Exception as e:
-            print(f"❌ خطا در پارس shadowsocks: {e}")
+            print(f"❌ Error parsing shadowsocks: {e}")
             return None
 
     def parse_hysteria2(self, hy2_url: str) -> Optional[Dict[str, Any]]:
@@ -191,7 +191,7 @@ class V2RayExtractor:
             original_name = unquote(parsed.fragment) if parsed.fragment else ''
             return {'name': original_name, 'type': 'hysteria2', 'server': parsed.hostname, 'port': parsed.port or 443, 'auth': parsed.username, 'up': query.get('up', ['100 Mbps'])[0], 'down': query.get('down', ['100 Mbps'])[0], 'obfs': query.get('obfs', [''])[0] or None, 'sni': query.get('sni', [parsed.hostname])[0], 'skip-cert-verify': query.get('insecure', ['false'])[0].lower() == 'true'}
         except Exception as e:
-            print(f"❌ خطا در پارس hysteria2: {e}")
+            print(f"❌ Error parsing hysteria2: {e}")
             return None
 
     def parse_tuic(self, tuic_url: str) -> Optional[Dict[str, Any]]:
@@ -201,27 +201,27 @@ class V2RayExtractor:
             original_name = unquote(parsed.fragment) if parsed.fragment else ''
             return {'name': original_name, 'type': 'tuic', 'server': parsed.hostname, 'port': parsed.port or 443, 'uuid': parsed.username, 'password': query.get('password', [''])[0], 'udp': True, 'sni': query.get('sni', [parsed.hostname])[0], 'skip-cert-verify': query.get('allow_insecure', ['false'])[0].lower() == 'true'}
         except Exception as e:
-            print(f"❌ خطا در پارس tuic: {e}")
+            print(f"❌ Error parsing tuic: {e}")
             return None
 
     def convert_to_singbox_outbound(self, proxy: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        """تبدیل امن و سخت‌گیرانه‌تر فرمت دیکشنری پراکسی به فرمت outbound برای Sing-box.
-        این نسخه اعتبارسنجی‌های لازم را انجام می‌دهد و ورودی‌های خراب یا فاقد اطلاعات لازم را کنار می‌گذارد.
+        """Safer and stricter conversion of proxy dictionary format to Sing-box outbound format.
+        This version performs necessary validations and discards corrupt or incomplete entries.
         """
         try:
             ptype = proxy.get('type')
             if not ptype:
                 return None
 
-            # نوع در خروجی sing-box برای ss باید 'shadowsocks' باشد
+            # The type in sing-box output for ss should be 'shadowsocks'
             sb_type = 'shadowsocks' if ptype == 'ss' else ptype
 
             server = proxy.get('server')
             if not server:
-                print(f"⚠️ رد کردن {ptype} بدون سرور مشخص: {proxy.get('name')}")
+                print(f"⚠️ Skipping {ptype} without a specified server: {proxy.get('name')}")
                 return None
 
-            # port به عدد تبدیل می‌شود و در صورت نامعتبر به 443 بازمی‌گردیم
+            # port is converted to a number and defaults to 443 if invalid
             try:
                 port = int(proxy.get('port') or 443)
             except Exception:
@@ -236,13 +236,13 @@ class V2RayExtractor:
                 "server_port": port
             }
 
-            # الگو برای بررسی UUID
+            # Pattern for checking UUID
             uuid_re = re.compile(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$')
 
             if ptype == 'vless':
                 uid = proxy.get('uuid')
                 if not uid or not uuid_re.match(uid):
-                    print(f"⚠️ رد کردن vless بدون uuid معتبر: {tag}")
+                    print(f"⚠️ Skipping vless with invalid uuid: {tag}")
                     return None
                 out.update({"uuid": uid, "flow": proxy.get('flow', '')})
 
@@ -262,10 +262,10 @@ class V2RayExtractor:
                     out['transport'] = {"type": "ws", "path": ws.get('path', '/'), "headers": headers}
 
             elif ptype == 'vmess':
-                # vmess ممکن است از کلیدهای متفاوتی برای id استفاده کند
+                # vmess might use different keys for id
                 uid = proxy.get('uuid') or proxy.get('id') or proxy.get('id')
                 if not uid or not uuid_re.match(uid):
-                    print(f"⚠️ رد کردن vmess بدون uuid معتبر: {tag}")
+                    print(f"⚠️ Skipping vmess with invalid uuid: {tag}")
                     return None
 
                 try:
@@ -293,10 +293,10 @@ class V2RayExtractor:
             elif ptype == 'trojan':
                 pw = proxy.get('password')
                 if not pw:
-                    print(f"⚠️ رد کردن trojan بدون password: {tag}")
+                    print(f"⚠️ Skipping trojan without password: {tag}")
                     return None
                 out.update({"password": pw})
-                # sni ممکن است در کلیدهای مختلف ذخیره شده باشد
+                # sni might be stored in different keys
                 sni = proxy.get('sni') or proxy.get('servername') or None
                 if proxy.get('tls') is not False:
                     out['tls'] = {"enabled": True, "server_name": sni}
@@ -305,14 +305,14 @@ class V2RayExtractor:
                 method = proxy.get('cipher') or proxy.get('method')
                 pw = proxy.get('password')
                 if not method or not pw:
-                    print(f"⚠️ رد کردن ss نامعتبر: {tag}")
+                    print(f"⚠️ Skipping invalid ss: {tag}")
                     return None
                 out.update({"method": method, "password": pw})
 
             elif ptype == 'hysteria2':
                 auth = proxy.get('auth') or proxy.get('password')
                 if not auth:
-                    print(f"⚠️ رد کردن hysteria2 بدون auth: {tag}")
+                    print(f"⚠️ Skipping hysteria2 without auth: {tag}")
                     return None
                 out.update({"password": auth})
                 out['tls'] = {"enabled": bool(proxy.get('tls', True)), "server_name": proxy.get('sni') or proxy.get('server'), "insecure": bool(proxy.get('skip-cert-verify'))}
@@ -321,7 +321,7 @@ class V2RayExtractor:
                 uid = proxy.get('uuid')
                 pw = proxy.get('password') or proxy.get('auth')
                 if not uid or not uuid_re.match(uid) or not pw:
-                    print(f"⚠️ رد کردن tuic نامعتبر: {tag}")
+                    print(f"⚠️ Skipping invalid tuic: {tag}")
                     return None
                 out.update({"uuid": uid, "password": pw})
                 out['tls'] = {"enabled": True, "server_name": proxy.get('sni') or proxy.get('server'), "insecure": bool(proxy.get('skip-cert-verify'))}
@@ -331,7 +331,7 @@ class V2RayExtractor:
 
             return out
         except Exception as e:
-            print(f"❌ خطا در تبدیل به فرمت Sing-box برای {proxy.get('name')}: {e}")
+            print(f"❌ Error converting to Sing-box format for {proxy.get('name')}: {e}")
             return None
 
     def extract_configs_from_text(self, text: str) -> Set[str]:
@@ -347,7 +347,7 @@ class V2RayExtractor:
 
     async def find_raw_configs_from_chat(self, chat_id: int, limit: int, retries: int = 3):
         try:
-            print(f"🔍 جستجو در چت {chat_id} (محدودیت: {limit} پیام)...")
+            print(f"🔍 Searching in chat {chat_id} (limit: {limit} messages)...")
             async for message in self.client.get_chat_history(chat_id, limit=limit):
                 text_to_check = message.text or message.caption
                 if not text_to_check: continue
@@ -363,25 +363,25 @@ class V2RayExtractor:
                     self.raw_configs.update(found_configs)
         except FloodWait as e:
             if retries <= 0:
-                print(f"❌ حداکثر تعداد تلاش‌ها برای چت {chat_id} به پایان رسید.")
+                print(f"❌ Max retries reached for chat {chat_id}.")
                 return
             wait_time = min(e.value * (4 - retries), 300)
-            print(f"⏳ صبر برای {wait_time} ثانیه (تلاش {4 - retries} از ۳)...")
+            print(f"⏳ Waiting for {wait_time} seconds (attempt {4 - retries} of 3)...")
             await asyncio.sleep(wait_time)
             await self.find_raw_configs_from_chat(chat_id, limit, retries - 1)
         except Exception as e:
-            print(f"❌ خطا در زمان اسکن چت {chat_id}: {e}")
+            print(f"❌ Error while scanning chat {chat_id}: {e}")
 
     def save_files(self):
         print("\n" + "="*40)
-        print("⚙️ شروع پردازش و ساخت فایل‌های کانفیگ...")
+        print("⚙️ Starting to process and build config files...")
 
         if not self.raw_configs:
-            print("⚠️ هیچ کانفیگی در چت‌ها یافت نشد. فایل‌های خروجی خالی خواهند بود.")
+            print("⚠️ No configs found in chats. Output files will be empty.")
             for f in [OUTPUT_YAML_PRO, OUTPUT_TXT, OUTPUT_JSON_CONFIG_JO, OUTPUT_ORIGINAL_CONFIGS]: open(f, "w").close()
             return
 
-        print(f"⚙️ پردازش {len(self.raw_configs)} کانفیگ یافت شده...")
+        print(f"⚙️ Processing {len(self.raw_configs)} found configs...")
         proxies_list_clash, parse_errors = [], 0
         
         valid_configs = set()
@@ -403,12 +403,12 @@ class V2RayExtractor:
             if proxy:
                 original_configs_to_save.append(url)
                 
-                # تغییر نام کانفیگ
+                # Rename config
                 new_name = f"Config_jo-{config_counter:02d}"
                 proxy['name'] = new_name
                 proxies_list_clash.append(proxy)
                 
-                # ساخت کانفیگ متنی با نام جدید
+                # Create text config with new name
                 try:
                     parsed_url = list(urlparse(url))
                     parsed_url[5] = new_name  # [5] is the fragment component
@@ -424,47 +424,47 @@ class V2RayExtractor:
                 parse_errors += 1
 
         if parse_errors > 0:
-            print(f"⚠️ {parse_errors} کانفیگ به دلیل خطا در پارسینگ نادیده گرفته شد.")
+            print(f"⚠️ {parse_errors} configs were ignored due to parsing errors.")
 
         if not proxies_list_clash:
-            print("⚠️ هیچ کانفیگ معتبری برای ساخت فایل‌ها پیدا نشد.")
+            print("⚠️ No valid configs found to build files.")
             for f in [OUTPUT_YAML_PRO, OUTPUT_TXT, OUTPUT_JSON_CONFIG_JO, OUTPUT_ORIGINAL_CONFIGS]: open(f, "w").close()
             return
             
-        print(f"👍 {len(proxies_list_clash)} کانفیگ معتبر برای فایل نهایی یافت شد.")
+        print(f"👍 {len(proxies_list_clash)} valid configs found for the final file.")
         all_proxy_names = [p['name'] for p in proxies_list_clash]
 
-        # ساخت و ذخیره فایل حرفه‌ای (Pro)
+        # Build and save Pro file
         try:
             os.makedirs('rules', exist_ok=True)
             pro_config = self.build_pro_config(proxies_list_clash, all_proxy_names)
             with open(OUTPUT_YAML_PRO, 'w', encoding='utf-8') as f:
                 yaml.dump(pro_config, f, allow_unicode=True, sort_keys=False, indent=2, width=1000)
-            print(f"✅ فایل حرفه‌ای {OUTPUT_YAML_PRO} با موفقیت ساخته شد.")
+            print(f"✅ Pro file {OUTPUT_YAML_PRO} created successfully.")
         except Exception as e:
-            print(f"❌ خطا در ساخت فایل حرفه‌ای: {e}")
+            print(f"❌ Error creating pro file: {e}")
 
-        # ساخت و ذخیره فایل Sing-box
+        # Build and save Sing-box file
         try:
             singbox_config = self.build_sing_box_config(proxies_list_clash)
             with open(OUTPUT_JSON_CONFIG_JO, 'w', encoding='utf-8') as f:
                 json.dump(singbox_config, f, ensure_ascii=False, indent=4)
-            print(f"✅ فایل Sing-box {OUTPUT_JSON_CONFIG_JO} با موفقیت ساخته شد.")
+            print(f"✅ Sing-box file {OUTPUT_JSON_CONFIG_JO} created successfully.")
         except Exception as e:
-            print(f"❌ خطا در ساخت فایل Sing-box: {e}")
+            print(f"❌ Error creating Sing-box file: {e}")
         
-        # ذخیره فایل متنی با نام‌های جدید
+        # Save text file with new names
         with open(OUTPUT_TXT, 'w', encoding='utf-8') as f:
             f.write("\n".join(sorted(renamed_txt_configs)))
-        print(f"✅ فایل متنی {OUTPUT_TXT} با موفقیت ذخیره شد.")
+        print(f"✅ Text file {OUTPUT_TXT} saved successfully.")
 
-        # ذخیره فایل کانفیگ‌های اصلی
+        # Save original configs file
         with open(OUTPUT_ORIGINAL_CONFIGS, 'w', encoding='utf-8') as f:
             f.write("\n".join(sorted(original_configs_to_save)))
-        print(f"✅ فایل کانفیگ‌های اصلی {OUTPUT_ORIGINAL_CONFIGS} با موفقیت ذخیره شد.")
+        print(f"✅ Original configs file {OUTPUT_ORIGINAL_CONFIGS} saved successfully.")
 
     def build_pro_config(self, proxies, proxy_names):
-        """ساخت کانفیگ حرفه‌ای با قابلیت‌های پیشرفته"""
+        """Build professional config with advanced features"""
         return {
             'port': int(os.environ.get('CLASH_PORT', 7890)),
             'socks-port': int(os.environ.get('CLASH_SOCKS_PORT', 7891)),
@@ -503,7 +503,7 @@ class V2RayExtractor:
         }
 
     def build_sing_box_config(self, proxies_clash: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """ساخت کانفیگ مدرن و کامل برای Sing-box با رفع مشکل DNS"""
+        """Build a modern and complete config for Sing-box with DNS fix"""
         outbounds = []
         for proxy in proxies_clash:
             sb_outbound = self.convert_to_singbox_outbound(proxy)
@@ -526,16 +526,16 @@ class V2RayExtractor:
                     },
                     {
                         "tag": "dns_direct",
-                        "address": "1.1.1.1" # به طور پیش فرض از detour مستقیم استفاده میکند
+                        "address": "1.1.1.1" # Uses direct detour by default
                     }
                 ],
                 "rules": [
-                    # مهم: فقط ترافیکی که از پروکسی عبور میکند، از DNS پروکسی شده استفاده کند
+                    # Important: Only traffic passing through the proxy should use the proxied DNS
                     { "outbound": "PROXY", "server": "dns_proxy" },
                     { "rule_set": ["geosite-ir", "geoip-ir"], "server": "dns_direct" },
                     { "domain_suffix": ".ir", "server": "dns_direct" }
                 ],
-                "final": "dns_direct", # پیش فرض برای جلوگیری از deadlock
+                "final": "dns_direct", # Default to prevent deadlock
                 "strategy": "ipv4_only"
             },
             "inbounds": [
@@ -592,7 +592,7 @@ class V2RayExtractor:
         }
 
 async def main():
-    print("🚀 شروع برنامه استخراج کانفیگ...")
+    print("🚀 Starting config extractor...")
     extractor = V2RayExtractor()
     async with extractor.client:
         tasks = [extractor.find_raw_configs_from_chat(channel, CHANNEL_SEARCH_LIMIT) for channel in CHANNELS]
@@ -600,12 +600,12 @@ async def main():
         if tasks:
             await asyncio.gather(*tasks)
         else:
-            print("❌ هیچ کانال یا گروهی برای جستجو تعریف نشده است.")
+            print("❌ No channels or groups defined for searching.")
     extractor.save_files()
-    print("\n✨ تمام عملیات با موفقیت به پایان رسید!")
+    print("\n✨ All operations completed successfully!")
 
 if __name__ == "__main__":
     if not all([API_ID, API_HASH, SESSION_STRING]):
-        print("❌ خطا: یک یا چند مورد از سکرت‌های ضروری (API_ID, API_HASH, SESSION_STRING) تنظیم نشده است.")
+        print("❌ Error: One or more required secrets (API_ID, API_HASH, SESSION_STRING) are not set.")
     else:
         asyncio.run(main())
