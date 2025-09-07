@@ -351,7 +351,13 @@ class V2RayExtractor:
             async for message in self.client.get_chat_history(chat_id, limit=limit):
                 text_to_check = message.text or message.caption
                 if not text_to_check: continue
-                texts_to_scan = [text_to_check]
+
+                # --- START OF CHANGE ---
+                # Join broken lines to handle multi-line configs
+                processed_text = text_to_check.replace("\n", "")
+                texts_to_scan = [processed_text]
+                # --- END OF CHANGE ---
+
                 potential_b64 = BASE64_PATTERN.findall(text_to_check)
                 for b64_str in potential_b64:
                     try:
