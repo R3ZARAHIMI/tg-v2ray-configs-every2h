@@ -8,6 +8,7 @@ import uuid
 from urllib.parse import urlparse, parse_qs, unquote, urlunparse
 from pyrogram import Client
 from pyrogram.errors import FloodWait
+from pyrogram.enums import MessageEntityType  # <--- این خط اضافه شده است
 from typing import Optional, Dict, Any, Set, List
 
 # =================================================================================
@@ -349,24 +350,44 @@ class V2RayExtractor:
         try:
             print(f"🔍 Searching in chat {chat_id} (limit: {limit} messages)...")
             async for message in self.client.get_chat_history(chat_id, limit=limit):
-                text_to_check = message.text or message.caption
-                if not text_to_check: continue
+                full_text = message.text or message.caption
+                if not full_text:
+                    continue
 
-                # --- START OF CHANGE ---
-                # Join broken lines to handle multi-line configs
-                processed_text = text_to_check.replace("\n", "")
-                texts_to_scan = [processed_text]
-                # --- END OF CHANGE ---
+                texts_to_scan = set()
 
-                potential_b64 = BASE64_PATTERN.findall(text_to_check)
+                # --- START OF NEW LOGIC ---
+                # 1. Prioritize extracting text from code blocks (pre/code)
+                entities = message.entities or message.caption_entities
+                if entities:
+                    for entity in entities:
+                        if entity.type in [MessageEntityType.CODE, MessageEntityType.PRE]:
+                            # Extract the exact text from the code block
+                            code_text = full_text[entity.offset : entity.offset + entity.length]
+                            # Join lines within the code block
+                            processed_code_text = code_text.replace("\n", "")
+                            texts_to_scan.add(processed_code_text)
+
+                # 2. Also scan the entire message text (after joining lines) as a fallback
+                processed_full_text = full_text.replace("\n", "")
+                texts_to_scan.add(processed_full_text)
+                # --- END OF NEW LOGIC ---
+
+                # 3. Scan for Base64 encoded configs in the original text
+                potential_b64 = BASE64_PATTERN.findall(full_text)
                 for b64_str in potential_b64:
                     try:
                         decoded_text = base64.b64decode(b64_str + '=' * (-len(b64_str) % 4)).decode('utf-8', errors='ignore')
-                        texts_to_scan.append(decoded_text)
-                    except Exception: continue
+                        # Also join lines in decoded text
+                        texts_to_scan.add(decoded_text.replace("\n", ""))
+                    except Exception:
+                        continue
+
+                # 4. Run the regex on all collected texts
                 for text in texts_to_scan:
-                    found_configs = self.extract_configs_from_text(text)
-                    self.raw_configs.update(found_configs)
+                    if text: # Ensure text is not empty
+                        found_configs = self.extract_configs_from_text(text)
+                        self.raw_configs.update(found_configs)
         except FloodWait as e:
             if retries <= 0:
                 print(f"❌ Max retries reached for chat {chat_id}.")
