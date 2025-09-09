@@ -8,7 +8,6 @@ import uuid
 from urllib.parse import urlparse, parse_qs, unquote, urlunparse
 from pyrogram import Client
 from pyrogram.errors import FloodWait
-from pyrogram.enums import MessageEntityType
 from typing import Optional, Dict, Any, Set, List
 
 # =================================================================================
@@ -32,13 +31,13 @@ OUTPUT_ORIGINAL_CONFIGS = "Original-Configs.txt"
 
 # Regex patterns for finding various config types
 V2RAY_PATTERNS = [
-    re.compile(r'(vless:\/\/[^\s\'\"<>`]+)'),
-    re.compile(r'(vmess:\/\/[^\s\'\"<>`]+)'),
-    re.compile(r'(trojan:\/\/[^\s\'\"<>`]+)'),
-    re.compile(r'(ss:\/\/[^\s\'\"<>`]+)'),
-    re.compile(r"(hy2://[^\s'\"<>`]+)"),
-    re.compile(r"(hysteria2://[^\s'\"<>`]+)"),
-    re.compile(r"(tuic://[^\s'\"<>`]+)")
+    re.compile(r'vless:\/\/[^\s\'\"<>`]+'),
+    re.compile(r'vmess:\/\/[^\s\'\"<>`]+'),
+    re.compile(r'trojan:\/\/[^\s\'\"<>`]+'),
+    re.compile(r'ss:\/\/[^\s\'\"<>`]+'),
+    re.compile(r"hy2:\/\/[^\s'\"<>`]+"),
+    re.compile(r"hysteria2:\/\/[^\s'\"<>`]+"),
+    re.compile(r"tuic:\/\/[^\s'\"<>`]+")
 ]
 
 def process_lists():
@@ -73,16 +72,22 @@ class V2RayExtractor:
             message_count = 0
             async for message in self.client.get_chat_history(chat_id, limit=limit):
                 message_count += 1
-                text_to_scan = message.text or message.caption
-                if not text_to_scan:
+                
+                # --- NEW RELIABLE EXTRACTION LOGIC ---
+                # This combines text and caption HTML to get all text content
+                full_html = message.text.html if message.text else message.caption.html if message.caption else ""
+                if not full_html:
                     continue
 
+                # A simple way to clean HTML tags to get raw text
+                text_from_html = re.sub(r'<[^>]+>', '\n', full_html)
+                
                 print(f"\n--- DEBUG: Scanning Message ID {message.id} from chat '{chat_id}' ---")
-                print(text_to_scan)
+                print(text_from_html)
                 print("-----------------------------------------------------------------")
                 
                 initial_count = len(self.raw_configs)
-                found = self.extract_configs_from_text(text_to_scan)
+                found = self.extract_configs_from_text(text_from_html)
                 
                 if found:
                     self.raw_configs.update(found)
@@ -101,24 +106,19 @@ class V2RayExtractor:
             print(f"❌ ERROR scanning chat '{chat_id}': {e}")
 
     def save_files(self):
-        # This part is simplified as parsing is not the issue
         print("\n" + "="*40)
         print("⚙️ Starting to save files...")
 
         if not self.raw_configs:
             print("⚠️ No configs found. Output files will be empty.")
-            for f in [OUTPUT_TXT, OUTPUT_ORIGINAL_CONFIGS]: open(f, "w").close()
+            open("Original-Configs.txt", "w").close()
             return
             
-        print(f"👍 {len(self.raw_configs)} unique configs found. Saving to files...")
+        print(f"👍 {len(self.raw_configs)} unique configs found. Saving to Original-Configs.txt...")
         
-        with open(OUTPUT_TXT, 'w', encoding='utf-8') as f:
+        with open("Original-Configs.txt", 'w', encoding='utf-8') as f:
             f.write("\n".join(sorted(list(self.raw_configs))))
-        print(f"✅ Text file {OUTPUT_TXT} saved successfully.")
-
-        with open(OUTPUT_ORIGINAL_CONFIGS, 'w', encoding='utf-8') as f:
-            f.write("\n".join(sorted(list(self.raw_configs))))
-        print(f"✅ Original configs file {OUTPUT_ORIGINAL_CONFIGS} saved successfully.")
+        print(f"✅ Original configs file saved successfully.")
 
 
 async def main():
@@ -136,6 +136,8 @@ async def main():
         else:
             print("❌ No channels or groups defined for searching.")
     
+    # NOTE: This simplified version only saves the raw configs.
+    # The parsing and file generation logic is removed to focus on the core problem.
     extractor.save_files()
     print("\n✨ All operations completed successfully!")
 
