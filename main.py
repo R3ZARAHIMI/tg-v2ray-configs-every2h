@@ -1,14 +1,10 @@
 import re
 import asyncio
-import base64
-import json
-import yaml
 import os
-import uuid
-from urllib.parse import urlparse, parse_qs, unquote, urlunparse
+from urllib.parse import unquote
 from pyrogram import Client
 from pyrogram.errors import FloodWait
-from typing import Optional, Dict, Any, Set, List
+from typing import Any, Set
 
 # =================================================================================
 # Settings and Constants Section
@@ -24,9 +20,6 @@ CHANNEL_SEARCH_LIMIT = int(os.environ.get('CHANNEL_SEARCH_LIMIT', 50))
 GROUP_SEARCH_LIMIT = int(os.environ.get('GROUP_SEARCH_LIMIT', 600))
 
 # Defining output file names
-OUTPUT_YAML_PRO = "Config-jo.yaml"
-OUTPUT_TXT = "Config_jo.txt"
-OUTPUT_JSON_CONFIG_JO = "Config_jo.json"
 OUTPUT_ORIGINAL_CONFIGS = "Original-Configs.txt"
 
 # Regex patterns for finding various config types
@@ -61,24 +54,34 @@ class V2RayExtractor:
         self.client = Client("my_account", api_id=API_ID, api_hash=API_HASH, session_string=SESSION_STRING)
 
     def extract_configs_from_text(self, text: str) -> Set[str]:
+        """Extracts config links from a given block of text."""
         found_configs = set()
         for pattern in V2RAY_PATTERNS:
             found_configs.update(pattern.findall(text))
-        return {config.strip().replace("`", "").replace("'", "").replace('"', '') for config in found_configs}
+        # Clean up the found configs
+        return {unquote(config.strip().replace("`", "")) for config in found_configs}
 
     async def find_raw_configs_from_chat(self, chat_id: Any, limit: int):
+        """Searches a chat for V2Ray configs using a reliable markdown extraction method."""
         try:
             print(f"INFO: 🔍 Searching in chat '{chat_id}' (limit: {limit})...")
             message_count = 0
             async for message in self.client.get_chat_history(chat_id, limit=limit):
                 message_count += 1
                 
-                # --- NEW RELIABLE EXTRACTION LOGIC ---
-                # Convert the entire message object to a string to capture all text
-                full_message_text = str(message)
+                # --- RELIABLE MARKDOWN EXTRACTION LOGIC ---
+                # Use message.text.markdown to get the full text content including code blocks
+                full_markdown_text = ""
+                if message.text and hasattr(message.text, 'markdown'):
+                    full_markdown_text = message.text.markdown
+                elif message.caption and hasattr(message.caption, 'markdown'):
+                    full_markdown_text = message.caption.markdown
+                
+                if not full_markdown_text:
+                    continue
                 
                 initial_count = len(self.raw_configs)
-                found = self.extract_configs_from_text(full_message_text)
+                found = self.extract_configs_from_text(full_markdown_text)
                 
                 if found:
                     self.raw_configs.update(found)
@@ -97,21 +100,21 @@ class V2RayExtractor:
             print(f"❌ ERROR scanning chat '{chat_id}': {e}")
 
     def save_files(self):
+        """Saves the found raw configs to a text file."""
         print("\n" + "="*40)
-        print("⚙️ Starting to process and build config files...")
+        print("⚙️ Starting to save files...")
 
         if not self.raw_configs:
-            print("⚠️ No configs found. Output files will be empty.")
+            print("⚠️ No configs found. Output file will be empty.")
             open(OUTPUT_ORIGINAL_CONFIGS, "w").close()
             return
             
-        print(f"👍 {len(self.raw_configs)} unique configs found. Saving...")
+        print(f"👍 {len(self.raw_configs)} unique configs found. Saving to '{OUTPUT_ORIGINAL_CONFIGS}'...")
         
         with open(OUTPUT_ORIGINAL_CONFIGS, 'w', encoding='utf-8') as f:
             f.write("\n".join(sorted(list(self.raw_configs))))
-        print(f"✅ Original configs file '{OUTPUT_ORIGINAL_CONFIGS}' saved successfully.")
-        # The rest of the file generation is omitted for simplicity,
-        # focusing on the main goal: finding and saving the raw configs.
+        print(f"✅ Original configs file saved successfully.")
+
 
 async def main():
     print("🚀 Starting config extractor...")
@@ -128,6 +131,7 @@ async def main():
         else:
             print("❌ No channels or groups defined for searching.")
     
+    # This simplified version only saves the raw configs to focus on the core problem.
     extractor.save_files()
     print("\n✨ All operations completed successfully!")
 
