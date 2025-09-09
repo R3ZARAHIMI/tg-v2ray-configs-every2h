@@ -20,7 +20,7 @@ API_HASH = os.environ.get("API_HASH")
 SESSION_STRING = os.environ.get("SESSION_STRING")
 CHANNELS_STR = os.environ.get('CHANNELS_LIST')
 GROUPS_STR = os.environ.get('GROUPS_LIST')
-CHANNEL_SEARCH_LIMIT = int(os.environ.get('CHANNEL_SEARCH_LIMIT', 5))
+CHANNEL_SEARCH_LIMIT = int(os.environ.get('CHANNEL_SEARCH_LIMIT', 50))
 GROUP_SEARCH_LIMIT = int(os.environ.get('GROUP_SEARCH_LIMIT', 600))
 
 # Defining output file names
@@ -64,7 +64,7 @@ class V2RayExtractor:
         found_configs = set()
         for pattern in V2RAY_PATTERNS:
             found_configs.update(pattern.findall(text))
-        return {config.strip().replace("`", "") for config in found_configs}
+        return {config.strip().replace("`", "").replace("'", "").replace('"', '') for config in found_configs}
 
     async def find_raw_configs_from_chat(self, chat_id: Any, limit: int):
         try:
@@ -74,26 +74,17 @@ class V2RayExtractor:
                 message_count += 1
                 
                 # --- NEW RELIABLE EXTRACTION LOGIC ---
-                # This combines text and caption HTML to get all text content
-                full_html = message.text.html if message.text else message.caption.html if message.caption else ""
-                if not full_html:
-                    continue
-
-                # A simple way to clean HTML tags to get raw text
-                text_from_html = re.sub(r'<[^>]+>', '\n', full_html)
-                
-                print(f"\n--- DEBUG: Scanning Message ID {message.id} from chat '{chat_id}' ---")
-                print(text_from_html)
-                print("-----------------------------------------------------------------")
+                # Convert the entire message object to a string to capture all text
+                full_message_text = str(message)
                 
                 initial_count = len(self.raw_configs)
-                found = self.extract_configs_from_text(text_from_html)
+                found = self.extract_configs_from_text(full_message_text)
                 
                 if found:
                     self.raw_configs.update(found)
                     newly_found = len(self.raw_configs) - initial_count
                     if newly_found > 0:
-                        print(f"    ✅ SUCCESS: Found {newly_found} config(s) in this message!")
+                        print(f"    ✅ SUCCESS: Found {newly_found} config(s) in message ID: {message.id}!")
             
             print(f"INFO: ➡️ Finished searching '{chat_id}'. Processed {message_count} messages.")
             if message_count == 0:
@@ -107,19 +98,20 @@ class V2RayExtractor:
 
     def save_files(self):
         print("\n" + "="*40)
-        print("⚙️ Starting to save files...")
+        print("⚙️ Starting to process and build config files...")
 
         if not self.raw_configs:
             print("⚠️ No configs found. Output files will be empty.")
-            open("Original-Configs.txt", "w").close()
+            open(OUTPUT_ORIGINAL_CONFIGS, "w").close()
             return
             
-        print(f"👍 {len(self.raw_configs)} unique configs found. Saving to Original-Configs.txt...")
+        print(f"👍 {len(self.raw_configs)} unique configs found. Saving...")
         
-        with open("Original-Configs.txt", 'w', encoding='utf-8') as f:
+        with open(OUTPUT_ORIGINAL_CONFIGS, 'w', encoding='utf-8') as f:
             f.write("\n".join(sorted(list(self.raw_configs))))
-        print(f"✅ Original configs file saved successfully.")
-
+        print(f"✅ Original configs file '{OUTPUT_ORIGINAL_CONFIGS}' saved successfully.")
+        # The rest of the file generation is omitted for simplicity,
+        # focusing on the main goal: finding and saving the raw configs.
 
 async def main():
     print("🚀 Starting config extractor...")
@@ -136,8 +128,6 @@ async def main():
         else:
             print("❌ No channels or groups defined for searching.")
     
-    # NOTE: This simplified version only saves the raw configs.
-    # The parsing and file generation logic is removed to focus on the core problem.
     extractor.save_files()
     print("\n✨ All operations completed successfully!")
 
