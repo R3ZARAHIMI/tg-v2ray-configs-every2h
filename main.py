@@ -8,6 +8,7 @@ import uuid
 from urllib.parse import urlparse, parse_qs, unquote, urlunparse
 from pyrogram import Client
 from pyrogram.errors import FloodWait
+from pyrogram.enums import MessageEntityType
 from typing import Optional, Dict, Any, Set, List
 
 # =================================================================================
@@ -151,7 +152,12 @@ class V2RayExtractor:
             if query.get('security', [''])[0] == 'reality':
                 pbk = query.get('pbk', [None])[0]
                 if pbk: reality_opts = {'public-key': pbk, 'short-id': query.get('sid', [''])[0]}
-            return {'name': original_name, 'type': 'vless', 'server': parsed.hostname, 'port': parsed.port or 443, 'uuid': parsed.username, 'udp': True, 'tls': query.get('security', [''])[0] in ['tls', 'reality'], 'network': query.get('type', ['tcp'])[0], 'servername': query.get('sni', [None])[0], 'ws-opts': ws_opts, 'reality-opts': reality_opts}
+            
+            # For vless, tls is true if security is 'tls' or 'reality'
+            # If security is 'none' or something else, tls should be false.
+            is_tls = query.get('security', [''])[0] in ['tls', 'reality']
+
+            return {'name': original_name, 'type': 'vless', 'server': parsed.hostname, 'port': parsed.port or 443, 'uuid': parsed.username, 'udp': True, 'tls': is_tls, 'network': query.get('type', ['tcp'])[0], 'servername': query.get('sni', [None])[0], 'ws-opts': ws_opts, 'reality-opts': reality_opts}
         except Exception as e:
             print(f"❌ Error parsing vless: {e}")
             return None
@@ -205,130 +211,86 @@ class V2RayExtractor:
             return None
 
     def convert_to_singbox_outbound(self, proxy: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        """Safer and stricter conversion of proxy dictionary format to Sing-box outbound format.
-        This version performs necessary validations and discards corrupt or incomplete entries.
-        """
         try:
             ptype = proxy.get('type')
-            if not ptype:
-                return None
-
-            # The type in sing-box output for ss should be 'shadowsocks'
+            if not ptype: return None
             sb_type = 'shadowsocks' if ptype == 'ss' else ptype
-
             server = proxy.get('server')
             if not server:
                 print(f"⚠️ Skipping {ptype} without a specified server: {proxy.get('name')}")
                 return None
-
-            # port is converted to a number and defaults to 443 if invalid
-            try:
-                port = int(proxy.get('port') or 443)
-            except Exception:
-                port = 443
-
+            try: port = int(proxy.get('port') or 443)
+            except Exception: port = 443
             tag = proxy.get('name') or f"{ptype}-{server}:{port}"
-
-            out: Dict[str, Any] = {
-                "type": sb_type,
-                "tag": tag,
-                "server": server,
-                "server_port": port
-            }
-
-            # Pattern for checking UUID
+            out: Dict[str, Any] = {"type": sb_type, "tag": tag, "server": server, "server_port": port}
             uuid_re = re.compile(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$')
-
             if ptype == 'vless':
                 uid = proxy.get('uuid')
-                if not uid or not uuid_re.match(uid):
+                if not uid or not uuid_re.match(str(uid)): # Cast to str to be safe
                     print(f"⚠️ Skipping vless with invalid uuid: {tag}")
                     return None
                 out.update({"uuid": uid, "flow": proxy.get('flow', '')})
-
                 if proxy.get('tls'):
                     out['tls'] = {"enabled": True, "server_name": proxy.get('servername')}
                     ro = proxy.get('reality-opts')
                     if ro:
                         out['tls'].setdefault('utls', {"enabled": True, "fingerprint": "chrome"})
                         out['tls']['reality'] = {"enabled": True, "public_key": ro.get('public-key'), "short_id": ro.get('short-id')}
-
                 if proxy.get('network') == 'ws' and proxy.get('ws-opts'):
                     ws = proxy.get('ws-opts') or {}
                     headers = {}
                     host = (ws.get('headers') or {}).get('Host')
-                    if host:
-                        headers['Host'] = host
+                    if host: headers['Host'] = host
                     out['transport'] = {"type": "ws", "path": ws.get('path', '/'), "headers": headers}
-
             elif ptype == 'vmess':
-                # vmess might use different keys for id
-                uid = proxy.get('uuid') or proxy.get('id') or proxy.get('id')
-                if not uid or not uuid_re.match(uid):
+                uid = proxy.get('uuid')
+                if not uid or not uuid_re.match(str(uid)): # Cast to str to be safe
                     print(f"⚠️ Skipping vmess with invalid uuid: {tag}")
                     return None
-
-                try:
-                    alter_id = int(proxy.get('alterId') or proxy.get('aid') or 0)
-                except Exception:
-                    alter_id = 0
-
-                security = (proxy.get('cipher') or proxy.get('security') or 'auto').lower()
-                if security not in ('auto', 'none', 'aes-128-gcm', 'chacha20-poly1305'):
-                    security = 'auto'
-
+                try: alter_id = int(proxy.get('alterId') or proxy.get('aid') or 0)
+                except Exception: alter_id = 0
+                security = (proxy.get('cipher') or proxy.get('scy') or 'auto').lower()
+                if security not in ('auto', 'none', 'aes-128-gcm', 'chacha20-poly1305'): security = 'auto'
                 out.update({"uuid": uid, "alter_id": alter_id, "security": security})
-
                 if proxy.get('tls'):
                     out['tls'] = {"enabled": True, "server_name": proxy.get('servername')}
-
                 if proxy.get('network') == 'ws' and proxy.get('ws-opts'):
                     ws = proxy.get('ws-opts') or {}
                     headers = {}
                     host = (ws.get('headers') or {}).get('Host')
-                    if host:
-                        headers['Host'] = host
+                    if host: headers['Host'] = host
                     out['transport'] = {"type": "ws", "path": ws.get('path', '/'), "headers": headers}
-
             elif ptype == 'trojan':
                 pw = proxy.get('password')
                 if not pw:
                     print(f"⚠️ Skipping trojan without password: {tag}")
                     return None
                 out.update({"password": pw})
-                # sni might be stored in different keys
-                sni = proxy.get('sni') or proxy.get('servername') or None
-                if proxy.get('tls') is not False:
-                    out['tls'] = {"enabled": True, "server_name": sni}
-
+                sni = proxy.get('sni') or proxy.get('servername')
+                out['tls'] = {"enabled": True, "server_name": sni}
             elif ptype == 'ss':
-                method = proxy.get('cipher') or proxy.get('method')
+                method = proxy.get('cipher')
                 pw = proxy.get('password')
                 if not method or not pw:
                     print(f"⚠️ Skipping invalid ss: {tag}")
                     return None
                 out.update({"method": method, "password": pw})
-
             elif ptype == 'hysteria2':
                 auth = proxy.get('auth') or proxy.get('password')
                 if not auth:
                     print(f"⚠️ Skipping hysteria2 without auth: {tag}")
                     return None
                 out.update({"password": auth})
-                out['tls'] = {"enabled": bool(proxy.get('tls', True)), "server_name": proxy.get('sni') or proxy.get('server'), "insecure": bool(proxy.get('skip-cert-verify'))}
-
+                out['tls'] = {"enabled": True, "server_name": proxy.get('sni') or proxy.get('server'), "insecure": bool(proxy.get('skip-cert-verify'))}
             elif ptype == 'tuic':
                 uid = proxy.get('uuid')
-                pw = proxy.get('password') or proxy.get('auth')
-                if not uid or not uuid_re.match(uid) or not pw:
+                pw = proxy.get('password')
+                if not uid or not uuid_re.match(str(uid)) or not pw: # Cast to str
                     print(f"⚠️ Skipping invalid tuic: {tag}")
                     return None
                 out.update({"uuid": uid, "password": pw})
                 out['tls'] = {"enabled": True, "server_name": proxy.get('sni') or proxy.get('server'), "insecure": bool(proxy.get('skip-cert-verify'))}
-
-            else:
-                return None
-
+            else: return None
             return out
         except Exception as e:
             print(f"❌ Error converting to Sing-box format for {proxy.get('name')}: {e}")
@@ -349,42 +311,26 @@ class V2RayExtractor:
         try:
             print(f"🔍 Searching in chat {chat_id} (limit: {limit} messages)...")
             async for message in self.client.get_chat_history(chat_id, limit=limit):
-                # A list to hold all scannable texts (main text, code blocks, etc.)
                 texts_to_scan = []
-
-                # Extract the main text of the message or caption
                 text_to_check = message.text or message.caption
                 if text_to_check:
                     texts_to_scan.append(text_to_check)
-
-                    # Check for formatted entities (like code blocks)
                     if message.entities:
                         for entity in message.entities:
-                            # If it's a code block (pre) or code, extract its text
-                            from pyrogram.enums import MessageEntityType
                             if entity.type in (MessageEntityType.PRE, MessageEntityType.CODE):
-                                # Extract text from the block using offset and length
                                 code_text = text_to_check[entity.offset : entity.offset + entity.length]
                                 texts_to_scan.append(code_text)
-                
-                # If there's no text to check, skip this message
-                if not texts_to_scan:
-                    continue
-
-                # Check for Base64 strings in the main text
-                potential_b64 = BASE64_PATTERN.findall(text_to_check or "")
-                for b64_str in potential_b64:
-                    try:
-                        decoded_text = base64.b64decode(b64_str + '=' * (-len(b64_str) % 4)).decode('utf-8', errors='ignore')
-                        texts_to_scan.append(decoded_text)
-                    except Exception:
-                        continue
-                
-                # Now scan all collected texts to find configs
+                if not texts_to_scan: continue
+                if text_to_check:
+                    potential_b64 = BASE64_PATTERN.findall(text_to_check)
+                    for b64_str in potential_b64:
+                        try:
+                            decoded_text = base64.b64decode(b64_str + '=' * (-len(b64_str) % 4)).decode('utf-8', errors='ignore')
+                            texts_to_scan.append(decoded_text)
+                        except Exception: continue
                 for text in texts_to_scan:
                     found_configs = self.extract_configs_from_text(text)
                     self.raw_configs.update(found_configs)
-
         except FloodWait as e:
             if retries <= 0:
                 print(f"❌ Max retries reached for chat {chat_id}.")
@@ -408,16 +354,8 @@ class V2RayExtractor:
         print(f"⚙️ Processing {len(self.raw_configs)} found configs...")
         proxies_list_clash, parse_errors = [], 0
         
-        valid_configs = set()
-        for url in self.raw_configs:
-            try:
-                hostname = urlparse(url).hostname
-                if hostname and 'speedtest' in hostname.lower(): continue
-                if url.startswith('vless://'):
-                    query = parse_qs(urlparse(url).query)
-                    if query.get('security', ['none'])[0] == 'none': continue
-                valid_configs.add(url)
-            except Exception: pass
+        # All filters are disabled in this version.
+        valid_configs = self.raw_configs
 
         original_configs_to_save = []
         renamed_txt_configs = []
@@ -426,30 +364,23 @@ class V2RayExtractor:
             proxy = self.parse_config_for_clash(url)
             if proxy:
                 original_configs_to_save.append(url)
-                
-                # Rename config
                 new_name = f"Config_jo-{config_counter:02d}"
                 proxy['name'] = new_name
                 proxies_list_clash.append(proxy)
-                
-                # Create text config with new name
                 try:
                     parsed_url = list(urlparse(url))
-                    parsed_url[5] = new_name  # [5] is the fragment component
+                    parsed_url[5] = new_name
                     new_url = urlunparse(parsed_url)
                     renamed_txt_configs.append(new_url)
                 except Exception:
-                    # Fallback for URLs that might have issues with parsing/unparsing
                     base_url = url.split('#')[0]
                     renamed_txt_configs.append(f"{base_url}#{new_name}")
-
                 config_counter += 1
             else:
                 parse_errors += 1
 
         if parse_errors > 0:
             print(f"⚠️ {parse_errors} configs were ignored due to parsing errors.")
-
         if not proxies_list_clash:
             print("⚠️ No valid configs found to build files.")
             for f in [OUTPUT_YAML_PRO, OUTPUT_TXT, OUTPUT_JSON_CONFIG_JO, OUTPUT_ORIGINAL_CONFIGS]: open(f, "w").close()
@@ -458,7 +389,6 @@ class V2RayExtractor:
         print(f"👍 {len(proxies_list_clash)} valid configs found for the final file.")
         all_proxy_names = [p['name'] for p in proxies_list_clash]
 
-        # Build and save Pro file
         try:
             os.makedirs('rules', exist_ok=True)
             pro_config = self.build_pro_config(proxies_list_clash, all_proxy_names)
@@ -468,7 +398,6 @@ class V2RayExtractor:
         except Exception as e:
             print(f"❌ Error creating pro file: {e}")
 
-        # Build and save Sing-box file
         try:
             singbox_config = self.build_sing_box_config(proxies_list_clash)
             with open(OUTPUT_JSON_CONFIG_JO, 'w', encoding='utf-8') as f:
@@ -477,18 +406,15 @@ class V2RayExtractor:
         except Exception as e:
             print(f"❌ Error creating Sing-box file: {e}")
         
-        # Save text file with new names
         with open(OUTPUT_TXT, 'w', encoding='utf-8') as f:
             f.write("\n".join(sorted(renamed_txt_configs)))
         print(f"✅ Text file {OUTPUT_TXT} saved successfully.")
 
-        # Save original configs file
         with open(OUTPUT_ORIGINAL_CONFIGS, 'w', encoding='utf-8') as f:
             f.write("\n".join(sorted(original_configs_to_save)))
         print(f"✅ Original configs file {OUTPUT_ORIGINAL_CONFIGS} saved successfully.")
 
     def build_pro_config(self, proxies, proxy_names):
-        """Build professional config with advanced features"""
         return {
             'port': int(os.environ.get('CLASH_PORT', 7890)),
             'socks-port': int(os.environ.get('CLASH_SOCKS_PORT', 7891)),
@@ -527,84 +453,39 @@ class V2RayExtractor:
         }
 
     def build_sing_box_config(self, proxies_clash: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """Build a modern and complete config for Sing-box with DNS fix"""
         outbounds = []
         for proxy in proxies_clash:
             sb_outbound = self.convert_to_singbox_outbound(proxy)
-            if sb_outbound:
-                outbounds.append(sb_outbound)
-
+            if sb_outbound: outbounds.append(sb_outbound)
         proxy_tags = [p['tag'] for p in outbounds]
-        
         return {
-            "log": {
-                "level": "warn",
-                "timestamp": True
-            },
+            "log": {"level": "warn", "timestamp": True},
             "dns": {
                 "servers": [
-                    {
-                        "tag": "dns_proxy",
-                        "address": "https://dns.google/dns-query",
-                        "detour": "PROXY"
-                    },
-                    {
-                        "tag": "dns_direct",
-                        "address": "1.1.1.1" # Uses direct detour by default
-                    }
+                    {"tag": "dns_proxy", "address": "https://dns.google/dns-query", "detour": "PROXY"},
+                    {"tag": "dns_direct", "address": "1.1.1.1"}
                 ],
                 "rules": [
-                    # Important: Only traffic passing through the proxy should use the proxied DNS
-                    { "outbound": "PROXY", "server": "dns_proxy" },
-                    { "rule_set": ["geosite-ir", "geoip-ir"], "server": "dns_direct" },
-                    { "domain_suffix": ".ir", "server": "dns_direct" }
+                    {"outbound": "PROXY", "server": "dns_proxy"},
+                    {"rule_set": ["geosite-ir", "geoip-ir"], "server": "dns_direct"},
+                    {"domain_suffix": ".ir", "server": "dns_direct"}
                 ],
-                "final": "dns_direct", # Default to prevent deadlock
+                "final": "dns_direct",
                 "strategy": "ipv4_only"
             },
-            "inbounds": [
-                {
-                    "type": "mixed",
-                    "listen": "0.0.0.0",
-                    "listen_port": 2080,
-                    "sniff": True
-                }
-            ],
+            "inbounds": [{"type": "mixed", "listen": "0.0.0.0", "listen_port": 2080, "sniff": True}],
             "outbounds": [
                 {"type": "direct", "tag": "direct"},
                 {"type": "block", "tag": "block"},
                 {"type": "dns", "tag": "dns-out"},
                 *outbounds,
-                {
-                    "type": "selector",
-                    "tag": "PROXY",
-                    "outbounds": ["auto", *proxy_tags],
-                    "default": "auto"
-                },
-                {
-                    "type": "urltest",
-                    "tag": "auto",
-                    "outbounds": proxy_tags,
-                    "url": "http://www.gstatic.com/generate_204",
-                    "interval": "5m"
-                }
+                {"type": "selector", "tag": "PROXY", "outbounds": ["auto", *proxy_tags], "default": "auto"},
+                {"type": "urltest", "tag": "auto", "outbounds": proxy_tags, "url": "http://www.gstatic.com/generate_204", "interval": "5m"}
             ],
             "route": {
                 "rule_set": [
-                    {
-                        "tag": "geosite-ir",
-                        "type": "remote",
-                        "format": "binary",
-                        "url": "https://cdn.jsdelivr.net/gh/Chocolate4U/Iran-sing-box-rules@rule-set/geosite-ir.srs",
-                        "download_detour": "direct"
-                    },
-                    {
-                        "tag": "geoip-ir",
-                        "type": "remote",
-                        "format": "binary",
-                        "url": "https://cdn.jsdelivr.net/gh/Chocolate4U/Iran-sing-box-rules@rule-set/geoip-ir.srs",
-                        "download_detour": "direct"
-                    }
+                    {"tag": "geosite-ir", "type": "remote", "format": "binary", "url": "https://cdn.jsdelivr.net/gh/Chocolate4U/Iran-sing-box-rules@rule-set/geosite-ir.srs", "download_detour": "direct"},
+                    {"tag": "geoip-ir", "type": "remote", "format": "binary", "url": "https://cdn.jsdelivr.net/gh/Chocolate4U/Iran-sing-box-rules@rule-set/geoip-ir.srs", "download_detour": "direct"}
                 ],
                 "rules": [
                     {"protocol": "dns", "outbound": "dns-out"},
