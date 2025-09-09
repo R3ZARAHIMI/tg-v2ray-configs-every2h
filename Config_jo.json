@@ -1,0 +1,133 @@
+{
+    "log": {
+        "level": "warn",
+        "timestamp": true
+    },
+    "dns": {
+        "servers": [
+            {
+                "tag": "dns_proxy",
+                "address": "https://dns.google/dns-query",
+                "detour": "PROXY"
+            },
+            {
+                "tag": "dns_direct",
+                "address": "1.1.1.1"
+            }
+        ],
+        "rules": [
+            {
+                "outbound": "PROXY",
+                "server": "dns_proxy"
+            },
+            {
+                "rule_set": [
+                    "geosite-ir",
+                    "geoip-ir"
+                ],
+                "server": "dns_direct"
+            },
+            {
+                "domain_suffix": ".ir",
+                "server": "dns_direct"
+            }
+        ],
+        "final": "dns_direct",
+        "strategy": "ipv4_only"
+    },
+    "inbounds": [
+        {
+            "type": "mixed",
+            "listen": "0.0.0.0",
+            "listen_port": 2080,
+            "sniff": true
+        }
+    ],
+    "outbounds": [
+        {
+            "type": "direct",
+            "tag": "direct"
+        },
+        {
+            "type": "block",
+            "tag": "block"
+        },
+        {
+            "type": "dns",
+            "tag": "dns-out"
+        },
+        {
+            "type": "vless",
+            "tag": "Config_jo-01",
+            "server": "web.xhamster.biz.id",
+            "server_port": 443,
+            "uuid": "aaaaaaa1-bbbb-4ccc-accc-eeeeeeeeeee1",
+            "flow": "",
+            "tls": {
+                "enabled": true,
+                "server_name": "web.xhamster.biz.id"
+            },
+            "transport": {
+                "type": "ws",
+                "path": "/Free-CF-Proxy-AT4",
+                "headers": {
+                    "Host": "web.xhamster.biz.id"
+                }
+            }
+        },
+        {
+            "type": "selector",
+            "tag": "PROXY",
+            "outbounds": [
+                "auto",
+                "Config_jo-01"
+            ],
+            "default": "auto"
+        },
+        {
+            "type": "urltest",
+            "tag": "auto",
+            "outbounds": [
+                "Config_jo-01"
+            ],
+            "url": "http://www.gstatic.com/generate_204",
+            "interval": "5m"
+        }
+    ],
+    "route": {
+        "rule_set": [
+            {
+                "tag": "geosite-ir",
+                "type": "remote",
+                "format": "binary",
+                "url": "https://cdn.jsdelivr.net/gh/Chocolate4U/Iran-sing-box-rules@rule-set/geosite-ir.srs",
+                "download_detour": "direct"
+            },
+            {
+                "tag": "geoip-ir",
+                "type": "remote",
+                "format": "binary",
+                "url": "https://cdn.jsdelivr.net/gh/Chocolate4U/Iran-sing-box-rules@rule-set/geoip-ir.srs",
+                "download_detour": "direct"
+            }
+        ],
+        "rules": [
+            {
+                "protocol": "dns",
+                "outbound": "dns-out"
+            },
+            {
+                "rule_set": [
+                    "geosite-ir",
+                    "geoip-ir"
+                ],
+                "outbound": "direct"
+            },
+            {
+                "ip_is_private": true,
+                "outbound": "direct"
+            }
+        ],
+        "final": "PROXY"
+    }
+}
