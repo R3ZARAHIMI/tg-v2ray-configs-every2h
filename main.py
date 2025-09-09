@@ -349,18 +349,42 @@ class V2RayExtractor:
         try:
             print(f"🔍 Searching in chat {chat_id} (limit: {limit} messages)...")
             async for message in self.client.get_chat_history(chat_id, limit=limit):
+                # A list to hold all scannable texts (main text, code blocks, etc.)
+                texts_to_scan = []
+
+                # Extract the main text of the message or caption
                 text_to_check = message.text or message.caption
-                if not text_to_check: continue
-                texts_to_scan = [text_to_check]
-                potential_b64 = BASE64_PATTERN.findall(text_to_check)
+                if text_to_check:
+                    texts_to_scan.append(text_to_check)
+
+                    # Check for formatted entities (like code blocks)
+                    if message.entities:
+                        for entity in message.entities:
+                            # If it's a code block (pre) or code, extract its text
+                            from pyrogram.enums import MessageEntityType
+                            if entity.type in (MessageEntityType.PRE, MessageEntityType.CODE):
+                                # Extract text from the block using offset and length
+                                code_text = text_to_check[entity.offset : entity.offset + entity.length]
+                                texts_to_scan.append(code_text)
+                
+                # If there's no text to check, skip this message
+                if not texts_to_scan:
+                    continue
+
+                # Check for Base64 strings in the main text
+                potential_b64 = BASE64_PATTERN.findall(text_to_check or "")
                 for b64_str in potential_b64:
                     try:
                         decoded_text = base64.b64decode(b64_str + '=' * (-len(b64_str) % 4)).decode('utf-8', errors='ignore')
                         texts_to_scan.append(decoded_text)
-                    except Exception: continue
+                    except Exception:
+                        continue
+                
+                # Now scan all collected texts to find configs
                 for text in texts_to_scan:
                     found_configs = self.extract_configs_from_text(text)
                     self.raw_configs.update(found_configs)
+
         except FloodWait as e:
             if retries <= 0:
                 print(f"❌ Max retries reached for chat {chat_id}.")
