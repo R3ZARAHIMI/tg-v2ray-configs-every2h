@@ -26,7 +26,10 @@
 ```
 https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config_jo.txt
 ```
-
+### بدون فیلتر
+```
+https://cdn.jsdelivr.net/gh/R3ZARAHIMI/7@main/Config_jo.txt
+```
 ### پروفایل Clash حرفه‌ای (برای Clash for Windows, Clash Verge و ...)
 ```
 https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config-jo.yaml
