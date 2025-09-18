@@ -107,7 +107,7 @@ https://cdn.jsdelivr.net/gh/R3ZARAHIMI/7@main/Config-jo.yaml
 
 ### Профиль Sing-Box (для Sing-Box, Hiddify и т.д.)
 ```
-https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config_jo.json
+https://cdn.jsdelivr.net/gh/R3ZARAHIMI/7@main/Config_jo.json
 ```
 
 
