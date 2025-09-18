@@ -34,6 +34,10 @@ https://cdn.jsdelivr.net/gh/R3ZARAHIMI/7@main/Config_jo.txt
 ```
 https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config-jo.yaml
 ```
+# بدون فیلتر
+```
+https://cdn.jsdelivr.net/gh/R3ZARAHIMI/7@main/Config-jo.yaml
+```
 
 ### پروفایل Sing-Box (برای Sing-Box, Hiddify و ...)
 ```
