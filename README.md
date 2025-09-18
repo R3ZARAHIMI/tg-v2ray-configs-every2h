@@ -24,24 +24,17 @@
 
 ### لیست خام کانفیگ‌ها (برای V2RayNG, ✅Hiddify و ...)
 ```
-https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config_jo.txt
-```
-### بدون فیلتر
-```
 https://cdn.jsdelivr.net/gh/R3ZARAHIMI/7@main/Config_jo.txt
 ```
+
 ### پروفایل Clash حرفه‌ای (برای Clash for Windows, Clash Verge و ...)
-```
-https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config-jo.yaml
-```
-# بدون فیلتر
 ```
 https://cdn.jsdelivr.net/gh/R3ZARAHIMI/7@main/Config-jo.yaml
 ```
 
 ### پروفایل Sing-Box (برای Sing-Box, Hiddify و ...)
 ```
-https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config_jo.json
+https://cdn.jsdelivr.net/gh/R3ZARAHIMI/7@main/Config_jo.json
 ```
 
 
@@ -67,17 +60,17 @@ To use, copy the links below into your preferred client.
 
 ### Raw Config List (for V2RayNG, ✅Hiddify, etc.)
 ```
-https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config_jo.txt
+https://cdn.jsdelivr.net/gh/R3ZARAHIMI/7@main/Config_jo.txt
 ```
 
 ### Pro Clash Profile (for Clash for Windows, Clash Verge, etc.)
 ```
-https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config-jo.yaml
+https://cdn.jsdelivr.net/gh/R3ZARAHIMI/7@main/Config-jo.yaml
 ```
 
 ### Sing-Box Profile (for Sing-Box, Hiddify, etc.)
 ```
-https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config_jo.json
+https://cdn.jsdelivr.net/gh/R3ZARAHIMI/7@main/Config_jo.json
 ```
 
 
@@ -104,17 +97,18 @@ https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config_jo.json
 
 ### Список необработанных конфигураций (для V2RayNG, ✅Hiddify и т.д.)
 ```
-https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config_jo.txt
+https://cdn.jsdelivr.net/gh/R3ZARAHIMI/7@main/Config_jo.txt
 ```
 
 ### Профессиональный профиль Clash (для Clash for Windows, Clash Verge и т.д.)
 ```
-https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config-jo.yaml
+https://cdn.jsdelivr.net/gh/R3ZARAHIMI/7@main/Config-jo.yaml
 ```
 
 ### Профиль Sing-Box (для Sing-Box, Hiddify и т.д.)
 ```
 https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config_jo.json
+ر
 ```
 
 
