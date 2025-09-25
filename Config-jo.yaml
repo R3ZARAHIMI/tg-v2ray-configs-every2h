@@ -1,769 +1,611 @@
-port: 7890
-socks-port: 7891
-allow-lan: true
-mode: rule
-log-level: info
-external-controller: 127.0.0.1:9090
-dns:
-  enable: true
-  listen: 0.0.0.0:53
-  default-nameserver:
-  - 8.8.8.8
-  - 1.1.1.1
-  enhanced-mode: fake-ip
-  fake-ip-range: 198.18.0.1/16
-  fallback:
-  - https://dns.google/dns-query
-  - https://cloudflare-dns.com/dns-query
-  fallback-filter:
-    geoip: true
-    ipcidr:
-    - 240.0.0.0/4
-    - 0.0.0.0/32
-proxies:
-- name: Config_jo-01
-  type: hysteria2
-  server: zp1.eyucdn.xyz
-  port: 2056
-  auth: 16461a78-363c-457a-92f9-83b0a68edc37
-  up: 100 Mbps
-  down: 100 Mbps
-  obfs: null
-  sni: zp1.eyujichang.xyz
-  skip-cert-verify: false
-- name: Config_jo-02
-  type: hysteria2
-  server: 77.223.214.193
-  port: 31468
-  auth: 79c4fe11-9787-406b-bf94-c1c1dbf59e28
-  up: 100 Mbps
-  down: 100 Mbps
-  obfs: null
-  sni: www.bing.com
-  skip-cert-verify: false
-- name: Config_jo-03
-  type: hysteria2
-  server: 95.181.174.31
-  port: 443
-  auth: kanale_dailyconfigs%3A48nBETs3vTt0SjdCmPGlSJDO98KRONJR
-  up: 100 Mbps
-  down: 100 Mbps
-  obfs: salamander
-  sni: slack.com
-  skip-cert-verify: false
-- name: Config_jo-04
-  type: ss
-  server: 45.87.175.154
-  port: 8080
-  cipher: chacha20-ietf-poly1305
-  password: 4a2rfixophdjffa8KVA4Aa
-  udp: true
-- name: Config_jo-05
-  type: ss
-  server: 46.246.90.20
-  port: 808
-  cipher: chacha20-ietf-poly1305
-  password: tvX1v#NSFP_LG_bJ
-  udp: true
-- name: Config_jo-06
-  type: ss
-  server: 45.158.171.146
-  port: 8080
-  cipher: chacha20-ietf-poly1305
-  password: QCXDxuDlTTMD7jtgHUjIoj
-  udp: true
-- name: Config_jo-07
-  type: ss
-  server: 45.87.175.166
-  port: 8080
-  cipher: chacha20-ietf-poly1305
-  password: cvII85TrW6n0OGyfpHVS1u
-  udp: true
-- name: Config_jo-08
-  type: ss
-  server: 193.29.139.235
-  port: 8080
-  cipher: chacha20-ietf-poly1305
-  password: oZIoA69Q8yhcQV8ka3Pa3A
-  udp: true
-- name: Config_jo-09
-  type: ss
-  server: Outline_Vpn) free","scy":"auto","sni":"yichueng.org","tls":"tls","type":"---","v"
-  port: 443
-  cipher: '{"add"'
-  password: '"91.134.8.92","aid":"0","alpn":"","fp":"","host":"yichueng.org","id":"03fcc618-b93d-6796-6aed-8a38c975d581","net":"ws","path":"linkvws","port":"443","ps":"I 981 ('
-  udp: true
-- name: Config_jo-10
-  type: ss
-  server: appsooner کانال تلگرام 🇻🇳","scy":"auto","sni":"","tls":"","type":"---","v"
-  port: 443
-  cipher: '{"add"'
-  password: '"161.248.30.3","aid":"0","alpn":"","fp":"","host":"","id":"1006a928-2021-4a3b-beb5-d5853c6281c5","net":"ws","path":"/","port":"20086","ps":"'
-  udp: true
-- name: Config_jo-11
-  type: ss
-  server: Outline_Vpn) free","scy":"auto","sni":"kampong.org","tls":"tls","type":"---","v"
-  port: 443
-  cipher: '{"add"'
-  password: '"kampong.org","aid":"0","alpn":"","fp":"","host":"kampong.org","id":"03fcc618-b93d-6796-6aed-8a38c975d581","net":"ws","path":"linkvws","port":"443","ps":"I 985 ('
-  udp: true
-- name: Config_jo-12
-  type: ss
-  server: appsooner کانال تلگرام 🇩🇪","scy":"auto","sni":"serkat.org","tls":"tls","type":"---","v"
-  port: 443
-  cipher: '{"add"'
-  password: '"serkat.org","aid":"0","alpn":"","fp":"","host":"serkat.org","id":"03fcc618-b93d-6796-6aed-8a38c975d581","net":"ws","path":"linkvws","port":"443","ps":"'
-  udp: true
-- name: Config_jo-13
-  type: trojan
-  server: 103.252.116.138
-  port: 443
-  password: 2ee85121-31de-4581-a492-eb00f606e392
-  udp: true
-  sni: hk.freeguard.org
-- name: Config_jo-14
-  type: trojan
-  server: 103.252.116.138
-  port: 443
-  password: 2ee85121-31de-4581-a492-eb00f606e392
-  udp: true
-  sni: hk.freeguard.org
-- name: Config_jo-15
-  type: vless
-  server: 86.110.56.71
-  port: 2053
-  uuid: 019931aa-8cba-3a74-6c77-cb288ae52f2a
-  udp: true
-  tls: true
-  network: ws
-  servername: 0000yhuxn8zf1sqvj1qx.x0uck1bfji4.8f25.dbhnjola4.bmj6yq1giy.ujwpeuoqhayd.pci8t1.paxljcy7c.u9v3a.a1s36uciu.2r11kwhbqtj9k5ix.neib.cn
-  ws-opts:
-    path: /snippets?ip=proxyip:port(443)&nat64=6to4
-    headers:
-      Host: 0000yhuxn8zf1sqvj1qx.x0uck1bfji4.8f25.dbhnjola4.bmj6yq1giy.ujwpeuoqhayd.pci8t1.paxljcy7c.u9v3a.a1s36uciu.2r11kwhbqtj9k5ix.neib.cn
-  reality-opts: null
-- name: Config_jo-16
-  type: vless
-  server: 212.41.11.152
-  port: 443
-  uuid: 1a6fe500-59da-4598-8576-256f06765ffb
-  udp: true
-  tls: true
-  network: tcp
-  servername: ru.sfasti.ru
-  ws-opts: null
-  reality-opts:
-    public-key: J_jQq9-SWQZjiMhuPaFV7V2MaJ4pkKgVRaz7x6tmvy8
-    short-id: 16895459a2c7768d
-- name: Config_jo-17
-  type: vless
-  server: 94.26.228.10
-  port: 443
-  uuid: 1a6fe500-59da-4598-8576-256f06765ffb
-  udp: true
-  tls: true
-  network: tcp
-  servername: ru.sfasti.ru
-  ws-opts: null
-  reality-opts:
-    public-key: J_jQq9-SWQZjiMhuPaFV7V2MaJ4pkKgVRaz7x6tmvy8
-    short-id: 16895459a2c7768d
-- name: Config_jo-18
-  type: vless
-  server: 46.62.128.241
-  port: 8443
-  uuid: 23dacc40-9cc0-4eae-975e-6ddc0b0d924e
-  udp: true
-  tls: true
-  network: tcp
-  servername: refersion.com
-  ws-opts: null
-  reality-opts:
-    public-key: r3FLw76bxhgit74mzJTglRM-ujPZ9f-HemByQ-uZqms
-    short-id: 27e6b66aa77662fb
-- name: Config_jo-19
-  type: vless
-  server: nl.horizongatex.org
-  port: 2087
-  uuid: 2988936d-3c33-4572-900c-40df2c63faa0
-  udp: true
-  tls: true
-  network: ws
-  servername: nl.horizongatex.org
-  ws-opts:
-    path: /
-    headers:
-      Host: nl.horizongatex.org
-  reality-opts: null
-- name: Config_jo-20
-  type: vless
-  server: 147.78.180.10
-  port: 443
-  uuid: 3c7a1227-5383-3a19-7084-76624ec8f84f
-  udp: true
-  tls: true
-  network: tcp
-  servername: speed.cloudflare.com
-  ws-opts: null
-  reality-opts:
-    public-key: Ot7NIMwy588LBegSSLxqxzXh9MszA0CxFPHbSAj7PR0
-    short-id: ''
-- name: Config_jo-21
-  type: vless
-  server: 102.177.189.251
-  port: 443
-  uuid: 401374e6-df77-41fb-f638-dad8184f175b
-  udp: true
-  tls: true
-  network: grpc
-  servername: pqh23v4.hiddendom.shop
-  ws-opts: null
-  reality-opts: null
-- name: Config_jo-22
-  type: vless
-  server: blog.ruangguru.com.servpn.my.id
-  port: 443
-  uuid: 408f71e2-170d-4bf9-8b42-b6ba23cc227c
-  udp: true
-  tls: true
-  network: ws
-  servername: blog.ruangguru.com.servpn.my.id
-  ws-opts:
-    path: /kr1?ed=2560
-    headers:
-      Host: blog.ruangguru.com.servpn.my.id
-  reality-opts: null
-- name: Config_jo-23
-  type: vless
-  server: tu-s2.fastlinebest.site
-  port: 46314
-  uuid: 442eb230-87c6-4ca2-a7a4-5c4a1f783952
-  udp: true
-  tls: true
-  network: tcp
-  servername: dash.cloudflare.com
-  ws-opts: null
-  reality-opts:
-    public-key: 2N-nHUqMe2qiPrZU-7zER3QzIBHnSb0804lAxaHqIRI
-    short-id: 1e40bba8
-- name: Config_jo-24
-  type: vless
-  server: tunels22.fastlinebest.site
-  port: 46314
-  uuid: 442eb230-87c6-4ca2-a7a4-5c4a1f783952
-  udp: true
-  tls: true
-  network: tcp
-  servername: www.speedtest.net
-  ws-opts: null
-  reality-opts:
-    public-key: 2N-nHUqMe2qiPrZU-7zER3QzIBHnSb0804lAxaHqIRI
-    short-id: 1e40bba8
-- name: Config_jo-25
-  type: vless
-  server: 104.21.36.57
-  port: 443
-  uuid: 48f477f3-906a-4bb6-be96-8201d8a62a6d
-  udp: true
-  tls: true
-  network: ws
-  servername: banana.fullmargintraders.com
-  ws-opts:
-    path: /wsv/48f477f3-906a-4bb6-be96-8201d8a62a6d
-    headers:
-      Host: banana.fullmargintraders.com
-  reality-opts: null
-- name: Config_jo-26
-  type: vless
-  server: 134.122.15.246
-  port: 2053
-  uuid: 4c360a19-8d5d-4c7b-b2cd-a4825714554a
-  udp: true
-  tls: true
-  network: tcp
-  servername: www.openstreetmap.org
-  ws-opts: null
-  reality-opts:
-    public-key: G6mshB36vZocfQp04RGcOjWFs52JjJhdvpI7wApQf00
-    short-id: d7
-- name: Config_jo-27
-  type: vless
-  server: 198.62.62.2
-  port: 443
-  uuid: 598b4251-fd03-48fe-b12d-630ac3adf2e5
-  udp: true
-  tls: true
-  network: ws
-  servername: ali2.gerlemondns.info
-  ws-opts:
-    path: /hjgfdws
-    headers:
-      Host: ali2.gerlemondns.info
-  reality-opts: null
-- name: Config_jo-28
-  type: vless
-  server: 172.66.47.15
-  port: 443
-  uuid: 5c0675d6-eaf5-416d-96f9-508e72847fa2
-  udp: true
-  tls: true
-  network: ws
-  servername: baraye-iran-mahsang.arossak.dpdns.org
-  ws-opts:
-    path: /BarayeIRan?ed
-    headers:
-      Host: baraye-iran-mahsang.arossak.dpdns.org
-  reality-opts: null
-- name: Config_jo-29
-  type: vless
-  server: 104.21.62.144
-  port: 443
-  uuid: 62793d13-24bc-4a0b-9b35-f565ed659773
-  udp: true
-  tls: true
-  network: xhttp
-  servername: sauron.melkore.ir
-  ws-opts: null
-  reality-opts: null
-- name: Config_jo-30
-  type: vless
-  server: blog.ruangguru.com.servpn.my.id
-  port: 443
-  uuid: 65a32d27-7a02-45a8-b90a-29f6bebc87ae
-  udp: true
-  tls: true
-  network: ws
-  servername: blog.ruangguru.com.servpn.my.id
-  ws-opts:
-    path: /sg3?ed=2560
-    headers:
-      Host: blog.ruangguru.com.servpn.my.id
-  reality-opts: null
-- name: Config_jo-31
-  type: vless
-  server: 194.4.49.222
-  port: 443
-  uuid: 80032848-69d9-4faa-8162-5a6b46b5828f
-  udp: true
-  tls: true
-  network: ws
-  servername: null
-  ws-opts:
-    path: /cnqazsws
-    headers:
-      Host: 194.4.49.222
-  reality-opts: null
-- name: Config_jo-32
-  type: vless
-  server: 103.9.77.61
-  port: 46922
-  uuid: ac2474ac-6716-458a-a301-bce29698186a
-  udp: true
-  tls: true
-  network: tcp
-  servername: vinahost.vn
-  ws-opts: null
-  reality-opts:
-    public-key: Mxg3aGXzUTgR2rA-DtugBRm-4RBVLlSNWNMRKALZBDo
-    short-id: 9ed1d241f0
-- name: Config_jo-33
-  type: vless
-  server: 89.169.160.84
-  port: 2053
-  uuid: b65f4df7-f6af-42b2-877a-cef33f21675e
-  udp: true
-  tls: true
-  network: ws
-  servername: kejiland.freewarp.eu.org
-  ws-opts:
-    path: /snippets/ip=proxyip.fxxk.dedyn.io:443?ed=2560
-    headers:
-      Host: kejiland.freewarp.eu.org
-  reality-opts: null
-- name: Config_jo-34
-  type: vless
-  server: 172.66.47.197
-  port: 443
-  uuid: b6bae6ff-4e6b-40ad-8277-43ae2d71cde8
-  udp: true
-  tls: true
-  network: ws
-  servername: gKh7ImOMi--3t3XCStzt8pP4DLZUesKN.paGes.dEv
-  ws-opts:
-    path: /OHs6g3YZDV8Csi6I/YnBiLnlvdXNlZi5pc2VnYXJvLmNvbQ==
-    headers:
-      Host: gkh7imomi--3t3xcstzt8pp4dlzueskn.pages.dev
-  reality-opts: null
-- name: Config_jo-35
-  type: vless
-  server: 104.21.62.144
-  port: 443
-  uuid: b75b4a49-0506-4159-b2ec-3e2a5e9406de
-  udp: true
-  tls: true
-  network: xhttp
-  servername: sauron.melkore.ir
-  ws-opts: null
-  reality-opts: null
-- name: Config_jo-36
-  type: vless
-  server: 104.21.62.144
-  port: 443
-  uuid: c6c34ffc-6e55-4b98-8da9-48565ce3b89e
-  udp: true
-  tls: true
-  network: xhttp
-  servername: sauron.melkore.ir
-  ws-opts: null
-  reality-opts: null
-- name: Config_jo-37
-  type: vless
-  server: 141.101.120.100
-  port: 2053
-  uuid: d342d11e-d424-4583-b36e-524ab1f0afa4
-  udp: true
-  tls: true
-  network: ws
-  servername: 1749734195126.wk.by.ktff.ssl.com.kokk.cn.aliyun.cdnktff.pp.ua
-  ws-opts:
-    path: /telegram@ShadowProxy66/?ed
-    headers:
-      Host: 1749734195126.wk.by.ktff.ssl.com.kokk.cn.aliyun.cdnktff.pp.ua
-  reality-opts: null
-- name: Config_jo-38
-  type: vless
-  server: 80.249.131.7
-  port: 443
-  uuid: d4e4c02a-d969-47a6-ba0f-3d433fdac206
-  udp: true
-  tls: true
-  network: tcp
-  servername: wa.sfasti.ru
-  ws-opts: null
-  reality-opts:
-    public-key: J_jQq9-SWQZjiMhuPaFV7V2MaJ4pkKgVRaz7x6tmvy8
-    short-id: 16895459a2c7768d
-- name: Config_jo-39
-  type: vless
-  server: wa.sfasti.ru
-  port: 443
-  uuid: d4e4c02a-d969-47a6-ba0f-3d433fdac206
-  udp: true
-  tls: true
-  network: tcp
-  servername: wa.sfasti.ru
-  ws-opts: null
-  reality-opts:
-    public-key: J_jQq9-SWQZjiMhuPaFV7V2MaJ4pkKgVRaz7x6tmvy8
-    short-id: 16895459a2c7768d
-- name: Config_jo-40
-  type: vless
-  server: 45.12.139.106
-  port: 8443
-  uuid: da370882-ecfa-4aca-b713-af43492dd904
-  udp: true
-  tls: true
-  network: tcp
-  servername: apple.com
-  ws-opts: null
-  reality-opts:
-    public-key: XzATi6CT1whlPAlhvAjbm0grpFHjZfYAfW7yIB9MC2g
-    short-id: 26a70553
-- name: Config_jo-41
-  type: vless
-  server: 104.21.62.144
-  port: 443
-  uuid: e4b67aa2-27d0-429e-9c13-a0e8b576faa9
-  udp: true
-  tls: true
-  network: xhttp
-  servername: sauron.melkore.ir
-  ws-opts: null
-  reality-opts: null
-- name: Config_jo-42
-  type: vless
-  server: hdfynpv2d1.farvaharforever.com
-  port: 443
-  uuid: e959d53c-91e9-459d-a332-d59ae89b3b4c
-  udp: true
-  tls: true
-  network: ws
-  servername: hdfynpv2d1.farvaharforever.com
-  ws-opts:
-    path: /Iyq035lnud9R8ruNNrqGxZZ2
-    headers:
-      Host: hdfynpv2d1.farvaharforever.com
-  reality-opts: null
-- name: Config_jo-43
-  type: vless
-  server: ipw.gfdv54cvghhgfhgj-njhgj64.info
-  port: 443
-  uuid: e999db7a-1b17-4da6-bc37-c9fa24af2e93
-  udp: true
-  tls: true
-  network: ws
-  servername: M84tG1gGw0.SoLeNtRaA.iNfO
-  ws-opts:
-    path: /
-    headers:
-      Host: M84tG1gGw0.SoLeNtRaA.iNfO
-  reality-opts: null
-- name: Config_jo-44
-  type: vless
-  server: ipw.gfdv54cvghhgfhgj-njhgj64.info
-  port: 8443
-  uuid: e999db7a-1b17-4da6-bc37-c9fa24af2e93
-  udp: true
-  tls: true
-  network: ws
-  servername: T9cNlMx0Qe.SoLeNtRaA.iNfO
-  ws-opts:
-    path: /
-    headers:
-      Host: T9cNlMx0Qe.SoLeNtRaA.iNfO
-  reality-opts: null
-- name: Config_jo-45
-  type: vless
-  server: 91.98.79.239
-  port: 443
-  uuid: f599eb06-508a-4e24-9d59-4c50bf0332b9
-  udp: true
-  tls: true
-  network: tcp
-  servername: tempail.com
-  ws-opts: null
-  reality-opts:
-    public-key: 6wcvf78pdo-cH395vAliVVWoc5x8LSBgXJCQEF8KbA8
-    short-id: f47f400cc96a4e
-- name: Config_jo-46
-  type: vmess
-  server: 57.128.189.222
-  port: 443
-  uuid: 03fcc618-b93d-6796-6aed-8a38c975d581
-  alterId: 0
-  cipher: auto
-  tls: true
-  network: ws
-  udp: true
-  ws-opts:
-    path: linkvws
-    headers:
-      Host: lammaland.org
-- name: Config_jo-47
-  type: vmess
-  server: 91.134.8.92
-  port: 443
-  uuid: 03fcc618-b93d-6796-6aed-8a38c975d581
-  alterId: 0
-  cipher: auto
-  tls: true
-  network: ws
-  udp: true
-  ws-opts:
-    path: linkvws
-    headers:
-      Host: yichueng.org
-- name: Config_jo-48
-  type: vmess
-  server: 161.248.30.3
-  port: 20086
-  uuid: 1006a928-2021-4a3b-beb5-d5853c6281c5
-  alterId: 0
-  cipher: auto
-  tls: false
-  network: ws
-  udp: true
-  ws-opts:
-    path: /
-    headers:
-      Host: 161.248.30.3
-- name: Config_jo-49
-  type: vmess
-  server: kampong.org
-  port: 443
-  uuid: 03fcc618-b93d-6796-6aed-8a38c975d581
-  alterId: 0
-  cipher: auto
-  tls: true
-  network: ws
-  udp: true
-  ws-opts:
-    path: linkvws
-    headers:
-      Host: kampong.org
-- name: Config_jo-50
-  type: vmess
-  server: lammaland.org
-  port: 443
-  uuid: 03fcc618-b93d-6796-6aed-8a38c975d581
-  alterId: 0
-  cipher: auto
-  tls: true
-  network: ws
-  udp: true
-  ws-opts:
-    path: linkvws
-    headers:
-      Host: lammaland.org
-- name: Config_jo-51
-  type: vmess
-  server: serkat.org
-  port: 443
-  uuid: 03fcc618-b93d-6796-6aed-8a38c975d581
-  alterId: 0
-  cipher: auto
-  tls: true
-  network: ws
-  udp: true
-  ws-opts:
-    path: linkvws
-    headers:
-      Host: serkat.org
-proxy-groups:
-- name: PROXY
-  type: select
-  proxies:
-  - ⚡ Auto-Select
-  - DIRECT
-  - Config_jo-01
-  - Config_jo-02
-  - Config_jo-03
-  - Config_jo-04
-  - Config_jo-05
-  - Config_jo-06
-  - Config_jo-07
-  - Config_jo-08
-  - Config_jo-09
-  - Config_jo-10
-  - Config_jo-11
-  - Config_jo-12
-  - Config_jo-13
-  - Config_jo-14
-  - Config_jo-15
-  - Config_jo-16
-  - Config_jo-17
-  - Config_jo-18
-  - Config_jo-19
-  - Config_jo-20
-  - Config_jo-21
-  - Config_jo-22
-  - Config_jo-23
-  - Config_jo-24
-  - Config_jo-25
-  - Config_jo-26
-  - Config_jo-27
-  - Config_jo-28
-  - Config_jo-29
-  - Config_jo-30
-  - Config_jo-31
-  - Config_jo-32
-  - Config_jo-33
-  - Config_jo-34
-  - Config_jo-35
-  - Config_jo-36
-  - Config_jo-37
-  - Config_jo-38
-  - Config_jo-39
-  - Config_jo-40
-  - Config_jo-41
-  - Config_jo-42
-  - Config_jo-43
-  - Config_jo-44
-  - Config_jo-45
-  - Config_jo-46
-  - Config_jo-47
-  - Config_jo-48
-  - Config_jo-49
-  - Config_jo-50
-  - Config_jo-51
-- name: ⚡ Auto-Select
-  type: url-test
-  proxies:
-  - Config_jo-01
-  - Config_jo-02
-  - Config_jo-03
-  - Config_jo-04
-  - Config_jo-05
-  - Config_jo-06
-  - Config_jo-07
-  - Config_jo-08
-  - Config_jo-09
-  - Config_jo-10
-  - Config_jo-11
-  - Config_jo-12
-  - Config_jo-13
-  - Config_jo-14
-  - Config_jo-15
-  - Config_jo-16
-  - Config_jo-17
-  - Config_jo-18
-  - Config_jo-19
-  - Config_jo-20
-  - Config_jo-21
-  - Config_jo-22
-  - Config_jo-23
-  - Config_jo-24
-  - Config_jo-25
-  - Config_jo-26
-  - Config_jo-27
-  - Config_jo-28
-  - Config_jo-29
-  - Config_jo-30
-  - Config_jo-31
-  - Config_jo-32
-  - Config_jo-33
-  - Config_jo-34
-  - Config_jo-35
-  - Config_jo-36
-  - Config_jo-37
-  - Config_jo-38
-  - Config_jo-39
-  - Config_jo-40
-  - Config_jo-41
-  - Config_jo-42
-  - Config_jo-43
-  - Config_jo-44
-  - Config_jo-45
-  - Config_jo-46
-  - Config_jo-47
-  - Config_jo-48
-  - Config_jo-49
-  - Config_jo-50
-  - Config_jo-51
-  url: http://www.gstatic.com/generate_204
-  interval: 300
-- name: 🇮🇷 Iran
-  type: select
-  proxies:
-  - DIRECT
-  - PROXY
-- name: 🛑 Block-Ads
-  type: select
-  proxies:
-  - REJECT
-  - DIRECT
-rule-providers:
-  iran_domains:
-    type: http
-    behavior: domain
-    url: https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/iran-domains.txt
-    path: ./rules/iran_domains.txt
-    interval: 86400
-  blocked_domains:
-    type: http
-    behavior: domain
-    url: https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/blocked-domains.txt
-    path: ./rules/blocked_domains.txt
-    interval: 86400
-  ad_domains:
-    type: http
-    behavior: domain
-    url: https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/ad-domains.txt
-    path: ./rules/ad-domains.txt
-    interval: 86400
-rules:
-- RULE-SET,ad_domains,🛑 Block-Ads
-- RULE-SET,blocked_domains,PROXY
-- RULE-SET,iran_domains,🇮🇷 Iran
-- GEOIP,IR,🇮🇷 Iran
-- MATCH,PROXY
+import re
+import asyncio
+import base64
+import json
+import yaml
+import os
+import uuid
+from urllib.parse import urlparse, parse_qs, unquote, urlunparse
+from pyrogram import Client
+from pyrogram.errors import FloodWait
+from typing import Optional, Dict, Any, Set, List
+
+# =================================================================================
+# Settings and Constants Section
+# =================================================================================
+
+# Reading environment variables
+API_ID = int(os.environ.get("API_ID"))
+API_HASH = os.environ.get("API_HASH")
+SESSION_STRING = os.environ.get("SESSION_STRING")
+CHANNELS_STR = os.environ.get('CHANNELS_LIST')
+GROUPS_STR = os.environ.get('GROUPS_LIST')
+CHANNEL_SEARCH_LIMIT = int(os.environ.get('CHANNEL_SEARCH_LIMIT', 5))
+GROUP_SEARCH_LIMIT = int(os.environ.get('GROUP_SEARCH_LIMIT', 100))
+
+# Defining output file names
+OUTPUT_YAML_PRO = "Config-jo.yaml"
+OUTPUT_TXT = "Config_jo.txt"
+OUTPUT_JSON_CONFIG_JO = "Config_jo.json"
+OUTPUT_ORIGINAL_CONFIGS = "Original-Configs.txt"
+
+# Regex patterns for finding various config types
+V2RAY_PATTERNS = [
+    re.compile(r'(vless:\/\/[^\s\'\"<>`]+)'),
+    re.compile(r'(vmess:\/\/[^\s\'\"<>`]+)'),
+    re.compile(r'(trojan:\/\/[^\s\'\"<>`]+)'),
+    re.compile(r'(ss:\/\/[^\s\'\"<>`]+)'),
+    re.compile(r"(hy2://[^\s'\"<>`]+)"),
+    re.compile(r"(hysteria2://[^\s'\"<>`]+)"),
+    re.compile(r"(tuic://[^\s'\"<>`]+)")
+]
+
+BASE64_PATTERN = re.compile(r"([A-Za-z0-9+/=]{50,})", re.MULTILINE)
+
+def process_lists():
+    """Read and process the list of channels and groups from environment variables"""
+    channels = [ch.strip() for ch in CHANNELS_STR.split(',')] if CHANNELS_STR else []
+    if channels: print(f"✅ {len(channels)} channels read from secrets.")
+    else: print("⚠️ Warning: CHANNELS_LIST secret not found or is empty.")
+
+    groups = []
+    if GROUPS_STR:
+        try:
+            groups = [int(g.strip()) for g in GROUPS_STR.split(',')]
+            print(f"✅ {len(groups)} groups read from secrets.")
+        except ValueError: print("❌ Error: GROUPS_LIST secret must only contain numeric IDs.")
+    else: print("⚠️ Warning: GROUPS_LIST secret is empty.")
+    return channels, groups
+
+CHANNELS, GROUPS = process_lists()
+
+class V2RayExtractor:
+    def __init__(self):
+        self.raw_configs: Set[str] = set()
+        self.client = Client("my_account", api_id=API_ID, api_hash=API_HASH, session_string=SESSION_STRING)
+
+    def _is_valid_shadowsocks(self, ss_url: str) -> bool:
+        try:
+            parsed = urlparse(ss_url)
+            if not parsed.hostname or not parsed.username: return False
+            uuid_pattern = r'[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}'
+            if re.search(uuid_pattern, parsed.username): return False
+            try:
+                decoded_user = base64.b64decode(parsed.username + '=' * (-len(parsed.username) % 4)).decode('utf-8')
+                if ':' not in decoded_user: return False
+            except:
+                if ':' not in parsed.username: return False
+            return True
+        except: return False
+
+    def _correct_config_type(self, config_url: str) -> str:
+        try:
+            if config_url.startswith('ss://'):
+                parsed = urlparse(config_url)
+                uuid_pattern = r'[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}'
+                if parsed.username and re.match(uuid_pattern, parsed.username):
+                    return config_url.replace('ss://', 'vless://', 1)
+                if parsed.username:
+                    try:
+                        decoded = base64.b64decode(parsed.username + '=' * (-len(parsed.username) % 4)).decode('utf-8')
+                        json_data = json.loads(decoded)
+                        if 'v' in json_data and json_data.get('v') == '2':
+                            return config_url.replace('ss://', 'vmess://', 1)
+                    except: pass
+            return config_url
+        except: return config_url
+
+    def _validate_config_type(self, config_url: str) -> bool:
+        try:
+            if config_url.startswith('vless://'):
+                return bool(urlparse(config_url).hostname and urlparse(config_url).username)
+            elif config_url.startswith('vmess://'):
+                encoded_data = config_url.split("://")[1]
+                decoded_str = base64.b64decode(encoded_data + '=' * (-len(encoded_data) % 4)).decode('utf-8')
+                config = json.loads(decoded_str)
+                return bool(config.get('add') and config.get('id'))
+            elif config_url.startswith('trojan://'):
+                return bool(urlparse(config_url).hostname and urlparse(config_url).username)
+            elif config_url.startswith('ss://'):
+                return self._is_valid_shadowsocks(config_url)
+            return True
+        except: return False
+
+    def parse_config_for_clash(self, config_url: str) -> Optional[Dict[str, Any]]:
+        try:
+            if config_url.startswith('vmess://'): return self.parse_vmess(config_url)
+            elif config_url.startswith('vless://'): return self.parse_vless(config_url)
+            elif config_url.startswith('trojan://'): return self.parse_trojan(config_url)
+            elif config_url.startswith('ss://'): return self.parse_shadowsocks(config_url)
+            elif config_url.startswith(('hysteria2://', 'hy2://')): return self.parse_hysteria2(config_url)
+            elif config_url.startswith('tuic://'): return self.parse_tuic(config_url)
+            return None
+        except Exception as e:
+            print(f"❌ Error parsing config {config_url[:50]}...: {e}")
+            return None
+
+    def parse_vmess(self, vmess_url: str) -> Optional[Dict[str, Any]]:
+        try:
+            encoded_data = vmess_url.split("://")[1]
+            decoded_str = base64.b64decode(encoded_data + '=' * (-len(encoded_data) % 4)).decode('utf-8')
+            config = json.loads(decoded_str)
+            original_name = config.get('ps', '')
+            ws_opts = None
+            if config.get('net') == 'ws':
+                host_header = config.get('host', '').strip() or config.get('add', '').strip()
+                if host_header: ws_opts = {'path': config.get('path', '/'), 'headers': {'Host': host_header}}
+            return {'name': original_name, 'type': 'vmess', 'server': config.get('add'), 'port': int(config.get('port', 443)), 'uuid': config.get('id'), 'alterId': int(config.get('aid', 0)), 'cipher': config.get('scy', 'auto'), 'tls': config.get('tls') == 'tls', 'network': config.get('net', 'tcp'), 'udp': True, 'ws-opts': ws_opts}
+        except Exception as e:
+            print(f"❌ Error parsing vmess: {e}")
+            return None
+
+    def parse_vless(self, vless_url: str) -> Optional[Dict[str, Any]]:
+        try:
+            parsed = urlparse(vless_url)
+            query = parse_qs(parsed.query)
+            original_name = unquote(parsed.fragment) if parsed.fragment else ''
+            ws_opts, reality_opts = None, None
+            if query.get('type', [''])[0] == 'ws':
+                host_header = query.get('host', [''])[0].strip() or query.get('sni', [''])[0].strip() or parsed.hostname
+                if host_header: ws_opts = {'path': query.get('path', ['/'])[0], 'headers': {'Host': host_header}}
+            if query.get('security', [''])[0] == 'reality':
+                pbk = query.get('pbk', [None])[0]
+                if pbk: reality_opts = {'public-key': pbk, 'short-id': query.get('sid', [''])[0]}
+            return {'name': original_name, 'type': 'vless', 'server': parsed.hostname, 'port': parsed.port or 443, 'uuid': parsed.username, 'udp': True, 'tls': query.get('security', [''])[0] in ['tls', 'reality'], 'network': query.get('type', ['tcp'])[0], 'servername': query.get('sni', [None])[0], 'ws-opts': ws_opts, 'reality-opts': reality_opts}
+        except Exception as e:
+            print(f"❌ Error parsing vless: {e}")
+            return None
+
+    def parse_trojan(self, trojan_url: str) -> Optional[Dict[str, Any]]:
+        try:
+            parsed = urlparse(trojan_url)
+            query = parse_qs(parsed.query)
+            original_name = unquote(parsed.fragment) if parsed.fragment else ''
+            sni = query.get('peer', [None])[0] or query.get('sni', [None])[0] or parsed.hostname
+            return {'name': original_name, 'type': 'trojan', 'server': parsed.hostname, 'port': parsed.port or 443, 'password': parsed.username, 'udp': True, 'sni': sni}
+        except Exception as e:
+            print(f"❌ Error parsing trojan: {e}")
+            return None
+
+    def parse_shadowsocks(self, ss_url: str) -> Optional[Dict[str, Any]]:
+        try:
+            parsed = urlparse(ss_url)
+            original_name = unquote(parsed.fragment) if parsed.fragment else ''
+            user_info = ''
+            if '@' in parsed.netloc:
+                user_info_part = parsed.netloc.split('@')[0]
+                try: user_info = base64.b64decode(user_info_part + '=' * (4 - len(user_info_part) % 4)).decode('utf-8')
+                except: user_info = unquote(user_info_part)
+            cipher, password = user_info.split(':', 1) if ':' in user_info else (None, None)
+            if cipher and password:
+                return {'name': original_name, 'type': 'ss', 'server': parsed.hostname, 'port': parsed.port, 'cipher': cipher, 'password': password, 'udp': True}
+            return None
+        except Exception as e:
+            print(f"❌ Error parsing shadowsocks: {e}")
+            return None
+
+    def parse_hysteria2(self, hy2_url: str) -> Optional[Dict[str, Any]]:
+        try:
+            parsed = urlparse(hy2_url)
+            query = parse_qs(parsed.query)
+            original_name = unquote(parsed.fragment) if parsed.fragment else ''
+            return {'name': original_name, 'type': 'hysteria2', 'server': parsed.hostname, 'port': parsed.port or 443, 'auth': parsed.username, 'up': query.get('up', ['100 Mbps'])[0], 'down': query.get('down', ['100 Mbps'])[0], 'obfs': query.get('obfs', [''])[0] or None, 'sni': query.get('sni', [parsed.hostname])[0], 'skip-cert-verify': query.get('insecure', ['false'])[0].lower() == 'true'}
+        except Exception as e:
+            print(f"❌ Error parsing hysteria2: {e}")
+            return None
+
+    def parse_tuic(self, tuic_url: str) -> Optional[Dict[str, Any]]:
+        try:
+            parsed = urlparse(tuic_url)
+            query = parse_qs(parsed.query)
+            original_name = unquote(parsed.fragment) if parsed.fragment else ''
+            return {'name': original_name, 'type': 'tuic', 'server': parsed.hostname, 'port': parsed.port or 443, 'uuid': parsed.username, 'password': query.get('password', [''])[0], 'udp': True, 'sni': query.get('sni', [parsed.hostname])[0], 'skip-cert-verify': query.get('allow_insecure', ['false'])[0].lower() == 'true'}
+        except Exception as e:
+            print(f"❌ Error parsing tuic: {e}")
+            return None
+
+    def convert_to_singbox_outbound(self, proxy: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Safer and stricter conversion of proxy dictionary format to Sing-box outbound format.
+        This version performs necessary validations and discards corrupt or incomplete entries.
+        """
+        try:
+            ptype = proxy.get('type')
+            if not ptype:
+                return None
+
+            # The type in sing-box output for ss should be 'shadowsocks'
+            sb_type = 'shadowsocks' if ptype == 'ss' else ptype
+
+            server = proxy.get('server')
+            if not server:
+                print(f"⚠️ Skipping {ptype} without a specified server: {proxy.get('name')}")
+                return None
+
+            # port is converted to a number and defaults to 443 if invalid
+            try:
+                port = int(proxy.get('port') or 443)
+            except Exception:
+                port = 443
+
+            tag = proxy.get('name') or f"{ptype}-{server}:{port}"
+
+            out: Dict[str, Any] = {
+                "type": sb_type,
+                "tag": tag,
+                "server": server,
+                "server_port": port
+            }
+
+            # Pattern for checking UUID
+            uuid_re = re.compile(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$')
+
+            if ptype == 'vless':
+                uid = proxy.get('uuid')
+                if not uid or not uuid_re.match(uid):
+                    print(f"⚠️ Skipping vless with invalid uuid: {tag}")
+                    return None
+                out.update({"uuid": uid, "flow": proxy.get('flow', '')})
+
+                if proxy.get('tls'):
+                    out['tls'] = {"enabled": True, "server_name": proxy.get('servername')}
+                    ro = proxy.get('reality-opts')
+                    if ro:
+                        out['tls'].setdefault('utls', {"enabled": True, "fingerprint": "chrome"})
+                        out['tls']['reality'] = {"enabled": True, "public_key": ro.get('public-key'), "short_id": ro.get('short-id')}
+
+                if proxy.get('network') == 'ws' and proxy.get('ws-opts'):
+                    ws = proxy.get('ws-opts') or {}
+                    headers = {}
+                    host = (ws.get('headers') or {}).get('Host')
+                    if host:
+                        headers['Host'] = host
+                    out['transport'] = {"type": "ws", "path": ws.get('path', '/'), "headers": headers}
+
+            elif ptype == 'vmess':
+                # vmess might use different keys for id
+                uid = proxy.get('uuid') or proxy.get('id') or proxy.get('id')
+                if not uid or not uuid_re.match(uid):
+                    print(f"⚠️ Skipping vmess with invalid uuid: {tag}")
+                    return None
+
+                try:
+                    alter_id = int(proxy.get('alterId') or proxy.get('aid') or 0)
+                except Exception:
+                    alter_id = 0
+
+                security = (proxy.get('cipher') or proxy.get('security') or 'auto').lower()
+                if security not in ('auto', 'none', 'aes-128-gcm', 'chacha20-poly1305'):
+                    security = 'auto'
+
+                out.update({"uuid": uid, "alter_id": alter_id, "security": security})
+
+                if proxy.get('tls'):
+                    out['tls'] = {"enabled": True, "server_name": proxy.get('servername')}
+
+                if proxy.get('network') == 'ws' and proxy.get('ws-opts'):
+                    ws = proxy.get('ws-opts') or {}
+                    headers = {}
+                    host = (ws.get('headers') or {}).get('Host')
+                    if host:
+                        headers['Host'] = host
+                    out['transport'] = {"type": "ws", "path": ws.get('path', '/'), "headers": headers}
+
+            elif ptype == 'trojan':
+                pw = proxy.get('password')
+                if not pw:
+                    print(f"⚠️ Skipping trojan without password: {tag}")
+                    return None
+                out.update({"password": pw})
+                # sni might be stored in different keys
+                sni = proxy.get('sni') or proxy.get('servername') or None
+                if proxy.get('tls') is not False:
+                    out['tls'] = {"enabled": True, "server_name": sni}
+
+            elif ptype == 'ss':
+                method = proxy.get('cipher') or proxy.get('method')
+                pw = proxy.get('password')
+                if not method or not pw:
+                    print(f"⚠️ Skipping invalid ss: {tag}")
+                    return None
+                out.update({"method": method, "password": pw})
+
+            elif ptype == 'hysteria2':
+                auth = proxy.get('auth') or proxy.get('password')
+                if not auth:
+                    print(f"⚠️ Skipping hysteria2 without auth: {tag}")
+                    return None
+                out.update({"password": auth})
+                out['tls'] = {"enabled": bool(proxy.get('tls', True)), "server_name": proxy.get('sni') or proxy.get('server'), "insecure": bool(proxy.get('skip-cert-verify'))}
+
+            elif ptype == 'tuic':
+                uid = proxy.get('uuid')
+                pw = proxy.get('password') or proxy.get('auth')
+                if not uid or not uuid_re.match(uid) or not pw:
+                    print(f"⚠️ Skipping invalid tuic: {tag}")
+                    return None
+                out.update({"uuid": uid, "password": pw})
+                out['tls'] = {"enabled": True, "server_name": proxy.get('sni') or proxy.get('server'), "insecure": bool(proxy.get('skip-cert-verify'))}
+
+            else:
+                return None
+
+            return out
+        except Exception as e:
+            print(f"❌ Error converting to Sing-box format for {proxy.get('name')}: {e}")
+            return None
+
+    def extract_configs_from_text(self, text: str) -> Set[str]:
+        found_configs = set()
+        potential_configs = set()
+        for pattern in V2RAY_PATTERNS:
+            potential_configs.update(pattern.findall(text))
+        for config_url in potential_configs:
+            corrected_config = self._correct_config_type(config_url.strip())
+            if corrected_config and self._validate_config_type(corrected_config):
+                found_configs.add(corrected_config)
+        return found_configs
+
+    async def find_raw_configs_from_chat(self, chat_id: int, limit: int, retries: int = 3):
+        try:
+            print(f"🔍 Searching in chat {chat_id} (limit: {limit} messages)...")
+            async for message in self.client.get_chat_history(chat_id, limit=limit):
+                text_to_check = message.text or message.caption
+                if not text_to_check: continue
+                texts_to_scan = [text_to_check]
+                potential_b64 = BASE64_PATTERN.findall(text_to_check)
+                for b64_str in potential_b64:
+                    try:
+                        decoded_text = base64.b64decode(b64_str + '=' * (-len(b64_str) % 4)).decode('utf-8', errors='ignore')
+                        texts_to_scan.append(decoded_text)
+                    except Exception: continue
+                for text in texts_to_scan:
+                    found_configs = self.extract_configs_from_text(text)
+                    self.raw_configs.update(found_configs)
+        except FloodWait as e:
+            if retries <= 0:
+                print(f"❌ Max retries reached for chat {chat_id}.")
+                return
+            wait_time = min(e.value * (4 - retries), 300)
+            print(f"⏳ Waiting for {wait_time} seconds (attempt {4 - retries} of 3)...")
+            await asyncio.sleep(wait_time)
+            await self.find_raw_configs_from_chat(chat_id, limit, retries - 1)
+        except Exception as e:
+            print(f"❌ Error while scanning chat {chat_id}: {e}")
+
+    def save_files(self):
+        print("\n" + "="*40)
+        print("⚙️ Starting to process and build config files...")
+
+        if not self.raw_configs:
+            print("⚠️ No configs found in chats. Output files will be empty.")
+            for f in [OUTPUT_YAML_PRO, OUTPUT_TXT, OUTPUT_JSON_CONFIG_JO, OUTPUT_ORIGINAL_CONFIGS]: open(f, "w").close()
+            return
+
+        print(f"⚙️ Processing {len(self.raw_configs)} found configs...")
+        proxies_list_clash, parse_errors = [], 0
+        
+        valid_configs = set()
+        for url in self.raw_configs:
+            try:
+                hostname = urlparse(url).hostname
+                if hostname and 'speedtest' in hostname.lower(): continue
+                if url.startswith('vless://'):
+                    query = parse_qs(urlparse(url).query)
+                    if query.get('security', ['none'])[0] == 'none': continue
+                valid_configs.add(url)
+            except Exception: pass
+
+        original_configs_to_save = []
+        renamed_txt_configs = []
+        config_counter = 1
+        for url in sorted(list(valid_configs)):
+            proxy = self.parse_config_for_clash(url)
+            if proxy:
+                original_configs_to_save.append(url)
+                
+                # Rename config
+                new_name = f"Config_jo-{config_counter:02d}"
+                proxy['name'] = new_name
+                proxies_list_clash.append(proxy)
+                
+                # Create text config with new name
+                try:
+                    parsed_url = list(urlparse(url))
+                    parsed_url[5] = new_name  # [5] is the fragment component
+                    new_url = urlunparse(parsed_url)
+                    renamed_txt_configs.append(new_url)
+                except Exception:
+                    # Fallback for URLs that might have issues with parsing/unparsing
+                    base_url = url.split('#')[0]
+                    renamed_txt_configs.append(f"{base_url}#{new_name}")
+
+                config_counter += 1
+            else:
+                parse_errors += 1
+
+        if parse_errors > 0:
+            print(f"⚠️ {parse_errors} configs were ignored due to parsing errors.")
+
+        if not proxies_list_clash:
+            print("⚠️ No valid configs found to build files.")
+            for f in [OUTPUT_YAML_PRO, OUTPUT_TXT, OUTPUT_JSON_CONFIG_JO, OUTPUT_ORIGINAL_CONFIGS]: open(f, "w").close()
+            return
+            
+        print(f"👍 {len(proxies_list_clash)} valid configs found for the final file.")
+        all_proxy_names = [p['name'] for p in proxies_list_clash]
+
+        # Build and save Pro file
+        try:
+            os.makedirs('rules', exist_ok=True)
+            pro_config = self.build_pro_config(proxies_list_clash, all_proxy_names)
+            with open(OUTPUT_YAML_PRO, 'w', encoding='utf-8') as f:
+                yaml.dump(pro_config, f, allow_unicode=True, sort_keys=False, indent=2, width=1000)
+            print(f"✅ Pro file {OUTPUT_YAML_PRO} created successfully.")
+        except Exception as e:
+            print(f"❌ Error creating pro file: {e}")
+
+        # Build and save Sing-box file
+        try:
+            singbox_config = self.build_sing_box_config(proxies_list_clash)
+            with open(OUTPUT_JSON_CONFIG_JO, 'w', encoding='utf-8') as f:
+                json.dump(singbox_config, f, ensure_ascii=False, indent=4)
+            print(f"✅ Sing-box file {OUTPUT_JSON_CONFIG_JO} created successfully.")
+        except Exception as e:
+            print(f"❌ Error creating Sing-box file: {e}")
+        
+        # Save text file with new names
+        with open(OUTPUT_TXT, 'w', encoding='utf-8') as f:
+            f.write("\n".join(sorted(renamed_txt_configs)))
+        print(f"✅ Text file {OUTPUT_TXT} saved successfully.")
+
+        # Save original configs file
+        with open(OUTPUT_ORIGINAL_CONFIGS, 'w', encoding='utf-8') as f:
+            f.write("\n".join(sorted(original_configs_to_save)))
+        print(f"✅ Original configs file {OUTPUT_ORIGINAL_CONFIGS} saved successfully.")
+
+    def build_pro_config(self, proxies, proxy_names):
+        """Build professional config with advanced features"""
+        return {
+            'port': int(os.environ.get('CLASH_PORT', 7890)),
+            'socks-port': int(os.environ.get('CLASH_SOCKS_PORT', 7891)),
+            'allow-lan': os.environ.get('CLASH_ALLOW_LAN', 'true').lower() == 'true',
+            'mode': 'rule',
+            'log-level': 'info',
+            'external-controller': '127.0.0.1:9090',
+            'dns': {
+                'enable': True,
+                'listen': '0.0.0.0:53',
+                'default-nameserver': ['8.8.8.8', '1.1.1.1'],
+                'enhanced-mode': 'fake-ip',
+                'fake-ip-range': '198.18.0.1/16',
+                'fallback': ['https://dns.google/dns-query', 'https://cloudflare-dns.com/dns-query'],
+                'fallback-filter': {'geoip': True, 'ipcidr': ['240.0.0.0/4', '0.0.0.0/32']}
+            },
+            'proxies': proxies,
+            'proxy-groups': [
+                {'name': 'PROXY', 'type': 'select', 'proxies': ['⚡ Auto-Select', 'DIRECT', *proxy_names]},
+                {'name': '⚡ Auto-Select', 'type': 'url-test', 'proxies': proxy_names, 'url': 'http://www.gstatic.com/generate_204', 'interval': 300},
+                {'name': '🇮🇷 Iran', 'type': 'select', 'proxies': ['DIRECT', 'PROXY']},
+                {'name': '🛑 Block-Ads', 'type': 'select', 'proxies': ['REJECT', 'DIRECT']}
+            ],
+            'rule-providers': {
+                'iran_domains': {'type': 'http', 'behavior': 'domain', 'url': "https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/iran-domains.txt", 'path': './rules/iran_domains.txt', 'interval': 86400},
+                'blocked_domains': {'type': 'http', 'behavior': 'domain', 'url': "https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/blocked-domains.txt", 'path': './rules/blocked_domains.txt', 'interval': 86400},
+                'ad_domains': {'type': 'http', 'behavior': 'domain', 'url': "https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/ad-domains.txt", 'path': './rules/ad_domains.txt', 'interval': 86400}
+            },
+            'rules': [
+                'RULE-SET,ad_domains,🛑 Block-Ads',
+                'RULE-SET,blocked_domains,PROXY',
+                'RULE-SET,iran_domains,🇮🇷 Iran',
+                'GEOIP,IR,🇮🇷 Iran',
+                'MATCH,PROXY'
+            ]
+        }
+
+    def build_sing_box_config(self, proxies_clash: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Build a modern and complete config for Sing-box with DNS fix"""
+        outbounds = []
+        for proxy in proxies_clash:
+            sb_outbound = self.convert_to_singbox_outbound(proxy)
+            if sb_outbound:
+                outbounds.append(sb_outbound)
+
+        proxy_tags = [p['tag'] for p in outbounds]
+        
+        return {
+            "log": {
+                "level": "warn",
+                "timestamp": True
+            },
+            "dns": {
+                "servers": [
+                    {
+                        "tag": "dns_proxy",
+                        "address": "https://dns.google/dns-query",
+                        "detour": "PROXY"
+                    },
+                    {
+                        "tag": "dns_direct",
+                        "address": "1.1.1.1" # Uses direct detour by default
+                    }
+                ],
+                "rules": [
+                    # Important: Only traffic passing through the proxy should use the proxied DNS
+                    { "outbound": "PROXY", "server": "dns_proxy" },
+                    { "rule_set": ["geosite-ir", "geoip-ir"], "server": "dns_direct" },
+                    { "domain_suffix": ".ir", "server": "dns_direct" }
+                ],
+                "final": "dns_direct", # Default to prevent deadlock
+                "strategy": "ipv4_only"
+            },
+            "inbounds": [
+                {
+                    "type": "mixed",
+                    "listen": "0.0.0.0",
+                    "listen_port": 2080,
+                    "sniff": True
+                }
+            ],
+            "outbounds": [
+                {"type": "direct", "tag": "direct"},
+                {"type": "block", "tag": "block"},
+                {"type": "dns", "tag": "dns-out"},
+                *outbounds,
+                {
+                    "type": "selector",
+                    "tag": "PROXY",
+                    "outbounds": ["auto", *proxy_tags],
+                    "default": "auto"
+                },
+                {
+                    "type": "urltest",
+                    "tag": "auto",
+                    "outbounds": proxy_tags,
+                    "url": "http://www.gstatic.com/generate_204",
+                    "interval": "5m"
+                }
+            ],
+            "route": {
+                "rule_set": [
+                    {
+                        "tag": "geosite-ir",
+                        "type": "remote",
+                        "format": "binary",
+                        "url": "https://cdn.jsdelivr.net/gh/Chocolate4U/Iran-sing-box-rules@rule-set/geosite-ir.srs",
+                        "download_detour": "direct"
+                    },
+                    {
+                        "tag": "geoip-ir",
+                        "type": "remote",
+                        "format": "binary",
+                        "url": "https://cdn.jsdelivr.net/gh/Chocolate4U/Iran-sing-box-rules@rule-set/geoip-ir.srs",
+                        "download_detour": "direct"
+                    }
+                ],
+                "rules": [
+                    {"protocol": "dns", "outbound": "dns-out"},
+                    {"rule_set": ["geosite-ir", "geoip-ir"], "outbound": "direct"},
+                    {"ip_is_private": True, "outbound": "direct"}
+                ],
+                "final": "PROXY"
+            }
+        }
+
+async def main():
+    print("🚀 Starting config extractor...")
+    extractor = V2RayExtractor()
+    async with extractor.client:
+        tasks = [extractor.find_raw_configs_from_chat(channel, CHANNEL_SEARCH_LIMIT) for channel in CHANNELS]
+        tasks.extend(extractor.find_raw_configs_from_chat(group, GROUP_SEARCH_LIMIT) for group in GROUPS)
+        if tasks:
+            await asyncio.gather(*tasks)
+        else:
+            print("❌ No channels or groups defined for searching.")
+    extractor.save_files()
+    print("\n✨ All operations completed successfully!")
+
+if __name__ == "__main__":
+    if not all([API_ID, API_HASH, SESSION_STRING]):
+        print("❌ Error: One or more required secrets (API_ID, API_HASH, SESSION_STRING) are not set.")
+    else:
+        asyncio.run(main())
