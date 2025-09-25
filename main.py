@@ -67,16 +67,20 @@ class V2RayExtractor:
     def _is_valid_shadowsocks(self, ss_url: str) -> bool:
         try:
             parsed = urlparse(ss_url)
-            if not parsed.hostname or not parsed.username: return False
-            uuid_pattern = r'[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}'
-            if re.search(uuid_pattern, parsed.username): return False
+            if not parsed.hostname: return False
+            # username may be base64 or method:password so just try to decode
             try:
-                decoded_user = base64.b64decode(parsed.username + '=' * (-len(parsed.username) % 4)).decode('utf-8')
-                if ':' not in decoded_user: return False
-            except:
-                if ':' not in parsed.username: return False
-            return True
-        except: return False
+                user_part = parsed.netloc.split('@')[0]
+                # try base64 decode
+                _ = base64.b64decode(user_part + '=' * (-len(user_part) % 4)).decode('utf-8')
+                return True
+            except Exception:
+                # fallback: check presence of ':' in username when not base64
+                if ':' in parsed.netloc.split('@')[0]:
+                    return True
+            return False
+        except:
+            return False
 
     def _correct_config_type(self, config_url: str) -> str:
         try:
@@ -168,63 +172,146 @@ class V2RayExtractor:
             return None
 
     def parse_shadowsocks(self, ss_url: str) -> Optional[Dict[str, Any]]:
+        """
+        Parse ss:// URLs robustly:
+        - handles ss://method:password@host:port#name
+        - handles ss://base64encoded(method:password@host:port)#name
+        - handles plugin parameters in query string, e.g. ?plugin=obfs-local%3bobfs%3dhttp%3bobfs-host%3dexample.com
+        - extracts obfs mode/host/password from query or plugin string
+        - returns a dict with possible keys: plugin, plugin-opts
+        """
         try:
             parsed = urlparse(ss_url)
+            query = parse_qs(parsed.query)
             original_name = unquote(parsed.fragment) if parsed.fragment else ''
+
+            # First determine user_info (method:password). It might be in netloc or encoded in the path part.
             user_info = ''
-            
-            # Extract user info (cipher:password)
+            host = parsed.hostname
+            port = parsed.port or None
+
+            # Case A: ss://method:password@host:port
             if '@' in parsed.netloc:
                 user_info_part = parsed.netloc.split('@')[0]
-                try: 
-                    user_info = base64.b64decode(user_info_part + '=' * (4 - len(user_info_part) % 4)).decode('utf-8')
-                except: 
+                # try base64 decode user_info_part, otherwise take raw
+                try:
+                    user_info = base64.b64decode(user_info_part + '=' * (-len(user_info_part) % 4)).decode('utf-8')
+                except Exception:
                     user_info = unquote(user_info_part)
-            
-            cipher, password = user_info.split(':', 1) if ':' in user_info else (None, None)
-            if not cipher or not password:
+            else:
+                # Case B: ss://base64(method:password@host:port)
+                # sometimes everything except the fragment is base64 (no '@' in netloc)
+                content = ss_url[5:]
+                if '#' in content:
+                    content = content.split('#')[0]
+                if '?' in content:
+                    content = content.split('?', 1)[0]
+                # If content contains '@' after decoding base64, decode
+                try:
+                    decoded = base64.b64decode(content + '=' * (-len(content) % 4)).decode('utf-8')
+                    if '@' in decoded:
+                        # decoded is like method:password@host:port
+                        if decoded.count('@') == 1:
+                            left, right = decoded.split('@', 1)
+                            if ':' in left and ':' in right:
+                                user_info = left
+                                server_port = right
+                                if ':' in server_port:
+                                    host_candidate, port_candidate = server_port.rsplit(':', 1)
+                                    host = host_candidate
+                                    try:
+                                        port = int(port_candidate)
+                                    except:
+                                        port = None
+                except Exception:
+                    pass
+
+            cipher, password = (None, None)
+            if user_info and ':' in user_info:
+                cipher, password = user_info.split(':', 1)
+
+            # If still missing host/port, attempt to read from parsed.path (some ss forms do that)
+            if not host:
+                path_part = parsed.path.lstrip('/')
+                if path_part and ':' in path_part:
+                    try:
+                        host_candidate, port_candidate = path_part.rsplit(':', 1)
+                        host = host_candidate
+                        port = int(port_candidate)
+                    except:
+                        pass
+
+            if not cipher or not password or not host:
+                # cannot parse properly
                 return None
-            
-            # Parse query parameters for plugin options
-            query = parse_qs(parsed.query)
-            plugin = query.get('plugin', [None])[0]
-            
-            result = {
-                'name': original_name, 
-                'type': 'ss', 
-                'server': parsed.hostname, 
-                'port': parsed.port, 
-                'cipher': cipher, 
-                'password': password, 
-                'udp': True
-            }
-            
-            # Parse plugin options if exists (for obfs, simple-obfs, etc.)
-            if plugin:
-                # Example plugin: "obfs-local;obfs=http;obfs-host=example.com"
-                plugin_parts = plugin.split(';')
-                plugin_name = plugin_parts[0]
-                
-                if 'obfs' in plugin_name.lower():
-                    result['plugin'] = 'obfs'
+
+            result = {'name': original_name, 'type': 'ss', 'server': host, 'port': int(port or 443), 'cipher': cipher, 'password': password, 'udp': True}
+
+            # === plugin parsing (focus on obfs) ===
+            # plugin param could be in query like plugin=obfs-local;obfs=http;obfs-host=example.com
+            # or plugin could be url-encoded; we try to extract obfs mode/host/password from either query or plugin string
+            plugin_str = None
+            # sometimes parsed.query has plugin key
+            if 'plugin' in query:
+                plugin_str = query.get('plugin', [''])[0]
+            else:
+                # plugin may be inside the URL (unparsed) after '?'
+                # fallback: look into the raw ss_url for "plugin=" text
+                m = re.search(r'plugin=([^&]+)', ss_url)
+                if m:
+                    plugin_str = unquote(m.group(1))
+
+            if plugin_str:
+                plugin_str_unq = unquote(plugin_str)
+                # plugin string may be like: obfs-local;obfs=http;obfs-host=example.com
+                # or obfs-local;obfs=http;obfs-host=example.com;obfs-password=pass
+                # normalize separators ; or &
+                kv_parts = re.split(r'[;&]', plugin_str_unq)
+                kv_map = {}
+                for part in kv_parts:
+                    if '=' in part:
+                        k, v = part.split('=', 1)
+                        kv_map[k.strip()] = v.strip()
+                    else:
+                        # plugin name without =
+                        kv_map.setdefault('plugin_name', part.strip())
+
+                # determine if obfs plugin
+                plugin_name = kv_map.get('plugin_name', '') or kv_map.get('plugin', '')
+                if 'obfs' in plugin_name or any(k.startswith('obfs') for k in kv_map.keys()):
+                    obfs_mode = kv_map.get('obfs', None) or kv_map.get('mode', None) or kv_map.get('obfs-mode', None)
+                    obfs_host = kv_map.get('obfs-host', None) or kv_map.get('host', None) or kv_map.get('obfs_host', None)
+                    # possible password keys
+                    obfs_pass = kv_map.get('obfs-password') or kv_map.get('obfs_pass') or kv_map.get('obfs_param') or kv_map.get('obfs-param') or kv_map.get('password')
+
                     plugin_opts = {}
-                    
-                    for part in plugin_parts[1:]:
-                        if '=' in part:
-                            key, value = part.split('=', 1)
-                            plugin_opts[key] = value
-                    
-                    if 'obfs' in plugin_opts:
-                        result['plugin-opts'] = {
-                            'mode': plugin_opts['obfs'],
-                            'host': plugin_opts.get('obfs-host', '')
-                        }
-                        # If obfs-password exists in plugin options
-                        if 'obfs-password' in plugin_opts:
-                            result['plugin-opts']['password'] = plugin_opts['obfs-password']
-            
+                    if obfs_mode:
+                        plugin_opts['mode'] = obfs_mode
+                    if obfs_host:
+                        plugin_opts['host'] = obfs_host
+                    if obfs_pass:
+                        plugin_opts['password'] = obfs_pass
+
+                    # If plugin_opts has something, attach plugin info
+                    if plugin_opts:
+                        result['plugin'] = 'obfs'
+                        result['plugin-opts'] = plugin_opts
+                # else: plugin exists but not obfs; ignore for now
+
+            # If no plugin in plugin param, check for standard query keys obfs/obfs-host/obfs-password
+            if 'plugin-opts' not in result:
+                obfs_mode_q = query.get('obfs', [None])[0] or query.get('obfs-mode', [None])[0]
+                obfs_host_q = query.get('obfs-host', [None])[0] or query.get('host', [None])[0]
+                obfs_pass_q = query.get('obfs-password', [None])[0] or query.get('obfs_pass', [None])[0] or query.get('obfs-param', [None])[0] or query.get('password', [None])[0]
+                if obfs_mode_q or obfs_host_q or obfs_pass_q:
+                    plugin_opts = {}
+                    if obfs_mode_q: plugin_opts['mode'] = obfs_mode_q
+                    if obfs_host_q: plugin_opts['host'] = obfs_host_q
+                    if obfs_pass_q: plugin_opts['password'] = obfs_pass_q
+                    result['plugin'] = 'obfs'
+                    result['plugin-opts'] = plugin_opts
+
             return result
-            
         except Exception as e:
             print(f"❌ Error parsing shadowsocks: {e}")
             return None
@@ -251,7 +338,7 @@ class V2RayExtractor:
 
     def convert_to_singbox_outbound(self, proxy: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Safer and stricter conversion of proxy dictionary format to Sing-box outbound format.
-        This version performs necessary validations and discard corrupt or incomplete entries.
+        This version performs necessary validations and discards corrupt or incomplete entries.
         """
         try:
             ptype = proxy.get('type')
@@ -353,17 +440,10 @@ class V2RayExtractor:
                     print(f"⚠️ Skipping invalid ss: {tag}")
                     return None
                 out.update({"method": method, "password": pw})
-
-                # Handle obfs plugin for Shadowsocks in Sing-box
+                # carry over obfs/plugin options if present (sing-box may need plugin config differently)
                 if proxy.get('plugin') == 'obfs' and proxy.get('plugin-opts'):
-                    plugin_opts = proxy.get('plugin-opts', {})
-                    if plugin_opts.get('mode'):
-                        out['plugin'] = "obfs-local"
-                        out['plugin_opts'] = f"obfs={plugin_opts['mode']}"
-                        if plugin_opts.get('host'):
-                            out['plugin_opts'] += f";obfs-host={plugin_opts['host']}"
-                        if plugin_opts.get('password'):
-                            out['plugin_opts'] += f";obfs-password={plugin_opts['password']}"
+                    # keep plugin info in a generic way; user can adapt if needed for sing-box specifics
+                    out['plugin'] = {'name': 'obfs', 'opts': proxy.get('plugin-opts')}
 
             elif ptype == 'hysteria2':
                 auth = proxy.get('auth') or proxy.get('password')
@@ -547,7 +627,7 @@ class V2RayExtractor:
             'rule-providers': {
                 'iran_domains': {'type': 'http', 'behavior': 'domain', 'url': "https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/iran-domains.txt", 'path': './rules/iran_domains.txt', 'interval': 86400},
                 'blocked_domains': {'type': 'http', 'behavior': 'domain', 'url': "https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/blocked-domains.txt", 'path': './rules/blocked_domains.txt', 'interval': 86400},
-                'ad_domains': {'type': 'http', 'behavior': 'domain', 'url': "https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/ad-domains.txt", 'path': './rules/ad_domains.txt', 'interval': 86400}
+                'ad_domains': {'type': 'http', 'behavior': 'domain', 'url': "https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/ad-domains.txt", 'path': './rules/ad-domains.txt', 'interval': 86400}
             },
             'rules': [
                 'RULE-SET,ad_domains,🛑 Block-Ads',
@@ -641,7 +721,7 @@ class V2RayExtractor:
                 "rules": [
                     {"protocol": "dns", "outbound": "dns-out"},
                     {"rule_set": ["geosite-ir", "geoip-ir"], "outbound": "direct"},
-                    {"ip_is_private": True, "outbound": "direct}
+                    {"ip_is_private": True, "outbound": "direct"}
                 ],
                 "final": "PROXY"
             }
