@@ -172,14 +172,59 @@ class V2RayExtractor:
             parsed = urlparse(ss_url)
             original_name = unquote(parsed.fragment) if parsed.fragment else ''
             user_info = ''
+            
+            # Extract user info (cipher:password)
             if '@' in parsed.netloc:
                 user_info_part = parsed.netloc.split('@')[0]
-                try: user_info = base64.b64decode(user_info_part + '=' * (4 - len(user_info_part) % 4)).decode('utf-8')
-                except: user_info = unquote(user_info_part)
+                try: 
+                    user_info = base64.b64decode(user_info_part + '=' * (4 - len(user_info_part) % 4)).decode('utf-8')
+                except: 
+                    user_info = unquote(user_info_part)
+            
             cipher, password = user_info.split(':', 1) if ':' in user_info else (None, None)
-            if cipher and password:
-                return {'name': original_name, 'type': 'ss', 'server': parsed.hostname, 'port': parsed.port, 'cipher': cipher, 'password': password, 'udp': True}
-            return None
+            if not cipher or not password:
+                return None
+            
+            # Parse query parameters for plugin options
+            query = parse_qs(parsed.query)
+            plugin = query.get('plugin', [None])[0]
+            
+            result = {
+                'name': original_name, 
+                'type': 'ss', 
+                'server': parsed.hostname, 
+                'port': parsed.port, 
+                'cipher': cipher, 
+                'password': password, 
+                'udp': True
+            }
+            
+            # Parse plugin options if exists (for obfs, simple-obfs, etc.)
+            if plugin:
+                # Example plugin: "obfs-local;obfs=http;obfs-host=example.com"
+                plugin_parts = plugin.split(';')
+                plugin_name = plugin_parts[0]
+                
+                if 'obfs' in plugin_name.lower():
+                    result['plugin'] = 'obfs'
+                    plugin_opts = {}
+                    
+                    for part in plugin_parts[1:]:
+                        if '=' in part:
+                            key, value = part.split('=', 1)
+                            plugin_opts[key] = value
+                    
+                    if 'obfs' in plugin_opts:
+                        result['plugin-opts'] = {
+                            'mode': plugin_opts['obfs'],
+                            'host': plugin_opts.get('obfs-host', '')
+                        }
+                        # If obfs-password exists in plugin options
+                        if 'obfs-password' in plugin_opts:
+                            result['plugin-opts']['password'] = plugin_opts['obfs-password']
+            
+            return result
+            
         except Exception as e:
             print(f"❌ Error parsing shadowsocks: {e}")
             return None
@@ -206,7 +251,7 @@ class V2RayExtractor:
 
     def convert_to_singbox_outbound(self, proxy: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Safer and stricter conversion of proxy dictionary format to Sing-box outbound format.
-        This version performs necessary validations and discards corrupt or incomplete entries.
+        This version performs necessary validations and discard corrupt or incomplete entries.
         """
         try:
             ptype = proxy.get('type')
@@ -308,6 +353,17 @@ class V2RayExtractor:
                     print(f"⚠️ Skipping invalid ss: {tag}")
                     return None
                 out.update({"method": method, "password": pw})
+
+                # Handle obfs plugin for Shadowsocks in Sing-box
+                if proxy.get('plugin') == 'obfs' and proxy.get('plugin-opts'):
+                    plugin_opts = proxy.get('plugin-opts', {})
+                    if plugin_opts.get('mode'):
+                        out['plugin'] = "obfs-local"
+                        out['plugin_opts'] = f"obfs={plugin_opts['mode']}"
+                        if plugin_opts.get('host'):
+                            out['plugin_opts'] += f";obfs-host={plugin_opts['host']}"
+                        if plugin_opts.get('password'):
+                            out['plugin_opts'] += f";obfs-password={plugin_opts['password']}"
 
             elif ptype == 'hysteria2':
                 auth = proxy.get('auth') or proxy.get('password')
@@ -585,7 +641,7 @@ class V2RayExtractor:
                 "rules": [
                     {"protocol": "dns", "outbound": "dns-out"},
                     {"rule_set": ["geosite-ir", "geoip-ir"], "outbound": "direct"},
-                    {"ip_is_private": True, "outbound": "direct"}
+                    {"ip_is_private": True, "outbound": "direct}
                 ],
                 "final": "PROXY"
             }
