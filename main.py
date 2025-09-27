@@ -321,7 +321,29 @@ class V2RayExtractor:
             parsed = urlparse(hy2_url)
             query = parse_qs(parsed.query)
             original_name = unquote(parsed.fragment) if parsed.fragment else ''
-            return {'name': original_name, 'type': 'hysteria2', 'server': parsed.hostname, 'port': parsed.port or 443, 'auth': parsed.username, 'up': query.get('up', ['100 Mbps'])[0], 'down': query.get('down', ['100 Mbps'])[0], 'obfs': query.get('obfs', [''])[0] or None, 'sni': query.get('sni', [parsed.hostname])[0], 'skip-cert-verify': query.get('insecure', ['false'])[0].lower() == 'true'}
+            
+            # دیکشنری پایه کانفیگ را ایجاد می‌کنیم
+            config = {
+                'name': original_name,
+                'type': 'hysteria2',
+                'server': parsed.hostname,
+                'port': parsed.port or 443,
+                'auth': parsed.username,
+                'up': query.get('up', ['100 Mbps'])[0],
+                'down': query.get('down', ['100 Mbps'])[0],
+                'sni': query.get('sni', [parsed.hostname])[0],
+                'skip-cert-verify': query.get('insecure', ['false'])[0].lower() == 'true'
+            }
+
+            # استخراج obfs و obfs-password
+            obfs_mode = query.get('obfs', [None])[0]
+            if obfs_mode:
+                config['obfs'] = obfs_mode
+                obfs_password = query.get('obfs-password', [None])[0]
+                if obfs_password:
+                    config['obfs-password'] = obfs_password
+            
+            return config
         except Exception as e:
             print(f"❌ Error parsing hysteria2: {e}")
             return None
@@ -627,7 +649,7 @@ class V2RayExtractor:
             'rule-providers': {
                 'iran_domains': {'type': 'http', 'behavior': 'domain', 'url': "https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/iran-domains.txt", 'path': './rules/iran_domains.txt', 'interval': 86400},
                 'blocked_domains': {'type': 'http', 'behavior': 'domain', 'url': "https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/blocked-domains.txt", 'path': './rules/blocked_domains.txt', 'interval': 86400},
-                'ad_domains': {'type': 'http', 'behavior': 'domain', 'url': "https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/ad-domains.txt", 'path': './rules/ad-domains.txt', 'interval': 86400}
+                'ad_domains': {'type': 'http', 'behavior': 'domain', 'url': "https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/ad-domains.txt", 'path': './rules/ad_domains.txt', 'interval': 86400}
             },
             'rules': [
                 'RULE-SET,ad_domains,🛑 Block-Ads',
