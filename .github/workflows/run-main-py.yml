@@ -22,12 +22,9 @@ jobs:
         with:
           python-version: '3.10'
 
-      # --- گام جدید برای دانلود دیتابیس ---
-    
-      - name: Download DB-IP Database
+      - name: Download GeoLite2 Database
         run: |
-          curl -L "https://download.ipregistry.co/deployment-tools/database/db-ip/country/dbip-country-lite-latest.mmdb.gz" -o dbip-country-lite.mmdb.gz
-          gunzip -f dbip-country-lite.mmdb.gz
+          curl -L "https://git.io/GeoLite2-Country.mmdb" -o dbip-country-lite.mmdb
 
       - name: Install Python dependencies
         run: pip install -r requirements.txt
