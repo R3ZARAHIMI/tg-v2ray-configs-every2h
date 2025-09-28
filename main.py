@@ -194,7 +194,7 @@ class V2RayExtractor:
             if config.get('net') == 'ws':
                 host_header = config.get('host', '').strip() or config.get('add', '').strip()
                 if host_header: ws_opts = {'path': config.get('path', '/'), 'headers': {'Host': host_header}}
-            return {'name': original_name, 'type': 'vmess', 'server': config.get('add'), 'port': int(config.get('port', 443)), 'uuid': config.get('id'), 'alterId': int(config.get('aid', 0)), 'cipher': config.get('scy', 'auto'), 'tls': config.get('tls') == 'tls', 'network': config.get('net', 'tcp'), 'udp': True, 'ws-opts': ws_opts, 'servername': config.get('sni')}
+            return {'name': original_name, 'type': 'vmess', 'server': config.get('add'), 'port': int(config.get('port', 443)), 'uuid': config.get('id'), 'alterId': int(config.get('aid', 0)), 'cipher': config.get('scy', 'auto'), 'tls': config.get('tls') == 'tls', 'network': config.get('net', 'tcp'), 'udp': True, 'ws-opts': ws_opts, 'servername': config.get('sni', config.get('host'))}
         except Exception as e:
             print(f"❌ Error parsing vmess: {e}")
             return None
@@ -450,17 +450,18 @@ class V2RayExtractor:
 
             original_configs_to_save.append(url)
             
-            # Intelligent Host Selection for GeoIP
+            # --- START: New Intelligent Host Selection ---
             server_address = proxy.get('server', '')
-            sni_address = proxy.get('servername')
-            host_to_check = server_address
-            if sni_address and sni_address != server_address:
-                try:
-                    socket.inet_aton(server_address)
-                    host_to_check = sni_address
-                except socket.error: pass
-            
+            # The 'sni' key is used for trojan, 'servername' for vless/vmess
+            sni_address = proxy.get('servername') or proxy.get('sni')
+
+            # Prioritize SNI for GeoIP lookup as it's the true destination.
+            # Fallback to the server address if SNI is not available.
+            host_to_check = sni_address if sni_address else server_address
+
             flag = get_country_flag(host_to_check) if host_to_check else "🏳️"
+            # --- END: New Intelligent Host Selection ---
+
             new_name = f"{flag} Config_jo-{config_counter:02d}"
             proxy['name'] = new_name
             proxies_list_clash.append(proxy)
@@ -592,3 +593,4 @@ if __name__ == "__main__":
         print("❌ Error: One or more required secrets (API_ID, API_HASH, SESSION_STRING) are not set.")
     else:
         asyncio.run(main())
+
