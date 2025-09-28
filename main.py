@@ -52,7 +52,6 @@ def get_country_flag(hostname):
     """Gets the country flag emoji for a given hostname or IP address."""
     try:
         with geoip2.database.Reader(GEOIP_DATABASE) as reader:
-            # Resolve hostname to IP if it's not an IP
             ip_address = hostname
             try:
                 # Check if it's an IP address, if not, resolve it
@@ -124,14 +123,11 @@ class V2RayExtractor:
         try:
             parsed = urlparse(ss_url)
             if not parsed.hostname: return False
-            # username may be base64 or method:password so just try to decode
             try:
                 user_part = parsed.netloc.split('@')[0]
-                # try base64 decode
                 _ = base64.b64decode(user_part + '=' * (-len(user_part) % 4)).decode('utf-8')
                 return True
             except Exception:
-                # fallback: check presence of ':' in username when not base64
                 if ':' in parsed.netloc.split('@')[0]:
                     return True
             return False
@@ -146,19 +142,15 @@ class V2RayExtractor:
                 if parsed.username and re.match(uuid_pattern, parsed.username):
                     return config_url.replace('ss://', 'vless://', 1)
 
-                # New logic to handle ss://<base64_vmess_json>
-                # The base64 data is in netloc for this format
                 data_part = parsed.netloc
                 if data_part:
                     try:
-                        # Attempt to decode the netloc part which might contain the vmess json
                         decoded = base64.b64decode(data_part + '=' * (-len(data_part) % 4)).decode('utf-8')
                         json_data = json.loads(decoded)
                         if 'v' in json_data and json_data.get('v') == '2':
-                            # It's a vmess config, so we replace the scheme
                             return config_url.replace('ss://', 'vmess://', 1)
                     except (ValueError, TypeError, Exception):
-                        pass # Not a base64 encoded json, proceed as normal ss
+                        pass
             return config_url
         except:
             return config_url
@@ -202,7 +194,7 @@ class V2RayExtractor:
             if config.get('net') == 'ws':
                 host_header = config.get('host', '').strip() or config.get('add', '').strip()
                 if host_header: ws_opts = {'path': config.get('path', '/'), 'headers': {'Host': host_header}}
-            return {'name': original_name, 'type': 'vmess', 'server': config.get('add'), 'port': int(config.get('port', 443)), 'uuid': config.get('id'), 'alterId': int(config.get('aid', 0)), 'cipher': config.get('scy', 'auto'), 'tls': config.get('tls') == 'tls', 'network': config.get('net', 'tcp'), 'udp': True, 'ws-opts': ws_opts}
+            return {'name': original_name, 'type': 'vmess', 'server': config.get('add'), 'port': int(config.get('port', 443)), 'uuid': config.get('id'), 'alterId': int(config.get('aid', 0)), 'cipher': config.get('scy', 'auto'), 'tls': config.get('tls') == 'tls', 'network': config.get('net', 'tcp'), 'udp': True, 'ws-opts': ws_opts, 'servername': config.get('sni')}
         except Exception as e:
             print(f"❌ Error parsing vmess: {e}")
             return None
@@ -237,25 +229,17 @@ class V2RayExtractor:
 
     def parse_shadowsocks(self, ss_url: str) -> Optional[Dict[str, Any]]:
         try:
-            # If the URL contains base64 that decodes to JSON, it's likely a mislabeled vmess.
-            # The _correct_config_type should handle this, but as a safeguard:
             try:
                 content_part = ss_url.split("://")[1].split("#")[0]
                 decoded_test = base64.b64decode(content_part + '=' * (-len(content_part) % 4)).decode('utf-8')
                 json.loads(decoded_test)
-                # If both decoding and loading as JSON succeed, it's not a valid SS config.
                 print(f"⚠️ Skipping ss:// link that appears to be a JSON-based config (e.g., vmess): {ss_url[:40]}...")
                 return None
-            except (json.JSONDecodeError, ValueError, TypeError):
-                # This is expected for a valid ss config, so we continue.
-                pass
-            except Exception:
+            except (json.JSONDecodeError, ValueError, TypeError, Exception):
                 pass
 
             parsed = urlparse(ss_url)
-            query = parse_qs(parsed.query)
             original_name = unquote(parsed.fragment) if parsed.fragment else ''
-
             user_info = ''
             host = parsed.hostname
             port = parsed.port
@@ -267,7 +251,6 @@ class V2RayExtractor:
                 except Exception:
                     user_info = unquote(user_info_part)
             else:
-                # Fallback for ss://BASE64(method:pass@host:port)
                 content = ss_url[5:].split('#')[0].split('?')[0]
                 try:
                     decoded = base64.b64decode(content + '=' * (-len(content) % 4)).decode('utf-8')
@@ -282,15 +265,10 @@ class V2RayExtractor:
                 return None
 
             cipher, password = user_info.split(':', 1)
-            
-            result = {'name': original_name, 'type': 'ss', 'server': host, 'port': int(port), 'cipher': cipher, 'password': password, 'udp': True}
-            # Plugin logic remains the same...
-            # (Your existing plugin logic here)
-            return result
+            return {'name': original_name, 'type': 'ss', 'server': host, 'port': int(port), 'cipher': cipher, 'password': password, 'udp': True}
         except Exception as e:
             print(f"❌ Error parsing shadowsocks: {e}")
             return None
-
 
     def parse_hysteria2(self, hy2_url: str) -> Optional[Dict[str, Any]]:
         try:
@@ -299,24 +277,17 @@ class V2RayExtractor:
             original_name = unquote(parsed.fragment) if parsed.fragment else ''
             
             config = {
-                'name': original_name,
-                'type': 'hysteria2',
-                'server': parsed.hostname,
-                'port': parsed.port or 443,
-                'auth': parsed.username,
-                'up': query.get('up', ['100 Mbps'])[0],
-                'down': query.get('down', ['100 Mbps'])[0],
+                'name': original_name, 'type': 'hysteria2', 'server': parsed.hostname,
+                'port': parsed.port or 443, 'auth': parsed.username,
+                'up': query.get('up', ['100 Mbps'])[0], 'down': query.get('down', ['100 Mbps'])[0],
                 'sni': query.get('sni', [parsed.hostname])[0],
                 'skip-cert-verify': query.get('insecure', ['false'])[0].lower() == 'true'
             }
 
-            obfs_mode = query.get('obfs', [None])[0]
-            if obfs_mode:
+            if obfs_mode := query.get('obfs', [None])[0]:
                 config['obfs'] = obfs_mode
-                obfs_password = query.get('obfs-password', [None])[0]
-                if obfs_password:
+                if obfs_password := query.get('obfs-password', [None])[0]:
                     config['obfs-password'] = obfs_password
-            
             return config
         except Exception as e:
             print(f"❌ Error parsing hysteria2: {e}")
@@ -333,134 +304,78 @@ class V2RayExtractor:
             return None
 
     def convert_to_singbox_outbound(self, proxy: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        """Safer and stricter conversion of proxy dictionary format to Sing-box outbound format.
-        This version performs necessary validations and discards corrupt or incomplete entries.
-        """
         try:
             ptype = proxy.get('type')
-            if not ptype:
-                return None
+            if not ptype: return None
 
-            # The type in sing-box output for ss should be 'shadowsocks'
             sb_type = 'shadowsocks' if ptype == 'ss' else ptype
-
             server = proxy.get('server')
-            if not server:
-                print(f"⚠️ Skipping {ptype} without a specified server: {proxy.get('name')}")
-                return None
+            if not server: return None
 
-            # port is converted to a number and defaults to 443 if invalid
-            try:
-                port = int(proxy.get('port') or 443)
-            except Exception:
-                port = 443
-
+            try: port = int(proxy.get('port') or 443)
+            except Exception: port = 443
             tag = proxy.get('name') or f"{ptype}-{server}:{port}"
-
-            out: Dict[str, Any] = {
-                "type": sb_type,
-                "tag": tag,
-                "server": server,
-                "server_port": port
-            }
-
-            # Pattern for checking UUID
+            out: Dict[str, Any] = {"type": sb_type, "tag": tag, "server": server, "server_port": port}
             uuid_re = re.compile(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$')
 
             if ptype == 'vless':
                 uid = proxy.get('uuid')
-                if not uid or not uuid_re.match(uid):
-                    print(f"⚠️ Skipping vless with invalid uuid: {tag}")
-                    return None
+                if not uid or not uuid_re.match(uid): return None
                 out.update({"uuid": uid, "flow": proxy.get('flow', '')})
 
                 if proxy.get('tls'):
                     out['tls'] = {"enabled": True, "server_name": proxy.get('servername')}
-                    ro = proxy.get('reality-opts')
-                    if ro:
+                    if ro := proxy.get('reality-opts'):
                         out['tls'].setdefault('utls', {"enabled": True, "fingerprint": "chrome"})
                         out['tls']['reality'] = {"enabled": True, "public_key": ro.get('public-key'), "short_id": ro.get('short-id')}
 
-                if proxy.get('network') == 'ws' and proxy.get('ws-opts'):
-                    ws = proxy.get('ws-opts') or {}
+                if proxy.get('network') == 'ws' and (ws := proxy.get('ws-opts')):
                     headers = {}
-                    host = (ws.get('headers') or {}).get('Host')
-                    if host:
-                        headers['Host'] = host
+                    if host := (ws.get('headers') or {}).get('Host'): headers['Host'] = host
                     out['transport'] = {"type": "ws", "path": ws.get('path', '/'), "headers": headers}
 
             elif ptype == 'vmess':
-                # vmess might use different keys for id
-                uid = proxy.get('uuid') or proxy.get('id') or proxy.get('id')
-                if not uid or not uuid_re.match(uid):
-                    print(f"⚠️ Skipping vmess with invalid uuid: {tag}")
-                    return None
-
-                try:
-                    alter_id = int(proxy.get('alterId') or proxy.get('aid') or 0)
-                except Exception:
-                    alter_id = 0
-
-                security = (proxy.get('cipher') or proxy.get('security') or 'auto').lower()
-                if security not in ('auto', 'none', 'aes-128-gcm', 'chacha20-poly1305'):
-                    security = 'auto'
-
+                uid = proxy.get('uuid')
+                if not uid or not uuid_re.match(uid): return None
+                try: alter_id = int(proxy.get('alterId') or 0)
+                except Exception: alter_id = 0
+                security = (proxy.get('cipher') or 'auto').lower()
+                if security not in ('auto', 'none', 'aes-128-gcm', 'chacha20-poly1305'): security = 'auto'
                 out.update({"uuid": uid, "alter_id": alter_id, "security": security})
 
                 if proxy.get('tls'):
                     out['tls'] = {"enabled": True, "server_name": proxy.get('servername')}
-
-                if proxy.get('network') == 'ws' and proxy.get('ws-opts'):
-                    ws = proxy.get('ws-opts') or {}
+                if proxy.get('network') == 'ws' and (ws := proxy.get('ws-opts')):
                     headers = {}
-                    host = (ws.get('headers') or {}).get('Host')
-                    if host:
-                        headers['Host'] = host
+                    if host := (ws.get('headers') or {}).get('Host'): headers['Host'] = host
                     out['transport'] = {"type": "ws", "path": ws.get('path', '/'), "headers": headers}
 
             elif ptype == 'trojan':
-                pw = proxy.get('password')
-                if not pw:
-                    print(f"⚠️ Skipping trojan without password: {tag}")
-                    return None
+                if not (pw := proxy.get('password')): return None
                 out.update({"password": pw})
-                # sni might be stored in different keys
                 sni = proxy.get('sni') or proxy.get('servername') or None
                 if proxy.get('tls') is not False:
                     out['tls'] = {"enabled": True, "server_name": sni}
 
             elif ptype == 'ss':
-                method = proxy.get('cipher') or proxy.get('method')
+                method = proxy.get('cipher')
                 pw = proxy.get('password')
-                if not method or not pw:
-                    print(f"⚠️ Skipping invalid ss: {tag}")
-                    return None
+                if not method or not pw: return None
                 out.update({"method": method, "password": pw})
-                # carry over obfs/plugin options if present (sing-box may need plugin config differently)
-                if proxy.get('plugin') == 'obfs' and proxy.get('plugin-opts'):
-                    # keep plugin info in a generic way; user can adapt if needed for sing-box specifics
-                    out['plugin'] = {'name': 'obfs', 'opts': proxy.get('plugin-opts')}
 
             elif ptype == 'hysteria2':
-                auth = proxy.get('auth') or proxy.get('password')
-                if not auth:
-                    print(f"⚠️ Skipping hysteria2 without auth: {tag}")
-                    return None
+                if not (auth := proxy.get('auth')): return None
                 out.update({"password": auth})
-                out['tls'] = {"enabled": bool(proxy.get('tls', True)), "server_name": proxy.get('sni') or proxy.get('server'), "insecure": bool(proxy.get('skip-cert-verify'))}
+                out['tls'] = {"enabled": True, "server_name": proxy.get('sni') or proxy.get('server'), "insecure": bool(proxy.get('skip-cert-verify'))}
 
             elif ptype == 'tuic':
                 uid = proxy.get('uuid')
-                pw = proxy.get('password') or proxy.get('auth')
-                if not uid or not uuid_re.match(uid) or not pw:
-                    print(f"⚠️ Skipping invalid tuic: {tag}")
-                    return None
+                pw = proxy.get('password')
+                if not uid or not uuid_re.match(uid) or not pw: return None
                 out.update({"uuid": uid, "password": pw})
                 out['tls'] = {"enabled": True, "server_name": proxy.get('sni') or proxy.get('server'), "insecure": bool(proxy.get('skip-cert-verify'))}
 
-            else:
-                return None
-
+            else: return None
             return out
         except Exception as e:
             print(f"❌ Error converting to Sing-box format for {proxy.get('name')}: {e}")
@@ -468,31 +383,31 @@ class V2RayExtractor:
 
     def extract_configs_from_text(self, text: str) -> Set[str]:
         found_configs = set()
-        potential_configs = set()
         for pattern in V2RAY_PATTERNS:
-            potential_configs.update(pattern.findall(text))
-        for config_url in potential_configs:
+            found_configs.update(pattern.findall(text))
+        
+        corrected_configs = set()
+        for config_url in found_configs:
             corrected_config = self._correct_config_type(config_url.strip())
             if corrected_config and self._validate_config_type(corrected_config):
-                found_configs.add(corrected_config)
-        return found_configs
+                corrected_configs.add(corrected_config)
+        return corrected_configs
 
     async def find_raw_configs_from_chat(self, chat_id: int, limit: int, retries: int = 3):
         try:
             print(f"🔍 Searching in chat {chat_id} (limit: {limit} messages)...")
             async for message in self.client.get_chat_history(chat_id, limit=limit):
-                text_to_check = message.text or message.caption
-                if not text_to_check: continue
+                if not (text_to_check := message.text or message.caption): continue
+                
                 texts_to_scan = [text_to_check]
-                potential_b64 = BASE64_PATTERN.findall(text_to_check)
-                for b64_str in potential_b64:
+                for b64_str in BASE64_PATTERN.findall(text_to_check):
                     try:
                         decoded_text = base64.b64decode(b64_str + '=' * (-len(b64_str) % 4)).decode('utf-8', errors='ignore')
                         texts_to_scan.append(decoded_text)
                     except Exception: continue
+                
                 for text in texts_to_scan:
-                    found_configs = self.extract_configs_from_text(text)
-                    self.raw_configs.update(found_configs)
+                    self.raw_configs.update(self.extract_configs_from_text(text))
         except FloodWait as e:
             if retries <= 0:
                 print(f"❌ Max retries reached for chat {chat_id}.")
@@ -521,9 +436,7 @@ class V2RayExtractor:
             try:
                 hostname = urlparse(url).hostname
                 if hostname and 'speedtest' in hostname.lower(): continue
-                if url.startswith('vless://'):
-                    query = parse_qs(urlparse(url).query)
-                    if query.get('security', ['none'])[0] == 'none': continue
+                if url.startswith('vless://') and parse_qs(urlparse(url).query).get('security', ['none'])[0] == 'none': continue
                 valid_configs.add(url)
             except Exception: pass
 
@@ -531,37 +444,36 @@ class V2RayExtractor:
         renamed_txt_configs = []
         config_counter = 1
         for url in sorted(list(valid_configs)):
-            proxy = self.parse_config_for_clash(url)
-            if proxy:
-                original_configs_to_save.append(url)
-                
-                # Get country flag and rename config
-                server_hostname = proxy.get('server', '')
-                flag = get_country_flag(server_hostname) if server_hostname else "🏳️"
-                
-                new_name = f"{flag} Config_jo-{config_counter:02d}"
-                proxy['name'] = new_name
-                
-                proxies_list_clash.append(proxy)
-                
-                # Create text config with new name
-                try:
-                    parsed_url = list(urlparse(url))
-                    parsed_url[5] = new_name  # [5] is the fragment component
-                    new_url = urlunparse(parsed_url)
-                    renamed_txt_configs.append(new_url)
-                except Exception:
-                    # Fallback for URLs that might have issues with parsing/unparsing
-                    base_url = url.split('#')[0]
-                    renamed_txt_configs.append(f"{base_url}#{new_name}")
-
-                config_counter += 1
-            else:
+            if not (proxy := self.parse_config_for_clash(url)):
                 parse_errors += 1
+                continue
 
-        if parse_errors > 0:
-            print(f"⚠️ {parse_errors} configs were ignored due to parsing errors.")
+            original_configs_to_save.append(url)
+            
+            # Intelligent Host Selection for GeoIP
+            server_address = proxy.get('server', '')
+            sni_address = proxy.get('servername')
+            host_to_check = server_address
+            if sni_address and sni_address != server_address:
+                try:
+                    socket.inet_aton(server_address)
+                    host_to_check = sni_address
+                except socket.error: pass
+            
+            flag = get_country_flag(host_to_check) if host_to_check else "🏳️"
+            new_name = f"{flag} Config_jo-{config_counter:02d}"
+            proxy['name'] = new_name
+            proxies_list_clash.append(proxy)
+            
+            try:
+                parsed_url = list(urlparse(url))
+                parsed_url[5] = new_name
+                renamed_txt_configs.append(urlunparse(parsed_url))
+            except Exception:
+                renamed_txt_configs.append(f"{url.split('#')[0]}#{new_name}")
+            config_counter += 1
 
+        if parse_errors > 0: print(f"⚠️ {parse_errors} configs were ignored due to parsing errors.")
         if not proxies_list_clash:
             print("⚠️ No valid configs found to build files.")
             for f in [OUTPUT_YAML_PRO, OUTPUT_TXT, OUTPUT_JSON_CONFIG_JO, OUTPUT_ORIGINAL_CONFIGS]: open(f, "w").close()
@@ -570,50 +482,39 @@ class V2RayExtractor:
         print(f"👍 {len(proxies_list_clash)} valid configs found for the final file.")
         all_proxy_names = [p['name'] for p in proxies_list_clash]
 
-        # Build and save Pro file
         try:
             os.makedirs('rules', exist_ok=True)
             pro_config = self.build_pro_config(proxies_list_clash, all_proxy_names)
             with open(OUTPUT_YAML_PRO, 'w', encoding='utf-8') as f:
                 yaml.dump(pro_config, f, allow_unicode=True, sort_keys=False, indent=2, width=1000)
             print(f"✅ Pro file {OUTPUT_YAML_PRO} created successfully.")
-        except Exception as e:
-            print(f"❌ Error creating pro file: {e}")
+        except Exception as e: print(f"❌ Error creating pro file: {e}")
 
-        # Build and save Sing-box file
         try:
             singbox_config = self.build_sing_box_config(proxies_list_clash)
             with open(OUTPUT_JSON_CONFIG_JO, 'w', encoding='utf-8') as f:
                 json.dump(singbox_config, f, ensure_ascii=False, indent=4)
             print(f"✅ Sing-box file {OUTPUT_JSON_CONFIG_JO} created successfully.")
-        except Exception as e:
-            print(f"❌ Error creating Sing-box file: {e}")
+        except Exception as e: print(f"❌ Error creating Sing-box file: {e}")
         
-        # Save text file with new names
         with open(OUTPUT_TXT, 'w', encoding='utf-8') as f:
             f.write("\n".join(sorted(renamed_txt_configs)))
         print(f"✅ Text file {OUTPUT_TXT} saved successfully.")
 
-        # Save original configs file
         with open(OUTPUT_ORIGINAL_CONFIGS, 'w', encoding='utf-8') as f:
             f.write("\n".join(sorted(original_configs_to_save)))
         print(f"✅ Original configs file {OUTPUT_ORIGINAL_CONFIGS} saved successfully.")
 
     def build_pro_config(self, proxies, proxy_names):
-        """Build professional config with advanced features"""
         return {
             'port': int(os.environ.get('CLASH_PORT', 7890)),
             'socks-port': int(os.environ.get('CLASH_SOCKS_PORT', 7891)),
             'allow-lan': os.environ.get('CLASH_ALLOW_LAN', 'true').lower() == 'true',
-            'mode': 'rule',
-            'log-level': 'info',
-            'external-controller': '127.0.0.1:9090',
+            'mode': 'rule', 'log-level': 'info', 'external-controller': '127.0.0.1:9090',
             'dns': {
-                'enable': True,
-                'listen': '0.0.0.0:53',
+                'enable': True, 'listen': '0.0.0.0:53',
                 'default-nameserver': ['8.8.8.8', '1.1.1.1'],
-                'enhanced-mode': 'fake-ip',
-                'fake-ip-range': '198.18.0.1/16',
+                'enhanced-mode': 'fake-ip', 'fake-ip-range': '198.18.0.1/16',
                 'fallback': ['https://dns.google/dns-query', 'https://cloudflare-dns.com/dns-query'],
                 'fallback-filter': {'geoip': True, 'ipcidr': ['240.0.0.0/4', '0.0.0.0/32']}
             },
@@ -630,93 +531,39 @@ class V2RayExtractor:
                 'ad_domains': {'type': 'http', 'behavior': 'domain', 'url': "https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/ad-domains.txt", 'path': './rules/ad_domains.txt', 'interval': 86400}
             },
             'rules': [
-                'RULE-SET,ad_domains,🛑 Block-Ads',
-                'RULE-SET,blocked_domains,PROXY',
-                'RULE-SET,iran_domains,🇮🇷 Iran',
-                'GEOIP,IR,🇮🇷 Iran',
-                'MATCH,PROXY'
+                'RULE-SET,ad_domains,🛑 Block-Ads', 'RULE-SET,blocked_domains,PROXY',
+                'RULE-SET,iran_domains,🇮🇷 Iran', 'GEOIP,IR,🇮🇷 Iran', 'MATCH,PROXY'
             ]
         }
 
     def build_sing_box_config(self, proxies_clash: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """Build a modern and complete config for Sing-box with DNS fix"""
-        outbounds = []
-        for proxy in proxies_clash:
-            sb_outbound = self.convert_to_singbox_outbound(proxy)
-            if sb_outbound:
-                outbounds.append(sb_outbound)
-
+        outbounds = [p for p in (self.convert_to_singbox_outbound(proxy) for proxy in proxies_clash) if p]
         proxy_tags = [p['tag'] for p in outbounds]
-        
         return {
-            "log": {
-                "level": "warn",
-                "timestamp": True
-            },
+            "log": {"level": "warn", "timestamp": True},
             "dns": {
                 "servers": [
-                    {
-                        "tag": "dns_proxy",
-                        "address": "https://dns.google/dns-query",
-                        "detour": "PROXY"
-                    },
-                    {
-                        "tag": "dns_direct",
-                        "address": "1.1.1.1" # Uses direct detour by default
-                    }
+                    {"tag": "dns_proxy", "address": "https://dns.google/dns-query", "detour": "PROXY"},
+                    {"tag": "dns_direct", "address": "1.1.1.1"}
                 ],
                 "rules": [
-                    # Important: Only traffic passing through the proxy should use the proxied DNS
-                    { "outbound": "PROXY", "server": "dns_proxy" },
-                    { "rule_set": ["geosite-ir", "geoip-ir"], "server": "dns_direct" },
-                    { "domain_suffix": ".ir", "server": "dns_direct" }
+                    {"outbound": "PROXY", "server": "dns_proxy"},
+                    {"rule_set": ["geosite-ir", "geoip-ir"], "server": "dns_direct"},
+                    {"domain_suffix": ".ir", "server": "dns_direct"}
                 ],
-                "final": "dns_direct", # Default to prevent deadlock
-                "strategy": "ipv4_only"
+                "final": "dns_direct", "strategy": "ipv4_only"
             },
-            "inbounds": [
-                {
-                    "type": "mixed",
-                    "listen": "0.0.0.0",
-                    "listen_port": 2080,
-                    "sniff": True
-                }
-            ],
+            "inbounds": [{"type": "mixed", "listen": "0.0.0.0", "listen_port": 2080, "sniff": True}],
             "outbounds": [
-                {"type": "direct", "tag": "direct"},
-                {"type": "block", "tag": "block"},
-                {"type": "dns", "tag": "dns-out"},
-                *outbounds,
-                {
-                    "type": "selector",
-                    "tag": "PROXY",
-                    "outbounds": ["auto", *proxy_tags],
-                    "default": "auto"
-                },
-                {
-                    "type": "urltest",
-                    "tag": "auto",
-                    "outbounds": proxy_tags,
-                    "url": "http://www.gstatic.com/generate_204",
-                    "interval": "5m"
-                }
+                {"type": "direct", "tag": "direct"}, {"type": "block", "tag": "block"},
+                {"type": "dns", "tag": "dns-out"}, *outbounds,
+                {"type": "selector", "tag": "PROXY", "outbounds": ["auto", *proxy_tags], "default": "auto"},
+                {"type": "urltest", "tag": "auto", "outbounds": proxy_tags, "url": "http://www.gstatic.com/generate_204", "interval": "5m"}
             ],
             "route": {
                 "rule_set": [
-                    {
-                        "tag": "geosite-ir",
-                        "type": "remote",
-                        "format": "binary",
-                        "url": "https://cdn.jsdelivr.net/gh/Chocolate4U/Iran-sing-box-rules@rule-set/geosite-ir.srs",
-                        "download_detour": "direct"
-                    },
-                    {
-                        "tag": "geoip-ir",
-                        "type": "remote",
-                        "format": "binary",
-                        "url": "https://cdn.jsdelivr.net/gh/Chocolate4U/Iran-sing-box-rules@rule-set/geoip-ir.srs",
-                        "download_detour": "direct"
-                    }
+                    {"tag": "geosite-ir", "type": "remote", "format": "binary", "url": "https://cdn.jsdelivr.net/gh/Chocolate4U/Iran-sing-box-rules@rule-set/geosite-ir.srs", "download_detour": "direct"},
+                    {"tag": "geoip-ir", "type": "remote", "format": "binary", "url": "https://cdn.jsdelivr.net/gh/Chocolate4U/Iran-sing-box-rules@rule-set/geoip-ir.srs", "download_detour": "direct"}
                 ],
                 "rules": [
                     {"protocol": "dns", "outbound": "dns-out"},
