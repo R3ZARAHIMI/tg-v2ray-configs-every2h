@@ -22,6 +22,12 @@ jobs:
         with:
           python-version: '3.10'
 
+      # --- گام جدید برای دانلود دیتابیس ---
+      - name: Download DB-IP Database
+        run: |
+          curl -L "https://download.db-ip.com/free/dbip-country-lite-latest.mmdb.gz" -o dbip-country-lite.mmdb.gz
+          gunzip -f dbip-country-lite.mmdb.gz
+
       - name: Install Python dependencies
         run: pip install -r requirements.txt
 
