@@ -22,9 +22,9 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Download GeoLite2 Database
+      - name: Download IP-to-Country Database
         run: |
-          curl -L "https://git.io/GeoLite2-Country.mmdb" -o dbip-country-lite.mmdb
+          curl -L "https://raw.githubusercontent.com/ipverse/ip-by-country/main/country-ipv4.csv" -o country-ipv4.csv
 
       - name: Install Python dependencies
         run: pip install -r requirements.txt
@@ -43,3 +43,4 @@ jobs:
         with:
           commit_message: "Update V2Ray configs (Clash, Sing-box & Raw)"
           file_pattern: "*.yaml *.txt *.json"
+
