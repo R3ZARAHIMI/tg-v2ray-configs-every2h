@@ -10,71 +10,50 @@ from pyrogram import Client
 from pyrogram.errors import FloodWait
 from typing import Optional, Dict, Any, Set, List
 import socket
-import csv
-import ipaddress
-import bisect
+import geoip2.database
 
 # =================================================================================
-# IP Geolocation Section (using CSV)
+# IP Geolocation Section (using GeoIP2)
 # =================================================================================
 
-IP_COUNTRY_DATA = []
-IP_COUNTRY_STARTS = []
+GEOIP_DATABASE_PATH = 'dbip-country-lite.mmdb'
+GEOIP_READER = None
 
-def load_ip_data(filepath='country-ipv4.csv'):
-    """Loads the IP country data from the CSV file into memory."""
-    global IP_COUNTRY_DATA, IP_COUNTRY_STARTS
-    print("Attempting to load IP database...")
+def load_ip_data():
+    """Loads the GeoIP database into a global reader."""
+    global GEOIP_READER
+    print("Attempting to load GeoIP database...")
     try:
-        with open(filepath, 'r', encoding='utf-8') as f:
-            reader = csv.reader(f)
-            for i, row in enumerate(reader):
-                try:
-                    # row is [start_int, end_int, country_code]
-                    start_ip = int(row[0])
-                    IP_COUNTRY_DATA.append((start_ip, int(row[1]), row[2]))
-                    IP_COUNTRY_STARTS.append(start_ip)
-                except (ValueError, IndexError):
-                    # print(f"⚠️ Skipping malformed row {i+1} in {filepath}: {row}")
-                    continue
-        if IP_COUNTRY_DATA:
-            print(f"✅ Successfully loaded {len(IP_COUNTRY_DATA)} IP ranges.")
-        else:
-             print(f"❌ IP data file '{filepath}' was read, but no valid data was found.")
+        GEOIP_READER = geoip2.database.Reader(GEOIP_DATABASE_PATH)
+        print(f"✅ Successfully loaded GeoIP database.")
     except FileNotFoundError:
-        print(f"❌ CRITICAL: IP data file not found at '{filepath}'. Flags will be disabled.")
+        print(f"❌ CRITICAL: GeoIP database not found at '{GEOIP_DATABASE_PATH}'. Flags will be disabled.")
     except Exception as e:
-        print(f"❌ CRITICAL: Failed to load IP data: {e}")
+        print(f"❌ CRITICAL: Failed to load GeoIP database: {e}")
 
 COUNTRY_FLAGS = {
     'AD': '🇦🇩', 'AE': '🇦🇪', 'AF': '🇦🇫', 'AG': '🇦🇬', 'AI': '🇦🇮', 'AL': '🇦🇱', 'AM': '🇦🇲', 'AO': '🇦🇴', 'AQ': '🇦🇶', 'AR': '🇦🇷', 'AS': '🇦🇸', 'AT': '🇦🇹', 'AU': '🇦🇺', 'AW': '🇦🇼', 'AX': '🇦🇽', 'AZ': '🇦🇿', 'BA': '🇧🇦', 'BB': '🇧🇧', 'BD': '🇧🇩', 'BE': '🇧🇪', 'BF': '🇧🇫', 'BG': '🇧🇬', 'BH': '🇧🇭', 'BI': '🇧🇮', 'BJ': '🇧🇯', 'BL': '🇧🇱', 'BM': '🇧🇲', 'BN': '🇧🇳', 'BO': '🇧🇴', 'BR': '🇧🇷', 'BS': '🇧🇸', 'BT': '🇧🇹', 'BW': '🇧🇼', 'BY': '🇧🇾', 'BZ': '🇧🇿', 'CA': '🇨🇦', 'CC': '🇨🇨', 'CD': '🇨🇩', 'CF': '🇨🇫', 'CG': '🇨🇬', 'CH': '🇨🇭', 'CI': '🇨🇮', 'CK': '🇨🇰', 'CL': '🇨🇱', 'CM': '🇨🇲', 'CN': '🇨🇳', 'CO': '🇨🇴', 'CR': '🇨🇷', 'CU': '🇨🇺', 'CV': '🇨🇻', 'CW': '🇨🇼', 'CX': '🇨🇽', 'CY': '🇨🇾', 'CZ': '🇨🇿', 'DE': '🇩🇪', 'DJ': '🇩🇯', 'DK': '🇩🇰', 'DM': '🇩🇲', 'DO': '🇩🇴', 'DZ': '🇩🇿', 'EC': '🇪🇨', 'EE': '🇪🇪', 'EG': '🇪🇬', 'EH': '🇪🇭', 'ER': '🇪🇷', 'ES': '🇪🇸', 'ET': '🇪🇹', 'FI': '🇫🇮', 'FJ': '🇫🇯', 'FK': '🇫🇰', 'FM': '🇫🇲', 'FO': '🇫🇴', 'FR': '🇫🇷', 'GA': '🇬🇦', 'GB': '🇬🇧', 'GD': '🇬🇩', 'GE': '🇬🇪', 'GF': '🇬🇫', 'GG': '🇬🇬', 'GH': '🇬🇭', 'GI': '🇬🇮', 'GL': '🇬🇱', 'GM': '🇬🇲', 'GN': '🇬🇳', 'GP': '🇬🇵', 'GQ': '🇬🇶', 'GR': '🇬🇷', 'GT': '🇬🇹', 'GU': '🇬🇺', 'GW': '🇬🇼', 'GY': '🇬🇾', 'HK': '🇭🇰', 'HN': '🇭🇳', 'HR': '🇭🇷', 'HT': '🇭🇹', 'HU': '🇭🇺', 'ID': '🇮🇩', 'IE': '🇮🇪', 'IL': '🇮🇱', 'IM': '🇮🇲', 'IN': '🇮🇳', 'IO': '🇮🇴', 'IQ': '🇮🇶', 'IR': '🇮🇷', 'IS': '🇮🇸', 'IT': '🇮🇹', 'JE': '🇯🇪', 'JM': '🇯🇲', 'JO': '🇯🇴', 'JP': '🇯🇵', 'KE': '🇰🇪', 'KG': '🇰🇬', 'KH': '🇰🇭', 'KI': '🇰🇮', 'KM': '🇰🇲', 'KN': '🇰🇳', 'KP': '🇰🇵', 'KR': '🇰🇷', 'KW': '🇰🇼', 'KY': '🇰🇾', 'KZ': '🇰🇿', 'LA': '🇱🇦', 'LB': '🇱🇧', 'LC': '🇱🇨', 'LI': '🇱🇮', 'LK': '🇱🇰', 'LR': '🇱🇷', 'LS': '🇱🇸', 'LT': '🇱🇹', 'LU': '🇱🇺', 'LV': '🇱🇻', 'LY': '🇱🇾', 'MA': '🇲🇦', 'MC': '🇲🇨', 'MD': '🇲🇩', 'ME': '🇲🇪', 'MF': '🇲🇫', 'MG': '🇲🇬', 'MH': '🇲🇭', 'MK': '🇲🇰', 'ML': '🇲🇱', 'MM': '🇲🇲', 'MN': '🇲🇳', 'MO': '🇲🇴', 'MP': '🇲🇵', 'MQ': '🇲🇶', 'MR': '🇲🇷', 'MS': '🇲🇸', 'MT': '🇲🇹', 'MU': '🇲🇺', 'MV': '🇲🇻', 'MW': '🇲🇼', 'MX': '🇲🇽', 'MY': '🇲🇾', 'MZ': '🇲🇿', 'NA': '🇳🇦', 'NC': '🇳🇨', 'NE': '🇳🇪', 'NF': '🇳🇫', 'NG': '🇳🇬', 'NI': '🇳🇮', 'NL': '🇳🇱', 'NO': '🇳🇴', 'NP': '🇳🇵', 'NR': '🇳🇷', 'NU': '🇳🇺', 'NZ': '🇳🇿', 'OM': '🇴🇲', 'PA': '🇵🇦', 'PE': '🇵🇪', 'PF': '🇵🇫', 'PG': '🇵🇬', 'PH': '🇵🇭', 'PK': '🇵🇰', 'PL': '🇵🇱', 'PM': '🇵🇲', 'PN': '🇵🇳', 'PR': '🇵🇷', 'PS': '🇵🇸', 'PT': '🇵🇹', 'PW': '🇵🇼', 'PY': '🇵🇾', 'QA': '🇶🇦', 'RE': '🇷🇪', 'RO': '🇷🇴', 'RS': '🇷🇸', 'RU': '🇷🇺', 'RW': '🇷🇼', 'SA': '🇸🇦', 'SB': '🇸🇧', 'SC': '🇸🇨', 'SD': '🇸🇩', 'SE': '🇸🇪', 'SG': '🇸🇬', 'SH': '🇸🇭', 'SI': '🇸🇮', 'SK': '🇸🇰', 'SL': '🇸🇱', 'SM': '🇸🇲', 'SN': '🇸🇳', 'SO': '🇸🇴', 'SR': '🇸🇷', 'SS': '🇸🇸', 'ST': '🇸🇹', 'SV': '🇸🇻', 'SX': '🇸🇽', 'SY': '🇸🇾', 'SZ': '🇸🇿', 'TC': '🇹🇨', 'TD': '🇹🇩', 'TG': '🇹🇬', 'TH': '🇹🇭', 'TJ': '🇹🇯', 'TK': '🇹🇰', 'TL': '🇹🇱', 'TM': '🇹🇲', 'TN': '🇹🇳', 'TO': '🇹🇴', 'TR': '🇹🇷', 'TT': '🇹🇹', 'TV': '🇹🇻', 'TW': '🇹🇼', 'TZ': '🇹🇿', 'UA': '🇺🇦', 'UG': '🇺🇬', 'US': '🇺🇸', 'UY': '🇺🇾', 'UZ': '🇺🇿', 'VA': '🇻🇦', 'VC': '🇻🇨', 'VE': '🇻🇪', 'VG': '🇻🇬', 'VI': '🇻🇮', 'VN': '🇻🇳', 'VU': '🇻🇺', 'WF': '🇼🇫', 'WS': '🇼🇸', 'YE': '🇾🇪', 'YT': '🇾🇹', 'ZA': '🇿🇦', 'ZM': '🇿🇲', 'ZW': '🇿🇼'
 }
 
 def get_country_flag(hostname: str) -> str:
-    """Gets the country flag emoji for a given hostname using binary search on the loaded IP data."""
-    if not IP_COUNTRY_DATA:
+    """Gets the country flag emoji for a given hostname using the loaded GeoIP database."""
+    if not GEOIP_READER:
         return "🏳️"
     try:
-        ip_addr_str = hostname
+        ip_address = hostname
         try:
-            ipaddress.ip_address(hostname)
-        except ValueError:
-            ip_addr_str = socket.gethostbyname(hostname)
+            socket.inet_aton(hostname)
+        except socket.error:
+            ip_address = socket.gethostbyname(hostname)
         
-        ip_int = int(ipaddress.ip_address(ip_addr_str))
-        
-        index = bisect.bisect_right(IP_COUNTRY_STARTS, ip_int)
-        if index > 0:
-            start_ip, end_ip, country_code = IP_COUNTRY_DATA[index - 1]
-            if start_ip <= ip_int <= end_ip:
-                return COUNTRY_FLAGS.get(country_code, "🏳️")
-        
-        return "🏳️"
-    except socket.gaierror:
-        # print(f"⚠️ DNS resolution failed for: {hostname}")
+        response = GEOIP_READER.country(ip_address)
+        country_code = response.country.iso_code
+        return COUNTRY_FLAGS.get(country_code, "🏳️")
+    except (geoip2.errors.AddressNotFoundError, socket.gaierror):
+        # print(f"⚠️ Could not find country for: {hostname}")
         return "🏳️"
     except Exception:
-        # print(f"⚠️ Could not process hostname: {hostname}")
+        # print(f"⚠️ An unexpected error occurred for: {hostname}")
         return "🏳️"
 
 # =================================================================================
