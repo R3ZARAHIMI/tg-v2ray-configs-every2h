@@ -309,7 +309,25 @@ class V2RayExtractor:
             for f in [OUTPUT_YAML_PRO, OUTPUT_TXT, OUTPUT_JSON_CONFIG_JO, OUTPUT_ORIGINAL_CONFIGS]: open(f, "w").close()
             return
 
-        valid_configs = {url for url in self.raw_configs if not (h := urlparse(url).hostname and 'speedtest' in h.lower()) and not (url.startswith('vless://') and parse_qs(urlparse(url).query).get('security', [''])[0] == 'none')}
+        # --- START: CORRECTED LOGIC ---
+        valid_configs = set()
+        for url in self.raw_configs:
+            try:
+                hostname = urlparse(url).hostname
+                # Filter out speedtest links
+                if hostname and 'speedtest' in hostname.lower():
+                    continue
+                # Filter out insecure vless links (vless without tls/reality)
+                if url.startswith('vless://'):
+                    query = parse_qs(urlparse(url).query)
+                    if query.get('security', [''])[0] == 'none':
+                        continue
+                valid_configs.add(url)
+            except Exception:
+                # Silently ignore configs that might cause parsing errors
+                continue
+        # --- END: CORRECTED LOGIC ---
+
         print(f"⚙️ Processing {len(valid_configs)} valid configs from {len(self.raw_configs)} raw configs...")
         
         proxies_list_clash, original_configs_to_save, renamed_txt_configs = [], [], []
