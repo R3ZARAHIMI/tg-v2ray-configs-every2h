@@ -9,17 +9,35 @@ from urllib.parse import urlparse, parse_qs, unquote, urlunparse
 from pyrogram import Client
 from pyrogram.errors import FloodWait
 from typing import Optional, Dict, Any, Set, List
-import geoip2.database
 import socket
+import csv
+import ipaddress
+import bisect
 
 # =================================================================================
-# GeoIP and Flag Section
+# IP Geolocation Section (using CSV)
 # =================================================================================
 
-# Path to the GeoIP database
-GEOIP_DATABASE = 'dbip-country-lite.mmdb'
+IP_COUNTRY_DATA = []
+IP_COUNTRY_STARTS = []
 
-# Dictionary to map country codes to flag emojis
+def load_ip_data(filepath='country-ipv4.csv'):
+    """Loads the IP country data from the CSV file into memory."""
+    global IP_COUNTRY_DATA, IP_COUNTRY_STARTS
+    try:
+        with open(filepath, 'r', encoding='utf-8') as f:
+            reader = csv.reader(f)
+            for row in reader:
+                # row is [start_int, end_int, country_code]
+                start_ip = int(row[0])
+                IP_COUNTRY_DATA.append((start_ip, int(row[1]), row[2]))
+                IP_COUNTRY_STARTS.append(start_ip)
+        print(f"✅ Successfully loaded {len(IP_COUNTRY_DATA)} IP ranges.")
+    except FileNotFoundError:
+        print(f"❌ IP data file not found at '{filepath}'. Flags will be disabled.")
+    except Exception as e:
+        print(f"❌ Failed to load IP data: {e}")
+
 COUNTRY_FLAGS = {
     'AD': '🇦🇩', 'AE': '🇦🇪', 'AF': '🇦🇫', 'AG': '🇦🇬', 'AI': '🇦🇮', 'AL': '🇦🇱', 'AM': '🇦🇲', 'AO': '🇦🇴', 'AQ': '🇦🇶', 'AR': '🇦🇷',
     'AS': '🇦🇸', 'AT': '🇦🇹', 'AU': '🇦🇺', 'AW': '🇦🇼', 'AX': '🇦🇽', 'AZ': '🇦🇿', 'BA': '🇧🇦', 'BB': '🇧🇧', 'BD': '🇧🇩', 'BE': '🇧🇪',
@@ -48,22 +66,29 @@ COUNTRY_FLAGS = {
     'ZM': '🇿🇲', 'ZW': '🇿🇼',
 }
 
-def get_country_flag(hostname):
-    """Gets the country flag emoji for a given hostname or IP address."""
+def get_country_flag(hostname: str) -> str:
+    """Gets the country flag emoji for a given hostname using binary search on the loaded IP data."""
+    if not IP_COUNTRY_DATA:
+        return "🏳️"
     try:
-        with geoip2.database.Reader(GEOIP_DATABASE) as reader:
-            ip_address = hostname
-            try:
-                # Check if it's an IP address, if not, resolve it
-                socket.inet_aton(hostname)
-            except socket.error:
-                ip_address = socket.gethostbyname(hostname)
-
-            response = reader.country(ip_address)
-            country_code = response.country.iso_code
-            return COUNTRY_FLAGS.get(country_code, "🏳️") # Default flag
+        ip_addr_str = hostname
+        try:
+            ipaddress.ip_address(hostname)
+        except ValueError:
+            ip_addr_str = socket.gethostbyname(hostname)
+        
+        ip_int = int(ipaddress.ip_address(ip_addr_str))
+        
+        # Find the insertion point for the IP address in the sorted list of start IPs
+        index = bisect.bisect_right(IP_COUNTRY_STARTS, ip_int)
+        if index > 0:
+            start_ip, end_ip, country_code = IP_COUNTRY_DATA[index - 1]
+            if start_ip <= ip_int <= end_ip:
+                return COUNTRY_FLAGS.get(country_code, "🏳️")
+        
+        return "🏳️"
     except Exception:
-        return "🏳️" # Return a default flag on error
+        return "🏳️"
 
 # =================================================================================
 # Settings and Constants Section
@@ -577,6 +602,7 @@ class V2RayExtractor:
 
 async def main():
     print("🚀 Starting config extractor...")
+    load_ip_data() # Load IP data at the beginning
     extractor = V2RayExtractor()
     async with extractor.client:
         tasks = [extractor.find_raw_configs_from_chat(channel, CHANNEL_SEARCH_LIMIT) for channel in CHANNELS]
