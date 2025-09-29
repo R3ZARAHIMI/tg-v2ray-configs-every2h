@@ -22,11 +22,11 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Download IP-to-Country Database
+      - name: Download GeoIP Database
         run: |
-          curl -L "https://raw.githubusercontent.com/ipverse/ip-by-country/main/country-ipv4.csv" -o country-ipv4.csv
-          if [ ! -s country-ipv4.csv ]; then
-            echo "::error::Downloaded country-ipv4.csv is empty or download failed!"
+          curl -L "https://git.io/GeoLite2-Country.mmdb" -o dbip-country-lite.mmdb
+          if [ ! -s dbip-country-lite.mmdb ]; then
+            echo "::error::Downloaded dbip-country-lite.mmdb is empty or download failed!"
             exit 1
           fi
           echo "✅ Database file downloaded successfully."
