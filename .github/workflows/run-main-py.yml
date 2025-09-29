@@ -2,8 +2,8 @@ name: Extract VPN Configs (User Client)
 
 on:
   schedule:
-    # اجرا هر ۲ ساعت یک بار، به جز بین ساعت ۱ تا ۸ صبح به وقت ایران
-    - cron: '0 6-20/2 * * *'
+    # اجرا هر ۲ ساعت یک بار
+    - cron: '0 */2 * * *'
   
   workflow_dispatch: # اجازه اجرای دستی
 
@@ -25,6 +25,11 @@ jobs:
       - name: Download IP-to-Country Database
         run: |
           curl -L "https://raw.githubusercontent.com/ipverse/ip-by-country/main/country-ipv4.csv" -o country-ipv4.csv
+          if [ ! -s country-ipv4.csv ]; then
+            echo "::error::Downloaded country-ipv4.csv is empty or download failed!"
+            exit 1
+          fi
+          echo "✅ Database file downloaded successfully."
 
       - name: Install Python dependencies
         run: pip install -r requirements.txt
