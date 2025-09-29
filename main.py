@@ -27,12 +27,19 @@ def load_ip_data(filepath='country-ipv4.csv'):
     try:
         with open(filepath, 'r', encoding='utf-8') as f:
             reader = csv.reader(f)
-            for row in reader:
-                # row is [start_int, end_int, country_code]
-                start_ip = int(row[0])
-                IP_COUNTRY_DATA.append((start_ip, int(row[1]), row[2]))
-                IP_COUNTRY_STARTS.append(start_ip)
-        print(f"✅ Successfully loaded {len(IP_COUNTRY_DATA)} IP ranges.")
+            for i, row in enumerate(reader):
+                try:
+                    # row is [start_int, end_int, country_code]
+                    start_ip = int(row[0])
+                    IP_COUNTRY_DATA.append((start_ip, int(row[1]), row[2]))
+                    IP_COUNTRY_STARTS.append(start_ip)
+                except (ValueError, IndexError):
+                    print(f"⚠️ Skipping malformed row {i+1} in {filepath}: {row}")
+                    continue
+        if IP_COUNTRY_DATA:
+            print(f"✅ Successfully loaded {len(IP_COUNTRY_DATA)} IP ranges.")
+        else:
+             print(f"❌ IP data file '{filepath}' was read, but no valid data was found.")
     except FileNotFoundError:
         print(f"❌ IP data file not found at '{filepath}'. Flags will be disabled.")
     except Exception as e:
