@@ -344,7 +344,8 @@ class V2RayExtractor:
         try:
             os.makedirs('rules', exist_ok=True)
             pro_config = self.build_pro_config(proxies_list_clash, all_proxy_names)
-            with open(OUTPUT_YAML_PRO, 'w', encoding='utf-8') as f: yaml.dump(pro_config, f, allow_unicode=True, sort_keys=False, indent=2, width=1000)
+            with open(OUTPUT_YAML_PRO, 'w', encoding='utf-8') as f:
+                yaml.dump(pro_config, f, allow_unicode=True, sort_keys=False, indent=2, width=120)
             print(f"✅ Pro file {OUTPUT_YAML_PRO} created.")
         except Exception as e: print(f"❌ Error creating pro file: {e}")
 
@@ -360,7 +361,50 @@ class V2RayExtractor:
         print(f"✅ Original configs file {OUTPUT_ORIGINAL_CONFIGS} saved.")
 
     def build_pro_config(self, proxies, proxy_names):
-        return {'port': 7890, 'socks-port': 7891, 'allow-lan': True, 'mode': 'rule', 'log-level': 'info', 'external-controller': '127.0.0.1:9090', 'dns': {'enable': True, 'listen': '0.0.0.0:53', 'default-nameserver': ['8.8.8.8', '1.1.1.1'], 'enhanced-mode': 'fake-ip', 'fake-ip-range': '198.18.0.1/16', 'fallback': ['https://dns.google/dns-query', 'https://cloudflare-dns.com/dns-query'], 'fallback-filter': {'geoip': True, 'ipcidr': ['240.0.0.0/4', '0.0.0.0/32']}}, 'proxies': proxies, 'proxy-groups': [{'name': 'PROXY', 'type': 'select', 'proxies': ['⚡ Auto-Select', 'DIRECT', *proxy_names]}, {'name': '⚡ Auto-Select', 'type': 'url-test', 'proxies': proxy_names, 'url': 'http://www.gstatic.com/generate_204', 'interval': 300}, {'name': '🇮🇷 Iran', 'type': 'select', 'proxies': ['DIRECT', 'PROXY']}, {'name': '🛑 Block-Ads', 'type': 'select', 'proxies': ['REJECT', 'DIRECT']}], 'rule-providers': {'iran_domains': {'type': 'http', 'behavior': 'domain', 'url': "https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/iran-domains.txt", 'path': './rules/iran_domains.txt', 'interval': 86400}, 'blocked_domains': {'type': 'http', 'behavior': 'domain', 'url': "https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/blocked-domains.txt", 'path': './rules/blocked_domains.txt', 'interval': 86400}, 'ad_domains': {'type': 'http', 'behavior': 'domain', 'url': "https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/ad-domains.txt", 'path': './rules/ad_domains.txt', 'interval': 86400}}, 'rules': ['RULE-SET,ad_domains,🛑 Block-Ads', 'RULE-SET,blocked_domains,PROXY', 'RULE-SET,iran_domains,🇮🇷 Iran', 'GEOIP,IR,🇮🇷 Iran', 'MATCH,PROXY']}
+        return {
+            'port': 7890,
+            'socks-port': 7891,
+            'allow-lan': True,
+            'mode': 'rule',
+            'log-level': 'info',
+            'external-controller': '127.0.0.1:9090',
+            'dns': {
+                'enable': True,
+                'listen': '0.0.0.0:53',
+                'default-nameserver': ['8.8.8.8', '1.1.1.1'],
+                'enhanced-mode': 'fake-ip',
+                'fake-ip-range': '198.18.0.1/16',
+                'fallback': ['https://dns.google/dns-query', 'https://cloudflare-dns.com/dns-query'],
+                'fallback-filter': {
+                    'geoip': True,
+                    'ipcidr': [
+                        '240.0.0.0/4',
+                        '0.0.0.0/32',
+                        '178.22.122.100/32', # Shecan DNS
+                        '185.51.200.2/32'     # Shecan DNS
+                    ]
+                }
+            },
+            'proxies': proxies,
+            'proxy-groups': [
+                {'name': 'PROXY', 'type': 'select', 'proxies': ['⚡ Auto-Select', 'DIRECT', *proxy_names]},
+                {'name': '⚡ Auto-Select', 'type': 'url-test', 'proxies': proxy_names, 'url': 'http://www.gstatic.com/generate_204', 'interval': 300},
+                {'name': '🇮🇷 Iran', 'type': 'select', 'proxies': ['DIRECT', 'PROXY']},
+                {'name': '🛑 Block-Ads', 'type': 'select', 'proxies': ['REJECT', 'DIRECT']}
+            ],
+            'rule-providers': {
+                'iran_domains': {'type': 'http', 'behavior': 'domain', 'url': "https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/iran-domains.txt", 'path': './rules/iran_domains.txt', 'interval': 86400},
+                'blocked_domains': {'type': 'http', 'behavior': 'domain', 'url': "https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/blocked-domains.txt", 'path': './rules/blocked_domains.txt', 'interval': 86400},
+                'ad_domains': {'type': 'http', 'behavior': 'domain', 'url': "https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/ad-domains.txt", 'path': './rules/ad_domains.txt', 'interval': 86400}
+            },
+            'rules': [
+                'RULE-SET,ad_domains,🛑 Block-Ads',
+                'RULE-SET,blocked_domains,PROXY',
+                'RULE-SET,iran_domains,🇮🇷 Iran',
+                'GEOIP,IR,🇮🇷 Iran',
+                'MATCH,PROXY'
+            ]
+        }
 
     def build_sing_box_config(self, proxies_clash: List[Dict[str, Any]]) -> Dict[str, Any]:
         outbounds = [p for p in (self.convert_to_singbox_outbound(proxy) for proxy in proxies_clash) if p]
