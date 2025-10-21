@@ -23,35 +23,132 @@ dns:
     - 178.22.122.100/32
     - 185.51.200.2/32
 proxies:
-- name: AE Config_jo-01
+- name: LT Config_jo-01
+  type: ss
+  server: 45.87.175.154
+  port: 8080
+  cipher: chacha20-ietf-poly1305
+  password: 4a2rfixophdjffa8KVA4Aa
+  udp: true
+- name: AE Config_jo-02
   type: ss
   server: 78.40.198.60
   port: 47346
   cipher: chacha20-ietf-poly1305
   password: 67szB9204bjydiyQEaChON
   udp: true
-- name: GB Config_jo-02
+- name: SG Config_jo-03
+  type: ss
+  server: 112.199.240.56
+  port: 8899
+  cipher: chacha20-ietf-poly1305
+  password: '03241'
+  udp: true
+- name: FI Config_jo-04
+  type: ss
+  server: 185.193.102.7
+  port: 57456
+  cipher: chacha20-ietf-poly1305
+  password: 360e21d21977dc11
+  udp: true
+- name: IQ Config_jo-05
+  type: ss
+  server: 81.90.31.219
+  port: 443
+  cipher: chacha20-ietf-poly1305
+  password: zG32bkjj3cehXt2B8eijbV
+  udp: true
+- name: ES Config_jo-06
+  type: ss
+  server: 194.87.45.189
+  port: 443
+  cipher: chacha20-ietf-poly1305
+  password: AnxMfj2oL2RaZTQVfVd5EY
+  udp: true
+- name: LT Config_jo-07
+  type: ss
+  server: 45.158.171.146
+  port: 8080
+  cipher: chacha20-ietf-poly1305
+  password: QCXDxuDlTTMD7jtgHUjIoj
+  udp: true
+- name: GB Config_jo-08
   type: ss
   server: azjnac1.uksouth.cloudapp.azure.com
   port: 443
   cipher: chacha20-ietf-poly1305
   password: b2EJuconC460KllN
   udp: true
-- name: DE Config_jo-03
+- name: DE Config_jo-09
   type: ss
   server: 212.224.125.154
   port: 57456
   cipher: chacha20-ietf-poly1305
   password: c40641c1f89e7acb
   udp: true
-- name: US Config_jo-04
+- name: DE Config_jo-10
+  type: ss
+  server: 212.224.125.154
+  port: 57456
+  cipher: chacha20-ietf-poly1305
+  password: c40641c1f89e7acb
+  udp: true
+- name: LT Config_jo-11
+  type: ss
+  server: 45.87.175.166
+  port: 8080
+  cipher: chacha20-ietf-poly1305
+  password: cvII85TrW6n0OGyfpHVS1u
+  udp: true
+- name: NL Config_jo-12
+  type: ss
+  server: 193.29.139.235
+  port: 8080
+  cipher: chacha20-ietf-poly1305
+  password: oZIoA69Q8yhcQV8ka3Pa3A
+  udp: true
+- name: US Config_jo-13
   type: ss
   server: 71.19.148.143
   port: 443
   cipher: chacha20-ietf-poly1305
   password: p78naCf2EfOlRSLTX0wFVx
   udp: true
-- name: US Config_jo-05
+- name: PL Config_jo-14
+  type: ss
+  server: 77.83.246.74
+  port: 443
+  cipher: chacha20-ietf-poly1305
+  password: rPXoikINbSFDBeDx5BzKi7
+  udp: true
+- name: N/A Config_jo-15
+  type: vless
+  server: 162.159.152.155
+  port: 443
+  uuid: 0667820d-f8a9-4652-a3b9-efadc06af433
+  udp: true
+  tls: true
+  network: ws
+  servername: sni.aizrf.com
+  ws-opts:
+    path: /snippets/ip=tp50000.kr.proxyip.fgfw.eu.org:50000
+    headers:
+      Host: sni.aizrf.com
+  reality-opts: null
+- name: US Config_jo-16
+  type: vless
+  server: 91.98.87.4
+  port: 443
+  uuid: 0c0b6d4a-0811-460f-d4b0-dd982a911240
+  udp: true
+  tls: true
+  network: tcp
+  servername: store.steampowered.com
+  ws-opts: null
+  reality-opts:
+    public-key: zW8LR-lHS_PXDyY8Q8bE_zvKdhY5MAmnsd8miBulx2U
+    short-id: ''
+- name: US Config_jo-17
   type: vless
   server: 91.99.181.225
   port: 443
@@ -64,7 +161,7 @@ proxies:
   reality-opts:
     public-key: zW8LR-lHS_PXDyY8Q8bE_zvKdhY5MAmnsd8miBulx2U
     short-id: ''
-- name: N/A Config_jo-06
+- name: N/A Config_jo-18
   type: vless
   server: ipw.gfdv54cvghhgfhgj-njhgj64.info
   port: 443
@@ -78,7 +175,74 @@ proxies:
     headers:
       Host: smart.confappha.com
   reality-opts: null
-- name: FR Config_jo-07
+- name: N/A Config_jo-19
+  type: vless
+  server: 172.67.175.106
+  port: 443
+  uuid: 16d7a04d-e6f4-479f-8914-80d3817317f9
+  udp: true
+  tls: true
+  network: ws
+  servername: ed19-dc7.pages.dev
+  ws-opts:
+    path: /?Join---i10VPN---Join---i10VPN---Join---i10VPN---Join---i10VPN?ed=512
+    headers:
+      Host: ed19-dc7.pages.dev
+  reality-opts: null
+- name: RU Config_jo-20
+  type: vless
+  server: 212.41.11.152
+  port: 443
+  uuid: 1a6fe500-59da-4598-8576-256f06765ffb
+  udp: true
+  tls: true
+  network: tcp
+  servername: ru.sfasti.ru
+  ws-opts: null
+  reality-opts:
+    public-key: J_jQq9-SWQZjiMhuPaFV7V2MaJ4pkKgVRaz7x6tmvy8
+    short-id: 16895459a2c7768d
+- name: RU Config_jo-21
+  type: vless
+  server: 94.26.228.10
+  port: 443
+  uuid: 1a6fe500-59da-4598-8576-256f06765ffb
+  udp: true
+  tls: true
+  network: tcp
+  servername: ru.sfasti.ru
+  ws-opts: null
+  reality-opts:
+    public-key: J_jQq9-SWQZjiMhuPaFV7V2MaJ4pkKgVRaz7x6tmvy8
+    short-id: 16895459a2c7768d
+- name: N/A Config_jo-22
+  type: vless
+  server: 46.62.128.241
+  port: 8443
+  uuid: 23dacc40-9cc0-4eae-975e-6ddc0b0d924e
+  udp: true
+  tls: true
+  network: tcp
+  servername: refersion.com
+  ws-opts: null
+  reality-opts:
+    public-key: r3FLw76bxhgit74mzJTglRM-ujPZ9f-HemByQ-uZqms
+    short-id: 27e6b66aa77662fb
+- name: N/A Config_jo-23
+  type: vless
+  server: 172.66.45.9
+  port: 443
+  uuid: 321cc007-bb85-41c9-b686-1f45cf5174e0
+  udp: true
+  tls: true
+  network: ws
+  servername: MiSTliNK-CL9.pAgEs.Dev
+  ws-opts:
+    path: /-tik7net_vpn-tik7net_vpn-tik7net_vpn-tik7net_vpn-tik7net_vpn-tik7net_vpn-tik7net_vpn-tik7net_vpn-tik7net_vpn-tik7net_vpn-tik7net_vpn-tik7net_vpn-tik7net_vpn-tik7net_vpn-tik7net_vpn-tik7net_vpn-tik7net_vpn-tik7net_vpn-tik7net_vpn-tik7net_vpn-tik7net_vpn-tik7net_vpn-tik7net_vpn-tik7net_vpn-tik7net_vpn-tik7net_vpn-tik7net_vpn-tik7net_vpn-tik7net_vpn-tik7net_vpn-tik7net_vpn-tik7net_vpn-tik7net_vpn-tik7net_vpn-tik7net_vpn-tik7net_vpn-tik7net_vpn-tik7net_vpn-tik7net_vpn-tik7net_vpn-tik7net_vpn-tik7net_vpn-
+    headers:
+      Host: MiSTliNK-CL9.pAgEs.Dev
+  reality-opts: null
+- name: FR Config_jo-24
   type: vless
   server: 104.21.36.57
   port: 443
@@ -92,7 +256,32 @@ proxies:
     headers:
       Host: banana.fullmargintraders.com
   reality-opts: null
-- name: N/A Config_jo-08
+- name: N/A Config_jo-25
+  type: vless
+  server: 172.66.47.15
+  port: 443
+  uuid: 5c0675d6-eaf5-416d-96f9-508e72847fa2
+  udp: true
+  tls: true
+  network: ws
+  servername: baraye-iran-mahsang.arossak.dpdns.org
+  ws-opts:
+    path: /BarayeIRan?ed
+    headers:
+      Host: baraye-iran-mahsang.arossak.dpdns.org
+  reality-opts: null
+- name: N/A Config_jo-26
+  type: vless
+  server: 104.21.62.144
+  port: 443
+  uuid: 62793d13-24bc-4a0b-9b35-f565ed659773
+  udp: true
+  tls: true
+  network: xhttp
+  servername: sauron.melkore.ir
+  ws-opts: null
+  reality-opts: null
+- name: N/A Config_jo-27
   type: vless
   server: 5.75.198.232
   port: 443
@@ -106,7 +295,7 @@ proxies:
     headers:
       Host: free-pubg-697.pages.dev
   reality-opts: null
-- name: N/A Config_jo-09
+- name: N/A Config_jo-28
   type: vless
   server: nodejs.org
   port: 443
@@ -120,7 +309,882 @@ proxies:
     headers:
       Host: revcloud.migacpi.org
   reality-opts: null
-- name: PL Config_jo-10
+- name: US Config_jo-29
+  type: vless
+  server: 193.46.81.151
+  port: 49330
+  uuid: 7f5c3ff3-c113-4379-812b-c5733f47d4e1
+  udp: true
+  tls: true
+  network: tcp
+  servername: miro.com
+  ws-opts: null
+  reality-opts:
+    public-key: Dee9YE139lZpb4V3QytB8DvHY3nTCnEXzk2IjvMLHi8
+    short-id: b3
+- name: US Config_jo-30
+  type: vless
+  server: cze01-vlr01.tcp-reset-club.net
+  port: 443
+  uuid: 80074d6b-23c5-465e-a348-dcf0378fd1f2
+  udp: true
+  tls: true
+  network: tcp
+  servername: hls-svod.itunes.apple.com
+  ws-opts: null
+  reality-opts:
+    public-key: mLmBhbVFfNuo2eUgBh6r9-5Koz9mUCn3aSzlR6IejUg
+    short-id: f79448a30d
+- name: US Config_jo-31
+  type: vless
+  server: 173.208.51.197
+  port: 51116
+  uuid: TELEGRAM-CONFiGLiNE
+  udp: true
+  tls: true
+  network: tcp
+  servername: google.com
+  ws-opts: null
+  reality-opts:
+    public-key: hS4N_uoP21yCKMO0s-yU1stZFH7yd8rzLlP5GP0N1As
+    short-id: d1d78ef5068d22
+- name: VN Config_jo-32
+  type: vless
+  server: 103.9.77.61
+  port: 46922
+  uuid: ac2474ac-6716-458a-a301-bce29698186a
+  udp: true
+  tls: true
+  network: tcp
+  servername: vinahost.vn
+  ws-opts: null
+  reality-opts:
+    public-key: Mxg3aGXzUTgR2rA-DtugBRm-4RBVLlSNWNMRKALZBDo
+    short-id: 9ed1d241f0
+- name: MD Config_jo-33
+  type: vless
+  server: 185.234.66.82
+  port: 443
+  uuid: b5e8bfe7-6cdb-402d-b243-1e0f53ebb582
+  udp: true
+  tls: true
+  network: ws
+  servername: null
+  ws-opts:
+    path: /jzmdpvws?ed=2048HiByeVPNNbot--HiByeVPNNbot--HiByeVPNNbot--HiByeVPNNbot--HiByeVPNNbot--HiByeVPNNbot--HiByeVPNNbot--HiByeVPNNbot--HiByeVPNNbot--HiByeVPNNbot--HiByeVPNNbot--HiByeVPNNbot--HiByeVPNNbot
+    headers:
+      Host: 185.234.66.82
+  reality-opts: null
+- name: N/A Config_jo-34
+  type: vless
+  server: 104.21.62.144
+  port: 443
+  uuid: b75b4a49-0506-4159-b2ec-3e2a5e9406de
+  udp: true
+  tls: true
+  network: xhttp
+  servername: sauron.melkore.ir
+  ws-opts: null
+  reality-opts: null
+- name: US Config_jo-35
+  type: vless
+  server: 164.92.188.15
+  port: 9696
+  uuid: bcc560e0-173b-4c49-a4ce-742c3fae0028
+  udp: true
+  tls: true
+  network: tcp
+  servername: icloud.cdn-apple.com
+  ws-opts: null
+  reality-opts:
+    public-key: Y_GsfLRoTP6SXIyYQjrn8TM_nce7Y9RIoEfWTJ35sGI
+    short-id: ''
+- name: US Config_jo-36
+  type: vless
+  server: 91.98.86.54
+  port: 9954
+  uuid: c2ec47f4-873f-573f-7d8d-d79d7ad452e6
+  udp: true
+  tls: true
+  network: tcp
+  servername: store.steampowered.com
+  ws-opts: null
+  reality-opts:
+    public-key: YWfCdTnr4FAOMYTY2dLrMtQUokyxOGpPhYEEszPj20E
+    short-id: ''
+- name: N/A Config_jo-37
+  type: vless
+  server: 104.21.62.144
+  port: 443
+  uuid: c6c34ffc-6e55-4b98-8da9-48565ce3b89e
+  udp: true
+  tls: true
+  network: xhttp
+  servername: sauron.melkore.ir
+  ws-opts: null
+  reality-opts: null
+- name: N/A Config_jo-38
+  type: vless
+  server: 141.101.120.100
+  port: 2053
+  uuid: d342d11e-d424-4583-b36e-524ab1f0afa4
+  udp: true
+  tls: true
+  network: ws
+  servername: 1749734195126.wk.by.ktff.ssl.com.kokk.cn.aliyun.cdnktff.pp.ua
+  ws-opts:
+    path: /telegram@ShadowProxy66/?ed
+    headers:
+      Host: 1749734195126.wk.by.ktff.ssl.com.kokk.cn.aliyun.cdnktff.pp.ua
+  reality-opts: null
+- name: RU Config_jo-39
+  type: vless
+  server: 188.225.81.91
+  port: 443
+  uuid: d4e4c02a-d969-47a6-ba0f-3d433fdac206
+  udp: true
+  tls: true
+  network: tcp
+  servername: wa.sfasti.ru
+  ws-opts: null
+  reality-opts:
+    public-key: J_jQq9-SWQZjiMhuPaFV7V2MaJ4pkKgVRaz7x6tmvy8
+    short-id: 16895459a2c7768d
+- name: RU Config_jo-40
+  type: vless
+  server: 80.249.131.7
+  port: 443
+  uuid: d4e4c02a-d969-47a6-ba0f-3d433fdac206
+  udp: true
+  tls: true
+  network: tcp
+  servername: wa.sfasti.ru
+  ws-opts: null
+  reality-opts:
+    public-key: J_jQq9-SWQZjiMhuPaFV7V2MaJ4pkKgVRaz7x6tmvy8
+    short-id: 16895459a2c7768d
+- name: RU Config_jo-41
+  type: vless
+  server: 94.26.228.68
+  port: 443
+  uuid: d4e4c02a-d969-47a6-ba0f-3d433fdac206
+  udp: true
+  tls: true
+  network: tcp
+  servername: wa.sfasti.ru
+  ws-opts: null
+  reality-opts:
+    public-key: J_jQq9-SWQZjiMhuPaFV7V2MaJ4pkKgVRaz7x6tmvy8
+    short-id: 16895459a2c7768d
+- name: RU Config_jo-42
+  type: vless
+  server: wa.sfasti.ru
+  port: 443
+  uuid: d4e4c02a-d969-47a6-ba0f-3d433fdac206
+  udp: true
+  tls: true
+  network: tcp
+  servername: wa.sfasti.ru
+  ws-opts: null
+  reality-opts:
+    public-key: J_jQq9-SWQZjiMhuPaFV7V2MaJ4pkKgVRaz7x6tmvy8
+    short-id: 16895459a2c7768d
+- name: N/A Config_jo-43
+  type: vless
+  server: 104.21.62.144
+  port: 443
+  uuid: e4b67aa2-27d0-429e-9c13-a0e8b576faa9
+  udp: true
+  tls: true
+  network: xhttp
+  servername: sauron.melkore.ir
+  ws-opts: null
+  reality-opts: null
+- name: DE Config_jo-44
+  type: vless
+  server: hdfynpv2d1.farvaharforever.com
+  port: 443
+  uuid: e959d53c-91e9-459d-a332-d59ae89b3b4c
+  udp: true
+  tls: true
+  network: ws
+  servername: hdfynpv2d1.farvaharforever.com
+  ws-opts:
+    path: /Iyq035lnud9R8ruNNrqGxZZ2
+    headers:
+      Host: hdfynpv2d1.farvaharforever.com
+  reality-opts: null
+- name: N/A Config_jo-45
+  type: vless
+  server: 104.26.6.89
+  port: 2096
+  uuid: e999db7a-1b17-4da6-bc37-c9fa24af2e93
+  udp: true
+  tls: true
+  network: ws
+  servername: BtEvEjF8zI.sOlEnTrAa.InFo
+  ws-opts:
+    path: /
+    headers:
+      Host: BtEvEjF8zI.sOlEnTrAa.InFo
+  reality-opts: null
+- name: N/A Config_jo-46
+  type: vless
+  server: ipw.gfdv54cvghhgfhgj-njhgj64.info
+  port: 443
+  uuid: e999db7a-1b17-4da6-bc37-c9fa24af2e93
+  udp: true
+  tls: true
+  network: ws
+  servername: M84tG1gGw0.SoLeNtRaA.iNfO
+  ws-opts:
+    path: /
+    headers:
+      Host: M84tG1gGw0.SoLeNtRaA.iNfO
+  reality-opts: null
+- name: N/A Config_jo-47
+  type: vless
+  server: ipw.gfdv54cvghhgfhgj-njhgj64.info
+  port: 8443
+  uuid: e999db7a-1b17-4da6-bc37-c9fa24af2e93
+  udp: true
+  tls: true
+  network: ws
+  servername: T9cNlMx0Qe.SoLeNtRaA.iNfO
+  ws-opts:
+    path: /
+    headers:
+      Host: T9cNlMx0Qe.SoLeNtRaA.iNfO
+  reality-opts: null
+- name: N/A Config_jo-48
+  type: vless
+  server: 91.98.79.239
+  port: 443
+  uuid: f599eb06-508a-4e24-9d59-4c50bf0332b9
+  udp: true
+  tls: true
+  network: tcp
+  servername: tempail.com
+  ws-opts: null
+  reality-opts:
+    public-key: 6wcvf78pdo-cH395vAliVVWoc5x8LSBgXJCQEF8KbA8
+    short-id: f47f400cc96a4e
+- name: N/A Config_jo-49
+  type: vmess
+  server: info.andishehnegariran.ir
+  port: 8443
+  uuid: 3c6e0b18-3d76-4500-beef-514ded9be216
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
+  ws-opts:
+    path: /🆔@M3HDIO1
+    headers:
+      Host: info.andishehnegariran.ir
+  servername: info.andishehnegariran.ir
+- name: N/A Config_jo-50
+  type: vmess
+  server: info.andishehnegariran.ir
+  port: 8443
+  uuid: 066fd007-32e1-46fa-8dac-99fa761641de
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
+  ws-opts:
+    path: /🆔@M3HDIO1
+    headers:
+      Host: info.andishehnegariran.ir
+  servername: info.andishehnegariran.ir
+- name: N/A Config_jo-51
+  type: vmess
+  server: info.andishehnegariran.ir
+  port: 8443
+  uuid: 08072e75-f0d0-4bc2-91c1-5bd848b44a3c
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
+  ws-opts:
+    path: /🆔@M3HDIO1
+    headers:
+      Host: info.andishehnegariran.ir
+  servername: info.andishehnegariran.ir
+- name: N/A Config_jo-52
+  type: vmess
+  server: info.andishehnegariran.ir
+  port: 8443
+  uuid: 09e8476e-ac6c-42f6-9726-9ec0e44b755f
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
+  ws-opts:
+    path: /🆔@M3HDIO1
+    headers:
+      Host: info.andishehnegariran.ir
+  servername: info.andishehnegariran.ir
+- name: N/A Config_jo-53
+  type: vmess
+  server: info.andishehnegariran.ir
+  port: 8443
+  uuid: 0b3e6fdc-f10d-43ab-ac66-4b273223ec3a
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
+  ws-opts:
+    path: /🆔@M3HDIO1
+    headers:
+      Host: info.andishehnegariran.ir
+  servername: info.andishehnegariran.ir
+- name: N/A Config_jo-54
+  type: vmess
+  server: info.andishehnegariran.ir
+  port: 8443
+  uuid: 0f68a76b-8cc0-48ea-b589-45f8fb6afc4a
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
+  ws-opts:
+    path: /🆔@M3HDIO1
+    headers:
+      Host: info.andishehnegariran.ir
+  servername: info.andishehnegariran.ir
+- name: N/A Config_jo-55
+  type: vmess
+  server: info.andishehnegariran.ir
+  port: 8443
+  uuid: 13407a24-4bab-4ffb-8619-416cdf1936d6
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
+  ws-opts:
+    path: /🆔@M3HDIO1
+    headers:
+      Host: info.andishehnegariran.ir
+  servername: info.andishehnegariran.ir
+- name: N/A Config_jo-56
+  type: vmess
+  server: info.andishehnegariran.ir
+  port: 8443
+  uuid: 133e6f5d-eb64-47e0-bf6f-1f5e805f2c84
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
+  ws-opts:
+    path: /🆔@M3HDIO1
+    headers:
+      Host: info.andishehnegariran.ir
+  servername: info.andishehnegariran.ir
+- name: N/A Config_jo-57
+  type: vmess
+  server: info.andishehnegariran.ir
+  port: 8443
+  uuid: 24e3ec98-2099-4d68-a918-a5e6f45a68f5
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
+  ws-opts:
+    path: /🆔@M3HDIO1
+    headers:
+      Host: info.andishehnegariran.ir
+  servername: info.andishehnegariran.ir
+- name: N/A Config_jo-58
+  type: vmess
+  server: info.andishehnegariran.ir
+  port: 8443
+  uuid: 2a4af2d0-f383-460b-975f-5482ef3fb759
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
+  ws-opts:
+    path: /🆔@M3HDIO1
+    headers:
+      Host: info.andishehnegariran.ir
+  servername: info.andishehnegariran.ir
+- name: N/A Config_jo-59
+  type: vmess
+  server: info.andishehnegariran.ir
+  port: 8443
+  uuid: 2de5ba36-5fee-48b2-80a7-f26d57ea618c
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
+  ws-opts:
+    path: /🆔@M3HDIO1
+    headers:
+      Host: info.andishehnegariran.ir
+  servername: info.andishehnegariran.ir
+- name: N/A Config_jo-60
+  type: vmess
+  server: info.andishehnegariran.ir
+  port: 8443
+  uuid: 2fa707f1-d02a-4aa4-a54b-779909ffa9e8
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
+  ws-opts:
+    path: /🆔@M3HDIO1
+    headers:
+      Host: info.andishehnegariran.ir
+  servername: info.andishehnegariran.ir
+- name: N/A Config_jo-61
+  type: vmess
+  server: info.andishehnegariran.ir
+  port: 8443
+  uuid: 3244f4c5-ab9f-450d-af07-69439bca0514
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
+  ws-opts:
+    path: /🆔@M3HDIO1
+    headers:
+      Host: info.andishehnegariran.ir
+  servername: info.andishehnegariran.ir
+- name: N/A Config_jo-62
+  type: vmess
+  server: info.andishehnegariran.ir
+  port: 8443
+  uuid: 48207340-5e04-4483-9b5d-0d7eaed097a1
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
+  ws-opts:
+    path: /🆔@M3HDIO1
+    headers:
+      Host: info.andishehnegariran.ir
+  servername: info.andishehnegariran.ir
+- name: N/A Config_jo-63
+  type: vmess
+  server: info.andishehnegariran.ir
+  port: 8443
+  uuid: 5dcc6ebc-5d25-441c-81a4-685b1b639f99
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
+  ws-opts:
+    path: /🆔@M3HDIO1
+    headers:
+      Host: info.andishehnegariran.ir
+  servername: info.andishehnegariran.ir
+- name: N/A Config_jo-64
+  type: vmess
+  server: info.andishehnegariran.ir
+  port: 8443
+  uuid: 5f50021c-d869-4d7c-bcb4-cdb9542deecd
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
+  ws-opts:
+    path: /🆔@M3HDIO1
+    headers:
+      Host: info.andishehnegariran.ir
+  servername: info.andishehnegariran.ir
+- name: N/A Config_jo-65
+  type: vmess
+  server: info.andishehnegariran.ir
+  port: 8443
+  uuid: 5f574e36-1848-4439-90f4-1d9185510c9a
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
+  ws-opts:
+    path: /🆔@M3HDIO1
+    headers:
+      Host: info.andishehnegariran.ir
+  servername: info.andishehnegariran.ir
+- name: N/A Config_jo-66
+  type: vmess
+  server: info.andishehnegariran.ir
+  port: 8443
+  uuid: 65d58d2f-b0ca-43d5-abbe-3d7f5128cf7e
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
+  ws-opts:
+    path: /🆔@M3HDIO1
+    headers:
+      Host: info.andishehnegariran.ir
+  servername: info.andishehnegariran.ir
+- name: N/A Config_jo-67
+  type: vmess
+  server: info.andishehnegariran.ir
+  port: 8443
+  uuid: 738b3c0e-62a8-4852-953a-c895c4a92b3d
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
+  ws-opts:
+    path: /🆔@M3HDIO1
+    headers:
+      Host: info.andishehnegariran.ir
+  servername: info.andishehnegariran.ir
+- name: N/A Config_jo-68
+  type: vmess
+  server: info.andishehnegariran.ir
+  port: 8443
+  uuid: 8253fa73-0598-4ba5-a73e-575563435553
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
+  ws-opts:
+    path: /🆔@M3HDIO1
+    headers:
+      Host: info.andishehnegariran.ir
+  servername: info.andishehnegariran.ir
+- name: N/A Config_jo-69
+  type: vmess
+  server: info.andishehnegariran.ir
+  port: 8443
+  uuid: 883f8ed5-c5a4-4395-89ce-8c9fb3db8b1e
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
+  ws-opts:
+    path: /🆔@M3HDIO1
+    headers:
+      Host: info.andishehnegariran.ir
+  servername: info.andishehnegariran.ir
+- name: N/A Config_jo-70
+  type: vmess
+  server: info.andishehnegariran.ir
+  port: 8443
+  uuid: 8a06733c-ecad-4936-badd-1276d3154685
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
+  ws-opts:
+    path: /🆔@M3HDIO1
+    headers:
+      Host: info.andishehnegariran.ir
+  servername: info.andishehnegariran.ir
+- name: N/A Config_jo-71
+  type: vmess
+  server: info.andishehnegariran.ir
+  port: 8443
+  uuid: 8d96849f-c6ab-474c-9384-2f6e47bdf28c
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
+  ws-opts:
+    path: /🆔@M3HDIO1
+    headers:
+      Host: info.andishehnegariran.ir
+  servername: info.andishehnegariran.ir
+- name: N/A Config_jo-72
+  type: vmess
+  server: info.andishehnegariran.ir
+  port: 8443
+  uuid: 9524466e-41f9-42e7-bb34-2d2648c16e65
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
+  ws-opts:
+    path: /🆔@M3HDIO1
+    headers:
+      Host: info.andishehnegariran.ir
+  servername: info.andishehnegariran.ir
+- name: N/A Config_jo-73
+  type: vmess
+  server: info.andishehnegariran.ir
+  port: 8443
+  uuid: 9cae4b58-bfc8-43af-bd61-eaf724c011b0
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
+  ws-opts:
+    path: /🆔@M3HDIO1
+    headers:
+      Host: info.andishehnegariran.ir
+  servername: info.andishehnegariran.ir
+- name: N/A Config_jo-74
+  type: vmess
+  server: info.andishehnegariran.ir
+  port: 8443
+  uuid: a8a3f001-77a4-4bf1-9625-1e79fb06e1a1
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
+  ws-opts:
+    path: /🆔@M3HDIO1
+    headers:
+      Host: info.andishehnegariran.ir
+  servername: info.andishehnegariran.ir
+- name: N/A Config_jo-75
+  type: vmess
+  server: info.andishehnegariran.ir
+  port: 8443
+  uuid: ae82b811-70da-479a-8667-c8144b120398
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
+  ws-opts:
+    path: /🆔@M3HDIO1
+    headers:
+      Host: info.andishehnegariran.ir
+  servername: info.andishehnegariran.ir
+- name: N/A Config_jo-76
+  type: vmess
+  server: info.andishehnegariran.ir
+  port: 8443
+  uuid: b29ce96a-533c-4cd5-8145-631b3aa01c34
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
+  ws-opts:
+    path: /🆔@M3HDIO1
+    headers:
+      Host: info.andishehnegariran.ir
+  servername: info.andishehnegariran.ir
+- name: N/A Config_jo-77
+  type: vmess
+  server: info.andishehnegariran.ir
+  port: 8443
+  uuid: b52f5327-26b1-46cd-ad72-e2d45b80f70b
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
+  ws-opts:
+    path: /🆔@M3HDIO1
+    headers:
+      Host: info.andishehnegariran.ir
+  servername: info.andishehnegariran.ir
+- name: N/A Config_jo-78
+  type: vmess
+  server: info.andishehnegariran.ir
+  port: 8443
+  uuid: b651fb80-79ea-48e5-b9f2-54ff0a8f3207
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
+  ws-opts:
+    path: /🆔@M3HDIO1
+    headers:
+      Host: info.andishehnegariran.ir
+  servername: info.andishehnegariran.ir
+- name: N/A Config_jo-79
+  type: vmess
+  server: info.andishehnegariran.ir
+  port: 8443
+  uuid: b61839ec-8684-462c-85c1-28e715525df9
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
+  ws-opts:
+    path: /🆔@M3HDIO1
+    headers:
+      Host: info.andishehnegariran.ir
+  servername: info.andishehnegariran.ir
+- name: N/A Config_jo-80
+  type: vmess
+  server: info.andishehnegariran.ir
+  port: 8443
+  uuid: c2808b0f-6e1a-4058-9ddb-25f4b082064d
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
+  ws-opts:
+    path: /🆔@M3HDIO1
+    headers:
+      Host: info.andishehnegariran.ir
+  servername: info.andishehnegariran.ir
+- name: N/A Config_jo-81
+  type: vmess
+  server: info.andishehnegariran.ir
+  port: 8443
+  uuid: d53524e8-8c22-46f9-9678-33168d59dac8
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
+  ws-opts:
+    path: /🆔@M3HDIO1
+    headers:
+      Host: info.andishehnegariran.ir
+  servername: info.andishehnegariran.ir
+- name: N/A Config_jo-82
+  type: vmess
+  server: info.andishehnegariran.ir
+  port: 8443
+  uuid: d53fd700-3407-4b1d-86b9-4e50bfe17ff7
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
+  ws-opts:
+    path: /🆔@M3HDIO1
+    headers:
+      Host: info.andishehnegariran.ir
+  servername: info.andishehnegariran.ir
+- name: N/A Config_jo-83
+  type: vmess
+  server: info.andishehnegariran.ir
+  port: 8443
+  uuid: db90a572-8454-4bfc-bc5f-b2409fc8a74d
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
+  ws-opts:
+    path: /🆔@M3HDIO1
+    headers:
+      Host: info.andishehnegariran.ir
+  servername: info.andishehnegariran.ir
+- name: N/A Config_jo-84
+  type: vmess
+  server: info.andishehnegariran.ir
+  port: 8443
+  uuid: ecc33f98-853d-4f06-a715-b1adab8a7bae
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
+  ws-opts:
+    path: /🆔@M3HDIO1
+    headers:
+      Host: info.andishehnegariran.ir
+  servername: info.andishehnegariran.ir
+- name: N/A Config_jo-85
+  type: vmess
+  server: info.andishehnegariran.ir
+  port: 8443
+  uuid: ef697688-44f5-4055-ba64-a8495637d1a3
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
+  ws-opts:
+    path: /🆔@M3HDIO1
+    headers:
+      Host: info.andishehnegariran.ir
+  servername: info.andishehnegariran.ir
+- name: N/A Config_jo-86
+  type: vmess
+  server: info.andishehnegariran.ir
+  port: 8443
+  uuid: f04583e8-a6c4-47ca-a621-04ac35eaa70a
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
+  ws-opts:
+    path: /🆔@M3HDIO1
+    headers:
+      Host: info.andishehnegariran.ir
+  servername: info.andishehnegariran.ir
+- name: N/A Config_jo-87
+  type: vmess
+  server: info.andishehnegariran.ir
+  port: 8443
+  uuid: f70a7acd-95e2-41de-8b39-58516c25e76b
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
+  ws-opts:
+    path: /🆔@M3HDIO1
+    headers:
+      Host: info.andishehnegariran.ir
+  servername: info.andishehnegariran.ir
+- name: N/A Config_jo-88
+  type: vmess
+  server: info.andishehnegariran.ir
+  port: 8443
+  uuid: fc82f523-83fa-4118-90ee-8cbcd91bcd2e
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
+  ws-opts:
+    path: /🆔@M3HDIO1
+    headers:
+      Host: info.andishehnegariran.ir
+  servername: info.andishehnegariran.ir
+- name: US Config_jo-89
+  type: vmess
+  server: 57.128.189.222
+  port: 443
+  uuid: 03fcc618-b93d-6796-6aed-8a38c975d581
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
+  ws-opts:
+    path: linkvws
+    headers:
+      Host: lammaland.org
+  servername: lammaland.org
+- name: DE Config_jo-90
   type: vmess
   server: 57.129.28.214
   port: 443
@@ -135,7 +1199,19 @@ proxies:
     headers:
       Host: kampong.org
   servername: kampong.org
-- name: DE Config_jo-11
+- name: US Config_jo-91
+  type: vmess
+  server: 103.124.107.144
+  port: 29800
+  uuid: cc31ddfc-d92e-4dab-cd06-00dfb84af8ac
+  alterId: 0
+  cipher: auto
+  tls: false
+  network: tcp
+  udp: true
+  ws-opts: null
+  servername: ''
+- name: DE Config_jo-92
   type: vmess
   server: 141.94.155.228
   port: 443
@@ -150,7 +1226,7 @@ proxies:
     headers:
       Host: kampong.org
   servername: kampong.org
-- name: DE Config_jo-12
+- name: DE Config_jo-93
   type: vmess
   server: 155.254.35.160
   port: 29912
@@ -162,7 +1238,22 @@ proxies:
   udp: true
   ws-opts: null
   servername: ''
-- name: DE Config_jo-13
+- name: SE Config_jo-94
+  type: vmess
+  server: 185.146.173.25
+  port: 80
+  uuid: ed1b5743-389b-48a2-8d60-3790eded7ca6
+  alterId: 0
+  cipher: auto
+  tls: false
+  network: ws
+  udp: true
+  ws-opts:
+    path: /
+    headers:
+      Host: google.whatsapp.snapp.torob.basalam.torob.Mci.zarashop0.ir.
+  servername: ''
+- name: FR Config_jo-95
   type: vmess
   server: kampong.org
   port: 443
@@ -177,41 +1268,239 @@ proxies:
     headers:
       Host: kampong.org
   servername: kampong.org
+- name: US Config_jo-96
+  type: vmess
+  server: lammaland.org
+  port: 443
+  uuid: 03fcc618-b93d-6796-6aed-8a38c975d581
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
+  ws-opts:
+    path: linkvws
+    headers:
+      Host: lammaland.org
+  servername: lammaland.org
+- name: DE Config_jo-97
+  type: vmess
+  server: serkat.org
+  port: 443
+  uuid: 03fcc618-b93d-6796-6aed-8a38c975d581
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
+  ws-opts:
+    path: linkvws
+    headers:
+      Host: serkat.org
+  servername: serkat.org
 proxy-groups:
 - name: PROXY
   type: select
   proxies:
   - ⚡ Auto-Select
   - DIRECT
-  - AE Config_jo-01
-  - GB Config_jo-02
-  - DE Config_jo-03
-  - US Config_jo-04
-  - US Config_jo-05
-  - N/A Config_jo-06
-  - FR Config_jo-07
-  - N/A Config_jo-08
-  - N/A Config_jo-09
-  - PL Config_jo-10
-  - DE Config_jo-11
-  - DE Config_jo-12
-  - DE Config_jo-13
+  - LT Config_jo-01
+  - AE Config_jo-02
+  - SG Config_jo-03
+  - FI Config_jo-04
+  - IQ Config_jo-05
+  - ES Config_jo-06
+  - LT Config_jo-07
+  - GB Config_jo-08
+  - DE Config_jo-09
+  - DE Config_jo-10
+  - LT Config_jo-11
+  - NL Config_jo-12
+  - US Config_jo-13
+  - PL Config_jo-14
+  - N/A Config_jo-15
+  - US Config_jo-16
+  - US Config_jo-17
+  - N/A Config_jo-18
+  - N/A Config_jo-19
+  - RU Config_jo-20
+  - RU Config_jo-21
+  - N/A Config_jo-22
+  - N/A Config_jo-23
+  - FR Config_jo-24
+  - N/A Config_jo-25
+  - N/A Config_jo-26
+  - N/A Config_jo-27
+  - N/A Config_jo-28
+  - US Config_jo-29
+  - US Config_jo-30
+  - US Config_jo-31
+  - VN Config_jo-32
+  - MD Config_jo-33
+  - N/A Config_jo-34
+  - US Config_jo-35
+  - US Config_jo-36
+  - N/A Config_jo-37
+  - N/A Config_jo-38
+  - RU Config_jo-39
+  - RU Config_jo-40
+  - RU Config_jo-41
+  - RU Config_jo-42
+  - N/A Config_jo-43
+  - DE Config_jo-44
+  - N/A Config_jo-45
+  - N/A Config_jo-46
+  - N/A Config_jo-47
+  - N/A Config_jo-48
+  - N/A Config_jo-49
+  - N/A Config_jo-50
+  - N/A Config_jo-51
+  - N/A Config_jo-52
+  - N/A Config_jo-53
+  - N/A Config_jo-54
+  - N/A Config_jo-55
+  - N/A Config_jo-56
+  - N/A Config_jo-57
+  - N/A Config_jo-58
+  - N/A Config_jo-59
+  - N/A Config_jo-60
+  - N/A Config_jo-61
+  - N/A Config_jo-62
+  - N/A Config_jo-63
+  - N/A Config_jo-64
+  - N/A Config_jo-65
+  - N/A Config_jo-66
+  - N/A Config_jo-67
+  - N/A Config_jo-68
+  - N/A Config_jo-69
+  - N/A Config_jo-70
+  - N/A Config_jo-71
+  - N/A Config_jo-72
+  - N/A Config_jo-73
+  - N/A Config_jo-74
+  - N/A Config_jo-75
+  - N/A Config_jo-76
+  - N/A Config_jo-77
+  - N/A Config_jo-78
+  - N/A Config_jo-79
+  - N/A Config_jo-80
+  - N/A Config_jo-81
+  - N/A Config_jo-82
+  - N/A Config_jo-83
+  - N/A Config_jo-84
+  - N/A Config_jo-85
+  - N/A Config_jo-86
+  - N/A Config_jo-87
+  - N/A Config_jo-88
+  - US Config_jo-89
+  - DE Config_jo-90
+  - US Config_jo-91
+  - DE Config_jo-92
+  - DE Config_jo-93
+  - SE Config_jo-94
+  - FR Config_jo-95
+  - US Config_jo-96
+  - DE Config_jo-97
 - name: ⚡ Auto-Select
   type: url-test
   proxies:
-  - AE Config_jo-01
-  - GB Config_jo-02
-  - DE Config_jo-03
-  - US Config_jo-04
-  - US Config_jo-05
-  - N/A Config_jo-06
-  - FR Config_jo-07
-  - N/A Config_jo-08
-  - N/A Config_jo-09
-  - PL Config_jo-10
-  - DE Config_jo-11
-  - DE Config_jo-12
-  - DE Config_jo-13
+  - LT Config_jo-01
+  - AE Config_jo-02
+  - SG Config_jo-03
+  - FI Config_jo-04
+  - IQ Config_jo-05
+  - ES Config_jo-06
+  - LT Config_jo-07
+  - GB Config_jo-08
+  - DE Config_jo-09
+  - DE Config_jo-10
+  - LT Config_jo-11
+  - NL Config_jo-12
+  - US Config_jo-13
+  - PL Config_jo-14
+  - N/A Config_jo-15
+  - US Config_jo-16
+  - US Config_jo-17
+  - N/A Config_jo-18
+  - N/A Config_jo-19
+  - RU Config_jo-20
+  - RU Config_jo-21
+  - N/A Config_jo-22
+  - N/A Config_jo-23
+  - FR Config_jo-24
+  - N/A Config_jo-25
+  - N/A Config_jo-26
+  - N/A Config_jo-27
+  - N/A Config_jo-28
+  - US Config_jo-29
+  - US Config_jo-30
+  - US Config_jo-31
+  - VN Config_jo-32
+  - MD Config_jo-33
+  - N/A Config_jo-34
+  - US Config_jo-35
+  - US Config_jo-36
+  - N/A Config_jo-37
+  - N/A Config_jo-38
+  - RU Config_jo-39
+  - RU Config_jo-40
+  - RU Config_jo-41
+  - RU Config_jo-42
+  - N/A Config_jo-43
+  - DE Config_jo-44
+  - N/A Config_jo-45
+  - N/A Config_jo-46
+  - N/A Config_jo-47
+  - N/A Config_jo-48
+  - N/A Config_jo-49
+  - N/A Config_jo-50
+  - N/A Config_jo-51
+  - N/A Config_jo-52
+  - N/A Config_jo-53
+  - N/A Config_jo-54
+  - N/A Config_jo-55
+  - N/A Config_jo-56
+  - N/A Config_jo-57
+  - N/A Config_jo-58
+  - N/A Config_jo-59
+  - N/A Config_jo-60
+  - N/A Config_jo-61
+  - N/A Config_jo-62
+  - N/A Config_jo-63
+  - N/A Config_jo-64
+  - N/A Config_jo-65
+  - N/A Config_jo-66
+  - N/A Config_jo-67
+  - N/A Config_jo-68
+  - N/A Config_jo-69
+  - N/A Config_jo-70
+  - N/A Config_jo-71
+  - N/A Config_jo-72
+  - N/A Config_jo-73
+  - N/A Config_jo-74
+  - N/A Config_jo-75
+  - N/A Config_jo-76
+  - N/A Config_jo-77
+  - N/A Config_jo-78
+  - N/A Config_jo-79
+  - N/A Config_jo-80
+  - N/A Config_jo-81
+  - N/A Config_jo-82
+  - N/A Config_jo-83
+  - N/A Config_jo-84
+  - N/A Config_jo-85
+  - N/A Config_jo-86
+  - N/A Config_jo-87
+  - N/A Config_jo-88
+  - US Config_jo-89
+  - DE Config_jo-90
+  - US Config_jo-91
+  - DE Config_jo-92
+  - DE Config_jo-93
+  - SE Config_jo-94
+  - FR Config_jo-95
+  - US Config_jo-96
+  - DE Config_jo-97
   url: http://www.gstatic.com/generate_204
   interval: 300
 - name: 🇮🇷 Iran
