@@ -284,11 +284,23 @@ class V2RayExtractor:
 
     def save_files(self):
         print("\n" + "="*40 + "\n⚙️ Starting to process and build config files...")
+        
+        # مرحله ۱: ذخیره تمام کانفیگ‌های خام (شامل کانفیگ‌های بدون TLS)
         if not self.raw_configs:
             print("⚠️ No configs found. Output files will be empty.")
-            for f in [OUTPUT_YAML_PRO, OUTPUT_TXT, OUTPUT_JSON_CONFIG_JO, OUTPUT_ORIGINAL_CONFIGS]: open(f, "w").close()
+            for f in [OUTPUT_YAML_PRO, OUTPUT_TXT, OUTPUT_JSON_CONFIG_JO, OUTPUT_ORIGINAL_CONFIGS]: 
+                open(f, "w").close()
             return
+        else:
+            try:
+                # ذخیره تمام کانفیگ‌های خام پیدا شده در Original-Configs.txt
+                with open(OUTPUT_ORIGINAL_CONFIGS, 'w', encoding='utf-8') as f:
+                    f.write("\n".join(sorted(list(self.raw_configs))))
+                print(f"✅ Original configs file {OUTPUT_ORIGINAL_CONFIGS} saved with {len(self.raw_configs)} raw configs.")
+            except Exception as e:
+                print(f"❌ Error saving original configs file: {e}")
 
+        # مرحله ۲: فیلتر کردن کانفیگ‌ها (حذف VLESS بدون TLS) برای فایل‌های دیگر
         valid_configs = set()
         for url in self.raw_configs:
             try:
@@ -298,33 +310,33 @@ class V2RayExtractor:
                     query = parse_qs(urlparse(url).query)
                     security = query.get('security', [''])[0]
                     if not security or security == 'none':
-                        continue # Skip insecure vless
+                        continue # حذف Vless ناامن
                 valid_configs.add(url)
             except Exception:
                 continue
 
-        print(f"⚙️ Processing {len(valid_configs)} valid configs from {len(self.raw_configs)} raw configs...")
+        print(f"⚙️ Processing {len(valid_configs)} valid configs (after filtering) from {len(self.raw_configs)} raw configs...")
         
-        proxies_list_clash, original_configs_to_save, renamed_txt_configs = [], [], []
+        proxies_list_clash, renamed_txt_configs = [], []
         parse_errors = 0
         
+        # مرحله ۳: پردازش کانفیگ‌های معتبر (فیلتر شده) برای فایل‌های Clash, Sing-box و TXT
         for i, url in enumerate(sorted(list(valid_configs)), 1):
             if not (proxy := self.parse_config_for_clash(url)):
                 parse_errors += 1
                 continue
 
-            original_configs_to_save.append(url)
             host_to_check = proxy.get('servername') or proxy.get('sni') or proxy.get('server', '')
             
             country_code = get_country_iso_code(host_to_check)
             country_flag = COUNTRY_FLAGS.get(country_code, '🏳️')
 
-            # Name for YAML/JSON (compatible)
+            # نام‌گذاری برای YAML/JSON
             name_compatible = f"{country_code} Config_jo-{i:02d}"
             proxy['name'] = name_compatible
             proxies_list_clash.append(proxy)
             
-            # Name for TXT (with emoji)
+            # نام‌گذاری برای TXT (با ایموجی)
             name_with_flag = f"{country_flag} Config_jo-{i:02d}"
             try:
                 parsed_url = list(urlparse(url)); parsed_url[5] = name_with_flag
@@ -333,14 +345,18 @@ class V2RayExtractor:
                 renamed_txt_configs.append(f"{url.split('#')[0]}#{name_with_flag}")
 
         if parse_errors > 0: print(f"⚠️ {parse_errors} configs were ignored due to parsing errors.")
+        
+        # اگر هیچ کانفیگ معتبری (پس از فیلتر) وجود نداشت، فایل‌های دیگر را خالی ایجاد کن
         if not proxies_list_clash:
-            print("⚠️ No valid configs to build files.")
-            for f in [OUTPUT_YAML_PRO, OUTPUT_TXT, OUTPUT_JSON_CONFIG_JO, OUTPUT_ORIGINAL_CONFIGS]: open(f, "w").close()
+            print("⚠️ No valid configs to build Clash/Sing-box/Txt files (Original-Configs.txt was already saved).")
+            for f in [OUTPUT_YAML_PRO, OUTPUT_TXT, OUTPUT_JSON_CONFIG_JO]: 
+                open(f, "w").close()
             return
             
         print(f"👍 {len(proxies_list_clash)} configs prepared for output files.")
         all_proxy_names = [p['name'] for p in proxies_list_clash]
 
+        # مرحله ۴: ساخت و ذخیره فایل‌های YAML, JSON و TXT
         try:
             os.makedirs('rules', exist_ok=True)
             pro_config = self.build_pro_config(proxies_list_clash, all_proxy_names)
@@ -357,8 +373,7 @@ class V2RayExtractor:
         
         with open(OUTPUT_TXT, 'w', encoding='utf-8') as f: f.write("\n".join(sorted(renamed_txt_configs)))
         print(f"✅ Text file {OUTPUT_TXT} saved.")
-        with open(OUTPUT_ORIGINAL_CONFIGS, 'w', encoding='utf-8') as f: f.write("\n".join(sorted(original_configs_to_save)))
-        print(f"✅ Original configs file {OUTPUT_ORIGINAL_CONFIGS} saved.")
+        # فایل Original-Configs.txt قبلاً در مرحله ۱ ذخیره شده است
 
     def build_pro_config(self, proxies, proxy_names):
         return {
