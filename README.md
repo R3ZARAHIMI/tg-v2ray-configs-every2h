@@ -24,7 +24,7 @@
 
 ### لیست خام کانفیگ‌ها (برای V2RayNG, Hiddify و ...)
 ```
-https://cdn.jsdelivr.net/gh/R3ZARAHIMI/7@main/Config_jo.txt
+https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config-jo.txt
 ```
 
 ### پروفایل Clash حرفه‌ای (برای Clash for Windows, Clash Verge و ...)
@@ -60,7 +60,7 @@ To use, copy the links below into your preferred client.
 
 ### Raw Config List (for V2RayNG, ✅Hiddify, etc.)
 ```
-https://cdn.jsdelivr.net/gh/R3ZARAHIMI/7@main/Config_jo.txt
+https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config-jo.txt
 ```
 
 ### Pro Clash Profile (for Clash for Windows, Clash Verge, etc.)
@@ -97,7 +97,7 @@ https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config_jo.json
 
 ### Список необработанных конфигураций (для V2RayNG, ✅Hiddify и т.д.)
 ```
-https://cdn.jsdelivr.net/gh/R3ZARAHIMI/7@main/Config_jo.txt
+https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config-jo.txt
 ```
 
 ### Профессиональный профиль Clash (для Clash for Windows, Clash Verge и т.д.)
