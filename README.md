@@ -119,16 +119,13 @@ https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config_jo.json
 <summary>🇨🇳 **中文 (Chinese)**</summary>
 
 ⚙️ 功能
-
     自动更新: 配置列表每2小时更新一次。
 
-    支持多种协议: VLESS, VMess, Shadowsocks, Trojan, Hysteria2。
+支持多种协议: VLESS, VMess, Shadowsocks, Trojan, Hysteria2。
+智能过滤: 自动移除不安全的配置 (没有TLS/Reality的VLESS)。
 
-    智能过滤: 自动移除不安全的配置 (没有TLS/Reality的VLESS)。
-
-    多种输出格式: 提供原始订阅链接以及为Clash和Sing-box优化的配置文件。
-
-    轻量化: 脚本和输出配置文件都经过了优化。
+多种输出格式: 提供原始订阅链接以及为Clash和Sing-box优化的配置文件。
+ 轻量化: 脚本和输出配置文件都经过了优化。
 
 
 
