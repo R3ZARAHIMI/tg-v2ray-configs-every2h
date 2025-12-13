@@ -32,7 +32,9 @@ jobs:
 
       - name: Download GeoIP Database
         run: |
-          curl -L "https://git.io/GeoLite2-Country.mmdb" -o dbip-country-lite.mmdb
+          
+          curl -L "https://github.com/Loyalsoldier/geoip/releases/latest/download/Country.mmdb" -o dbip-country-lite.mmdb
+          
           if [ ! -s dbip-country-lite.mmdb ]; then
             echo "::error::Downloaded dbip-country-lite.mmdb is empty or download failed!"
             exit 1
