@@ -6,7 +6,7 @@ import yaml
 import os
 import requests
 from urllib.parse import urlparse, parse_qs, unquote, urlunparse
-from pyrogram import Client, enums
+from pyrogram import Client, enums  # enums is crucial here
 from pyrogram.errors import FloodWait, ChannelInvalid, ChannelPrivate
 from typing import Optional, Dict, Any, Set, List
 import socket
@@ -26,21 +26,17 @@ def load_ip_data():
         GEOIP_READER = geoip2.database.Reader(GEOIP_DATABASE_PATH)
         print(f"✅ Successfully loaded GeoIP database.")
     except FileNotFoundError:
-        print(f"❌ CRITICAL: GeoIP database not found at '{GEOIP_DATABASE_PATH}'. Flags will be disabled.")
+        print(f"⚠️ GeoIP database not found. Flags will be disabled.")
     except Exception as e:
-        print(f"❌ CRITICAL: Failed to load GeoIP database: {e}")
+        print(f"⚠️ Failed to load GeoIP database: {e}")
 
 def get_country_iso_code(hostname: str) -> str:
-    if not hostname: return "N/A"
-    if not GEOIP_READER: return "N/A"
+    if not hostname or not GEOIP_READER: return "N/A"
     try:
         ip_address = hostname
-        try:
-            socket.inet_aton(hostname)
-        except socket.error:
-            ip_address = socket.gethostbyname(hostname)
-        response = GEOIP_READER.country(ip_address)
-        return response.country.iso_code or "N/A"
+        try: socket.inet_aton(hostname)
+        except: ip_address = socket.gethostbyname(hostname)
+        return GEOIP_READER.country(ip_address).country.iso_code or "N/A"
     except: return "N/A"
 
 COUNTRY_FLAGS = {
@@ -56,23 +52,20 @@ API_HASH = os.environ.get("API_HASH")
 SESSION_STRING = os.environ.get("SESSION_STRING")
 CHANNELS_STR = os.environ.get('CHANNELS_LIST')
 GROUPS_STR = os.environ.get('GROUPS_LIST')
-CHANNEL_SEARCH_LIMIT = int(os.environ.get('CHANNEL_SEARCH_LIMIT', 100))
-GROUP_SEARCH_LIMIT = int(os.environ.get('GROUP_SEARCH_LIMIT', 100))
+CHANNEL_SEARCH_LIMIT = int(os.environ.get('CHANNEL_SEARCH_LIMIT', 50))
+GROUP_SEARCH_LIMIT = int(os.environ.get('GROUP_SEARCH_LIMIT', 50))
 
 OUTPUT_YAML_PRO = "Config-jo.yaml"
 OUTPUT_TXT = "Config_jo.txt"
 OUTPUT_JSON_CONFIG_JO = "Config_jo.json"
 OUTPUT_ORIGINAL_CONFIGS = "Original-Configs.txt"
 
-# Basic Patterns for simple text
 V2RAY_PATTERNS = [
     re.compile(r'(vless:\/\/[^\s\'\"<>`]+)'), re.compile(r'(vmess:\/\/[^\s\'\"<>`]+)'),
     re.compile(r'(trojan:\/\/[^\s\'\"<>`]+)'), re.compile(r'(ss:\/\/[^\s\'\"<>`]+)'),
     re.compile(r"(hy2://[^\s'\"<>`]+)"), re.compile(r"(hysteria2://[^\s'\"<>`]+)"),
     re.compile(r"(tuic://[^\s'\"<>`]+)")
 ]
-# Permissive Pattern for aggressively cleaned text
-PERMISSIVE_PATTERN = re.compile(r'([a-z0-9]+:\/\/[a-zA-Z0-9\-._~:/?#\[\]@!$&\'()*+,;=%]+)')
 URL_PATTERN = re.compile(r'(https?://[^\s]+)')
 BASE64_PATTERN = re.compile(r"([A-Za-z0-9+/=]{50,})", re.MULTILINE)
 
@@ -80,9 +73,8 @@ def process_lists():
     channels = [ch.strip() for ch in CHANNELS_STR.split(',')] if CHANNELS_STR else []
     groups = []
     if GROUPS_STR:
-        try:
-            groups = [int(g.strip()) for g in GROUPS_STR.split(',')]
-        except ValueError: pass
+        try: groups = [int(g.strip()) for g in GROUPS_STR.split(',')]
+        except: pass
     return channels, groups
 
 CHANNELS, GROUPS = process_lists()
@@ -92,14 +84,12 @@ class V2RayExtractor:
         self.raw_configs: Set[str] = set()
         self.client = Client("my_account", api_id=API_ID, api_hash=API_HASH, session_string=SESSION_STRING)
 
-    # ---[ Parsing Logic ]---
+    # ---[ Parsing Helpers ]---
     def _is_valid_shadowsocks(self, ss_url: str) -> bool:
         try:
             parsed = urlparse(ss_url)
             if not parsed.hostname: return False
-            try:
-                base64.b64decode(parsed.netloc.split('@')[0] + '=' * (-len(parsed.netloc.split('@')[0]) % 4))
-                return True
+            try: base64.b64decode(parsed.netloc.split('@')[0] + '=' * 4); return True
             except: return ':' in parsed.netloc.split('@')[0]
         except: return False
 
@@ -118,44 +108,44 @@ class V2RayExtractor:
                 except: return None
         return None
 
-    # Full Parsers
-    def parse_vmess(self, vmess_url: str) -> Optional[Dict[str, Any]]:
+    # --- Parsers ---
+    def parse_vmess(self, u: str) -> Optional[Dict[str, Any]]:
         try:
-            b64 = vmess_url[8:]; decoded = base64.b64decode(b64 + '=' * (-len(b64) % 4)).decode('utf-8')
+            b64 = u[8:]; decoded = base64.b64decode(b64 + '=' * (-len(b64) % 4)).decode('utf-8')
             c = json.loads(decoded)
             return {'name': c.get('ps', ''), 'type': 'vmess', 'server': c.get('add'), 'port': int(c.get('port')), 'uuid': c.get('id'), 'alterId': int(c.get('aid', 0)), 'cipher': c.get('scy', 'auto'), 'tls': c.get('tls')=='tls', 'network': c.get('net', 'tcp'), 'ws-opts': {'path': c.get('path', '/'), 'headers': {'Host': c.get('host', '')}} if c.get('net')=='ws' else None, 'servername': c.get('sni', c.get('host'))}
         except: return None
 
-    def parse_vless(self, url: str) -> Optional[Dict[str, Any]]:
+    def parse_vless(self, u: str) -> Optional[Dict[str, Any]]:
         try:
-            p = urlparse(url); q = parse_qs(p.query)
+            p = urlparse(u); q = parse_qs(p.query)
             return {'name': unquote(p.fragment), 'type': 'vless', 'server': p.hostname, 'port': p.port, 'uuid': p.username, 'tls': q.get('security',[''])[0] in ['tls','reality'], 'network': q.get('type',['tcp'])[0], 'servername': q.get('sni',[''])[0], 'flow': q.get('flow',[''])[0], 'reality-opts': {'public-key': q.get('pbk',[''])[0], 'short-id': q.get('sid',[''])[0]} if q.get('security',[''])[0]=='reality' else None, 'ws-opts': {'path': q.get('path',['/'])[0], 'headers': {'Host': q.get('host',[''])[0]}} if q.get('type',[''])[0]=='ws' else None}
         except: return None
 
-    def parse_trojan(self, url: str) -> Optional[Dict[str, Any]]:
+    def parse_trojan(self, u: str) -> Optional[Dict[str, Any]]:
         try:
-            p = urlparse(url); q = parse_qs(p.query)
+            p = urlparse(u); q = parse_qs(p.query)
             return {'name': unquote(p.fragment), 'type': 'trojan', 'server': p.hostname, 'port': p.port, 'password': p.username, 'sni': q.get('sni',[''])[0] or p.hostname}
         except: return None
 
-    def parse_shadowsocks(self, url: str) -> Optional[Dict[str, Any]]:
+    def parse_shadowsocks(self, u: str) -> Optional[Dict[str, Any]]:
         try:
-            p = urlparse(url)
+            p = urlparse(u)
             if '@' in p.netloc:
-                u = base64.b64decode(p.netloc.split('@')[0] + '='*4).decode()
-                cipher, pw = u.split(':')
+                user = base64.b64decode(p.netloc.split('@')[0] + '='*4).decode()
+                cipher, pw = user.split(':')
                 return {'name': unquote(p.fragment), 'type': 'ss', 'server': p.hostname, 'port': p.port, 'cipher': cipher, 'password': pw}
         except: return None
 
-    def parse_hysteria2(self, url: str) -> Optional[Dict[str, Any]]:
+    def parse_hysteria2(self, u: str) -> Optional[Dict[str, Any]]:
         try:
-            p = urlparse(url); q = parse_qs(p.query)
+            p = urlparse(u); q = parse_qs(p.query)
             return {'name': unquote(p.fragment), 'type': 'hysteria2', 'server': p.hostname, 'port': p.port, 'auth': p.username, 'up': q.get('up',[''])[0], 'down': q.get('down',[''])[0], 'sni': q.get('sni',[''])[0], 'skip-cert-verify': q.get('insecure',['0'])[0]=='1', 'obfs': q.get('obfs',[''])[0], 'obfs-password': q.get('obfs-password',[''])[0]}
         except: return None
 
-    def parse_tuic(self, url: str) -> Optional[Dict[str, Any]]:
+    def parse_tuic(self, u: str) -> Optional[Dict[str, Any]]:
         try:
-             p = urlparse(url); q = parse_qs(p.query)
+             p = urlparse(u); q = parse_qs(p.query)
              return {'name': unquote(p.fragment), 'type': 'tuic', 'server': p.hostname, 'port': p.port, 'uuid': p.username, 'password': q.get('password',[''])[0], 'sni': q.get('sni',[''])[0], 'skip-cert-verify': q.get('allow_insecure',['0'])[0]=='1'}
         except: return None
 
@@ -171,21 +161,14 @@ class V2RayExtractor:
         return out
 
     def extract_configs_from_text(self, text: str) -> Set[str]:
-        # 1. Standard Extraction
         found = set()
         for pattern in V2RAY_PATTERNS:
             found.update(pattern.findall(text))
-        
-        # 2. Permissive Extraction (for Aggressive Mode)
-        # Scan for any string that looks like protocol://...
-        found.update(PERMISSIVE_PATTERN.findall(text))
-
         return {self._correct_config_type(u) for u in found if self._validate_config_type(u)}
 
     def fetch_subscription_content(self, url: str) -> str:
         try:
             if any(x in url for x in ['google.com', 't.me', 'instagram.com', 'youtube.com']): return ""
-            print(f"      🌍 Fetching sub: {url[:40]}...")
             resp = requests.get(url, timeout=5)
             if resp.status_code == 200:
                 content = resp.text
@@ -195,77 +178,35 @@ class V2RayExtractor:
         except: pass
         return ""
 
-    # === [ NEW FEATURE: SMART AGGRESSIVE CLEANING ] ===
-    def smart_clean_and_split(self, text: str) -> List[str]:
-        """Finds all protocols, slices the text between them, and cleans whitespace/newlines/quotes from each slice."""
-        protocols = ['vless://', 'vmess://', 'trojan://', 'ss://', 'hy2://', 'hysteria2://', 'tuic://']
-        indices = []
-        # Find all start indices of all protocols
-        for p in protocols:
-            start = 0
-            while True:
-                idx = text.find(p, start)
-                if idx == -1: break
-                indices.append(idx)
-                start = idx + 1
-        
-        if not indices: return []
-        
-        indices.sort()
-        segments = []
-        for i in range(len(indices)):
-            start_pos = indices[i]
-            # End is either next protocol or end of text
-            end_pos = indices[i+1] if i+1 < len(indices) else len(text)
-            
-            # Extract raw segment
-            raw_segment = text[start_pos:end_pos]
-            
-            # AGGRESSIVE CLEAN: Remove newlines, spaces, and '>' quotes
-            cleaned_segment = raw_segment.replace('\n', '').replace(' ', '').replace('>', '').replace('`', '')
-            segments.append(cleaned_segment)
-            
-        return segments
-
     async def find_raw_configs_from_chat(self, chat_id: int, limit: int, retries: int = 3):
         try:
             print(f"🔍 Searching in chat {chat_id} (limit: {limit})...")
-            message_count = 0
             async for message in self.client.get_chat_history(chat_id, limit=limit):
-                message_count += 1
-                
                 text_to_check = message.text or message.caption or ""
-                # DEBUG: Show what bot sees
-                if text_to_check:
-                    print(f"   📄 Msg {message.id} Content: {text_to_check[:50].replace(chr(10),' ')}...")
-                
                 texts_to_scan = [text_to_check]
 
-                # 1. Smart Aggressive Clean (Apply to WHOLE message)
-                # This fixes configs broken by newlines, quotes, lists, etc.
-                cleaned_segments = self.smart_clean_and_split(text_to_check)
-                if cleaned_segments:
-                    texts_to_scan.extend(cleaned_segments)
+                # -------------------------------------------------------------
+                # 🔥 THE SURGEON FIX: Extract content from ENTITIES (Quotes/Code)
+                # -------------------------------------------------------------
+                if message.entities:
+                    for entity in message.entities:
+                        # Check for Quote, Code, Pre (where broken links usually hide)
+                        # Note: enums.MessageEntityType.BLOCKQUOTE might need Pyrogram update,
+                        # but CODE and PRE are standard.
+                        if entity.type in [enums.MessageEntityType.CODE, enums.MessageEntityType.PRE, getattr(enums.MessageEntityType, 'BLOCKQUOTE', 'blockquote')]:
+                            
+                            # 1. Cut out the exact segment inside the box
+                            raw_segment = text_to_check[entity.offset : entity.offset + entity.length]
+                            
+                            # 2. SURGERY: Remove ALL newlines and spaces within this segment
+                            cleaned_segment = raw_segment.replace('\n', '').replace(' ', '')
+                            
+                            # 3. Add to scan list
+                            texts_to_scan.append(cleaned_segment)
+                            print(f"      🩺 Stitched broken link in Msg {message.id}")
+                # -------------------------------------------------------------
 
-                # 2. Download Files
-                if message.document and message.document.file_size < 500000:
-                     if message.document.file_name and message.document.file_name.lower().endswith(('.txt', '.json', '.conf', '.yaml')):
-                         try:
-                             print(f"      📂 Downloading: {message.document.file_name}")
-                             path = await self.client.download_media(message)
-                             with open(path, 'r', encoding='utf-8', errors='ignore') as f: texts_to_scan.append(f.read())
-                             os.remove(path)
-                         except: pass
-
-                # 3. Inline Buttons
-                if message.reply_markup and message.reply_markup.inline_keyboard:
-                    for row in message.reply_markup.inline_keyboard:
-                        for btn in row:
-                            if hasattr(btn, 'url') and btn.url:
-                                texts_to_scan.append(btn.url)
-                                if sub := self.fetch_subscription_content(btn.url): texts_to_scan.append(sub)
-
-                # 4. Text Links
+                # 2. Text Links
                 found_urls = URL_PATTERN.findall(text_to_check)
                 if message.entities:
                     for entity in message.entities:
@@ -273,7 +214,7 @@ class V2RayExtractor:
                 for url in found_urls:
                     if sub := self.fetch_subscription_content(url): texts_to_scan.append(sub)
 
-                # 5. Base64
+                # 3. Base64
                 for b64_str in BASE64_PATTERN.findall(text_to_check):
                     try: texts_to_scan.append(base64.b64decode(b64_str + '=' * (-len(b64_str) % 4)).decode('utf-8', errors='ignore'))
                     except: continue
@@ -285,8 +226,6 @@ class V2RayExtractor:
                 
                 if len(self.raw_configs) > initial:
                     print(f"      🎉 Found {len(self.raw_configs) - initial} configs!")
-
-            if message_count == 0: print(f"❌ WARNING: No messages found in chat {chat_id}.")
 
         except (ChannelInvalid, ChannelPrivate): print(f"❌ Error: Chat {chat_id} is INVALID/PRIVATE.")
         except FloodWait as e:
@@ -313,12 +252,12 @@ class V2RayExtractor:
         try:
             with open(OUTPUT_YAML_PRO, 'w', encoding='utf-8') as f: yaml.dump({'proxies': valid}, f, allow_unicode=True)
             with open(OUTPUT_JSON_CONFIG_JO, 'w', encoding='utf-8') as f: json.dump({'outbounds': [self.convert_to_singbox_outbound(v) for v in valid]}, f, indent=4)
-            with open(OUTPUT_TXT, 'w', encoding='utf-8') as f: f.write("\n".join([v['name'] for v in valid])) # simplified list
+            with open(OUTPUT_TXT, 'w', encoding='utf-8') as f: f.write("\n".join([v['name'] for v in valid]))
             print("✅ Files saved.")
         except Exception as e: print(f"❌ Save error: {e}")
 
 async def main():
-    print("🚀 Starting config extractor (AGGRESSIVE MODE)...")
+    print("🚀 Starting config extractor (SURGEON MODE)...")
     load_ip_data()
     extractor = V2RayExtractor()
     async with extractor.client:
