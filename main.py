@@ -6,7 +6,7 @@ import yaml
 import os
 import requests
 from urllib.parse import urlparse, parse_qs, unquote, urlunparse
-from pyrogram import Client, enums  # enums is crucial here
+from pyrogram import Client, enums
 from pyrogram.errors import FloodWait, ChannelInvalid, ChannelPrivate
 from typing import Optional, Dict, Any, Set, List
 import socket
@@ -52,7 +52,8 @@ API_HASH = os.environ.get("API_HASH")
 SESSION_STRING = os.environ.get("SESSION_STRING")
 CHANNELS_STR = os.environ.get('CHANNELS_LIST')
 GROUPS_STR = os.environ.get('GROUPS_LIST')
-CHANNEL_SEARCH_LIMIT = int(os.environ.get('CHANNEL_SEARCH_LIMIT', 50))
+# Increase limit significantly to find old messages
+CHANNEL_SEARCH_LIMIT = int(os.environ.get('CHANNEL_SEARCH_LIMIT', 200))
 GROUP_SEARCH_LIMIT = int(os.environ.get('GROUP_SEARCH_LIMIT', 50))
 
 OUTPUT_YAML_PRO = "Config-jo.yaml"
@@ -169,6 +170,7 @@ class V2RayExtractor:
     def fetch_subscription_content(self, url: str) -> str:
         try:
             if any(x in url for x in ['google.com', 't.me', 'instagram.com', 'youtube.com']): return ""
+            print(f"      🌍 Fetching sub: {url[:40]}...")
             resp = requests.get(url, timeout=5)
             if resp.status_code == 200:
                 content = resp.text
@@ -181,32 +183,29 @@ class V2RayExtractor:
     async def find_raw_configs_from_chat(self, chat_id: int, limit: int, retries: int = 3):
         try:
             print(f"🔍 Searching in chat {chat_id} (limit: {limit})...")
+            count = 0
             async for message in self.client.get_chat_history(chat_id, limit=limit):
+                count += 1
                 text_to_check = message.text or message.caption or ""
+                
+                # DEBUG PRINT: Show exactly what is being scanned
+                if count <= 5: # Only show first 5 to avoid spam, but proves access
+                    snippet = text_to_check[:50].replace('\n', ' ')
+                    print(f"   🔹 Msg {message.id}: {snippet}...")
+
                 texts_to_scan = [text_to_check]
 
                 # -------------------------------------------------------------
-                # 🔥 THE SURGEON FIX: Extract content from ENTITIES (Quotes/Code)
+                # ☢️ NUCLEAR FIX: ALWAYS CLEAN THE WHOLE TEXT
                 # -------------------------------------------------------------
-                if message.entities:
-                    for entity in message.entities:
-                        # Check for Quote, Code, Pre (where broken links usually hide)
-                        # Note: enums.MessageEntityType.BLOCKQUOTE might need Pyrogram update,
-                        # but CODE and PRE are standard.
-                        if entity.type in [enums.MessageEntityType.CODE, enums.MessageEntityType.PRE, getattr(enums.MessageEntityType, 'BLOCKQUOTE', 'blockquote')]:
-                            
-                            # 1. Cut out the exact segment inside the box
-                            raw_segment = text_to_check[entity.offset : entity.offset + entity.length]
-                            
-                            # 2. SURGERY: Remove ALL newlines and spaces within this segment
-                            cleaned_segment = raw_segment.replace('\n', '').replace(' ', '')
-                            
-                            # 3. Add to scan list
-                            texts_to_scan.append(cleaned_segment)
-                            print(f"      🩺 Stitched broken link in Msg {message.id}")
+                # This ignores entities/formatting and blindly forces links together.
+                # It fixes broken lines in quotes, code blocks, or normal text.
+                if text_to_check:
+                    nuclear_clean = text_to_check.replace('\n', '').replace(' ', '')
+                    texts_to_scan.append(nuclear_clean)
                 # -------------------------------------------------------------
 
-                # 2. Text Links
+                # Text Links
                 found_urls = URL_PATTERN.findall(text_to_check)
                 if message.entities:
                     for entity in message.entities:
@@ -214,7 +213,7 @@ class V2RayExtractor:
                 for url in found_urls:
                     if sub := self.fetch_subscription_content(url): texts_to_scan.append(sub)
 
-                # 3. Base64
+                # Base64
                 for b64_str in BASE64_PATTERN.findall(text_to_check):
                     try: texts_to_scan.append(base64.b64decode(b64_str + '=' * (-len(b64_str) % 4)).decode('utf-8', errors='ignore'))
                     except: continue
@@ -225,7 +224,10 @@ class V2RayExtractor:
                     if txt: self.raw_configs.update(self.extract_configs_from_text(txt))
                 
                 if len(self.raw_configs) > initial:
-                    print(f"      🎉 Found {len(self.raw_configs) - initial} configs!")
+                    print(f"      🎉 Found {len(self.raw_configs) - initial} configs in Msg {message.id}!")
+
+            if count == 0:
+                print(f"❌ ERROR: No messages found in {chat_id}. Check permissions/ID!")
 
         except (ChannelInvalid, ChannelPrivate): print(f"❌ Error: Chat {chat_id} is INVALID/PRIVATE.")
         except FloodWait as e:
@@ -236,7 +238,7 @@ class V2RayExtractor:
     def save_files(self):
         print(f"\n⚙️ Saving {len(self.raw_configs)} configs...")
         if not self.raw_configs: return
-        with open(OUTPUT_ORIGINAL_CONFIGS, 'w') as f: f.write("\n".join(self.raw_configs))
+        with open(OUTPUT_ORIGINAL_CONFIGS, 'w', encoding='utf-8') as f: f.write("\n".join(self.raw_configs))
         
         valid = []
         for u in self.raw_configs:
@@ -257,7 +259,7 @@ class V2RayExtractor:
         except Exception as e: print(f"❌ Save error: {e}")
 
 async def main():
-    print("🚀 Starting config extractor (SURGEON MODE)...")
+    print("🚀 Starting config extractor (NUCLEAR MODE)...")
     load_ip_data()
     extractor = V2RayExtractor()
     async with extractor.client:
