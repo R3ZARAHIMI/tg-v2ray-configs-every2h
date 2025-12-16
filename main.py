@@ -4,7 +4,6 @@ import base64
 import json
 import yaml
 import os
-import uuid
 import requests
 from urllib.parse import urlparse, parse_qs, unquote, urlunparse
 from pyrogram import Client, enums
@@ -31,6 +30,24 @@ def load_ip_data():
     except Exception as e:
         print(f"❌ CRITICAL: Failed to load GeoIP database: {e}")
 
+def get_country_iso_code(hostname: str) -> str:
+    """Gets the country ISO code for a given hostname."""
+    if not hostname: return "N/A"
+    if not GEOIP_READER: return "N/A"
+    try:
+        ip_address = hostname
+        try:
+            socket.inet_aton(hostname)
+        except socket.error:
+            ip_address = socket.gethostbyname(hostname)
+        
+        response = GEOIP_READER.country(ip_address)
+        return response.country.iso_code or "N/A"
+    except (geoip2.errors.AddressNotFoundError, socket.gaierror):
+        return "N/A"
+    except Exception:
+        return "N/A"
+
 COUNTRY_FLAGS = {
     'AD': '🇦🇩', 'AE': '🇦🇪', 'AF': '🇦🇫', 'AG': '🇦🇬', 'AI': '🇦🇮', 'AL': '🇦🇱', 'AM': '🇦🇲', 'AO': '🇦🇴', 'AQ': '🇦🇶', 'AR': '🇦🇷', 'AS': '🇦🇸', 'AT': '🇦🇹', 'AU': '🇦🇺', 'AW': '🇦🇼', 'AX': '🇦🇽', 'AZ': '🇦🇿', 'BA': '🇧🇦', 'BB': '🇧🇧', 'BD': '🇧🇩', 'BE': '🇧🇪', 'BF': '🇧🇫', 'BG': '🇧🇬', 'BH': '🇧🇭', 'BI': '🇧🇮', 'BJ': '🇧🇯', 'BL': '🇧🇱', 'BM': '🇧🇲', 'BN': '🇧🇳', 'BO': '🇧🇴', 'BR': '🇧🇷', 'BS': '🇧🇸', 'BT': '🇧🇹', 'BW': '🇧🇼', 'BY': '🇧🇾', 'BZ': '🇧🇿', 'CA': '🇨🇦', 'CC': '🇨🇨', 'CD': '🇨🇩', 'CF': '🇨🇫', 'CG': '🇨🇬', 'CH': '🇨🇭', 'CI': '🇨🇮', 'CK': '🇨🇰', 'CL': '🇨🇱', 'CM': '🇨🇲', 'CN': '🇨🇳', 'CO': '🇨🇴', 'CR': '🇨🇷', 'CU': '🇨🇺', 'CV': '🇨🇻', 'CW': '🇨🇼', 'CX': '🇨🇽', 'CY': '🇨🇾', 'CZ': '🇨🇿', 'DE': '🇩🇪', 'DJ': '🇩🇯', 'DK': '🇩🇰', 'DM': '🇩🇲', 'DO': '🇩🇴', 'DZ': '🇩🇿', 'EC': '🇪🇨', 'EE': '🇪🇪', 'EG': '🇪🇬', 'EH': '🇪🇭', 'ER': '🇪🇷', 'ES': '🇪🇸', 'ET': '🇪🇹', 'FI': '🇫🇮', 'FJ': '🇫🇯', 'FK': '🇫🇰', 'FM': '🇫🇲', 'FO': '🇫🇴', 'FR': '🇫🇷', 'GA': '🇬🇦', 'GB': '🇬🇧', 'GD': '🇬🇩', 'GE': '🇬🇪', 'GF': '🇬🇫', 'GG': '🇬🇬', 'GH': '🇬🇭', 'GI': '🇬🇮', 'GL': '🇬🇱', 'GM': '🇬🇲', 'GN': '🇬🇳', 'GP': '🇬🇵', 'GQ': '🇬🇶', 'GR': '🇬🇷', 'GT': '🇬🇹', 'GU': '🇬🇺', 'GW': '🇬🇼', 'GY': '🇬🇾', 'HK': '🇭🇰', 'HN': '🇭🇳', 'HR': '🇭🇷', 'HT': '🇭🇹', 'HU': '🇭🇺', 'ID': '🇮🇩', 'IE': '🇮🇪', 'IL': '🇮🇱', 'IM': '🇮🇲', 'IN': '🇮🇳', 'IO': '🇮🇴', 'IQ': '🇮🇶', 'IR': '🇮🇷', 'IS': '🇮🇸', 'IT': '🇮🇹', 'JE': '🇯🇪', 'JM': '🇯🇲', 'JO': '🇯🇴', 'JP': '🇯🇵', 'KE': '🇰🇪', 'KG': '🇰🇬', 'KH': '🇰🇭', 'KI': '🇰🇮', 'KM': '🇰🇲', 'KN': '🇰🇳', 'KP': '🇰🇵', 'KR': '🇰🇷', 'KW': '🇰🇼', 'KY': '🇰🇾', 'KZ': '🇰🇿', 'LA': '🇱🇦', 'LB': '🇱🇧', 'LC': '🇱🇨', 'LI': '🇱🇮', 'LK': '🇱🇰', 'LR': '🇱🇷', 'LS': '🇱🇸', 'LT': '🇱🇹', 'LU': '🇱🇺', 'LV': '🇱🇻', 'LY': '🇱🇾', 'MA': '🇲🇦', 'MC': '🇲🇨', 'MD': '🇲🇩', 'ME': '🇲🇪', 'MF': '🇲🇫', 'MG': '🇲🇬', 'MH': '🇲🇭', 'MK': '🇲🇰', 'ML': '🇲🇱', 'MM': '🇲🇲', 'MN': '🇲🇳', 'MO': '🇲🇴', 'MP': '🇲🇵', 'MQ': '🇲🇶', 'MR': '🇲🇷', 'MS': '🇲🇸', 'MT': '🇲🇹', 'MU': '🇲🇺', 'MV': '🇲🇻', 'MW': '🇲🇼', 'MX': '🇲🇽', 'MY': '🇲🇾', 'MZ': '🇲🇿', 'NA': '🇳🇦', 'NC': '🇳🇨', 'NE': '🇳🇪', 'NF': '🇳🇫', 'NG': '🇳🇬', 'NI': '🇳🇮', 'NL': '🇳🇱', 'NO': '🇳🇴', 'NP': '🇳🇵', 'NR': '🇳🇷', 'NU': '🇳🇺', 'NZ': '🇳🇿', 'OM': '🇴🇲', 'PA': '🇵🇦', 'PE': '🇵🇪', 'PF': '🇵🇫', 'PG': '🇵🇬', 'PH': '🇵🇭', 'PK': '🇵🇰', 'PL': '🇵🇱', 'PM': '🇵🇲', 'PN': '🇵🇳', 'PR': '🇵🇷', 'PS': '🇵🇸', 'PT': '🇵🇹', 'PW': '🇵🇼', 'PY': '🇵🇾', 'QA': '🇶🇦', 'RE': '🇷🇪', 'RO': '🇷🇴', 'RS': '🇷🇸', 'RU': '🇷🇺', 'RW': '🇷🇼', 'SA': '🇸🇦', 'SB': '🇸🇧', 'SC': '🇸🇨', 'SD': '🇸🇩', 'SE': '🇸🇪', 'SG': '🇸🇬', 'SH': '🇸🇭', 'SI': '🇸🇮', 'SK': '🇸🇰', 'SL': '🇸🇱', 'SM': '🇸🇲', 'SN': '🇸🇳', 'SO': '🇸🇴', 'SR': '🇸🇷', 'SS': '🇸🇸', 'ST': '🇸🇹', 'SV': '🇸🇻', 'SX': '🇸🇽', 'SY': '🇸🇾', 'SZ': '🇸🇿', 'TC': '🇹🇨', 'TD': '🇹🇩', 'TG': '🇹🇬', 'TH': '🇹🇭', 'TJ': '🇹🇯', 'TK': '🇹🇰', 'TL': '🇹🇱', 'TM': '🇹🇲', 'TN': '🇹🇳', 'TO': '🇹🇴', 'TR': '🇹🇷', 'TT': '🇹🇹', 'TV': '🇹🇻', 'TW': '🇹🇼', 'TZ': '🇹🇿', 'UA': '🇺🇦', 'UG': '🇺🇬', 'US': '🇺🇸', 'UY': '🇺🇾', 'UZ': '🇺🇿', 'VA': '🇻🇦', 'VC': '🇻🇨', 'VE': '🇻🇪', 'VG': '🇻🇬', 'VI': '🇻🇮', 'VN': '🇻🇳', 'VU': '🇻🇺', 'WF': '🇼🇫', 'WS': '🇼🇸', 'YE': '🇾🇪', 'YT': '🇾🇹', 'ZA': '🇿🇦', 'ZM': '🇿🇲', 'ZW': '🇿🇼'
 }
@@ -44,7 +61,7 @@ API_HASH = os.environ.get("API_HASH")
 SESSION_STRING = os.environ.get("SESSION_STRING")
 CHANNELS_STR = os.environ.get('CHANNELS_LIST')
 GROUPS_STR = os.environ.get('GROUPS_LIST')
-CHANNEL_SEARCH_LIMIT = int(os.environ.get('CHANNEL_SEARCH_LIMIT', 5))
+CHANNEL_SEARCH_LIMIT = int(os.environ.get('CHANNEL_SEARCH_LIMIT', 100)) # Increased default to 100
 GROUP_SEARCH_LIMIT = int(os.environ.get('GROUP_SEARCH_LIMIT', 100))
 
 OUTPUT_YAML_PRO = "Config-jo.yaml"
@@ -58,7 +75,6 @@ V2RAY_PATTERNS = [
     re.compile(r"(hy2://[^\s'\"<>`]+)"), re.compile(r"(hysteria2://[^\s'\"<>`]+)"),
     re.compile(r"(tuic://[^\s'\"<>`]+)")
 ]
-# Regex to find HTTP/HTTPS links
 URL_PATTERN = re.compile(r'(https?://[^\s]+)')
 BASE64_PATTERN = re.compile(r"([A-Za-z0-9+/=]{50,})", re.MULTILINE)
 
@@ -77,25 +93,6 @@ class V2RayExtractor:
     def __init__(self):
         self.raw_configs: Set[str] = set()
         self.client = Client("my_account", api_id=API_ID, api_hash=API_HASH, session_string=SESSION_STRING)
-
-    # ---[ Helper Method: IP to Country ]---
-    def get_country_iso_code(self, hostname: str) -> str:
-        """Gets the country ISO code for a given hostname."""
-        if not hostname: return "N/A"
-        if not GEOIP_READER: return "N/A"
-        try:
-            ip_address = hostname
-            try:
-                socket.inet_aton(hostname)
-            except socket.error:
-                ip_address = socket.gethostbyname(hostname)
-            
-            response = GEOIP_READER.country(ip_address)
-            return response.country.iso_code or "N/A"
-        except (geoip2.errors.AddressNotFoundError, socket.gaierror):
-            return "N/A"
-        except Exception:
-            return "N/A"
 
     # ---[ Parsing Logic Methods ]---
     def _is_valid_shadowsocks(self, ss_url: str) -> bool:
@@ -261,25 +258,20 @@ class V2RayExtractor:
             found_configs.update(pattern.findall(text))
         return {corrected for url in found_configs if (corrected := self._correct_config_type(url.strip())) and self._validate_config_type(corrected)}
 
-    # ---[ New Logic: Fetch HTTP Sub Links ]---
     def fetch_subscription_content(self, url: str) -> str:
         try:
-            # Ignore common non-sub links to save time
             if any(x in url for x in ['google.com', 't.me', 'instagram.com', 'youtube.com']):
                 return ""
-                
             print(f"      🌍 Fetching sub link: {url[:50]}...")
             resp = requests.get(url, timeout=5)
             if resp.status_code == 200:
-                # Try to decode if base64
                 content = resp.text
                 try:
                     content = base64.b64decode(content + '=' * (-len(content) % 4)).decode('utf-8', errors='ignore')
                 except Exception:
-                    pass # It was plain text
+                    pass
                 return content
         except Exception as e:
-            # print(f"      ⚠️ Failed to fetch {url}: {e}")
             pass
         return ""
 
@@ -290,49 +282,74 @@ class V2RayExtractor:
                 text_to_check = message.text or message.caption or ""
                 texts_to_scan = [text_to_check]
                 
-                # 1. URL Extraction (For Subscription Links)
+                # 1. NEW: Download attached Text/JSON/Config files
+                if message.document:
+                     is_target_file = False
+                     # Check MIME
+                     if message.document.mime_type and message.document.mime_type.startswith(('text', 'application/json')):
+                         is_target_file = True
+                     # Check Extension
+                     elif message.document.file_name and message.document.file_name.lower().endswith(('.txt', '.json', '.conf', '.yaml', '.yml', '.v2ray')):
+                         is_target_file = True
+                     
+                     if is_target_file:
+                         try:
+                             print(f"      📂 Found Document: {message.document.file_name} - Downloading...")
+                             file_path = await self.client.download_media(message)
+                             with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+                                 file_content = f.read()
+                             texts_to_scan.append(file_content)
+                             os.remove(file_path) # Cleanup
+                         except Exception as e:
+                             print(f"      ⚠️ File download failed: {e}")
+
+                # 2. NEW: Scan Inline Buttons (often have sub links)
+                if message.reply_markup and message.reply_markup.inline_keyboard:
+                    for row in message.reply_markup.inline_keyboard:
+                        for btn in row:
+                            if hasattr(btn, 'url') and btn.url:
+                                texts_to_scan.append(btn.url)
+                                # Fetch content immediately if it looks like a sub
+                                sub_content = self.fetch_subscription_content(btn.url)
+                                if sub_content: texts_to_scan.append(sub_content)
+
+                # 3. URL Extraction (Text Links)
                 found_urls = URL_PATTERN.findall(text_to_check)
                 if message.entities:
                     for entity in message.entities:
                          if entity.type == enums.MessageEntityType.TEXT_LINK and entity.url:
                              found_urls.append(entity.url)
                 
-                # Fetch content of found URLs
                 for url in found_urls:
                     fetched_content = self.fetch_subscription_content(url)
-                    if fetched_content:
-                        texts_to_scan.append(fetched_content)
+                    if fetched_content: texts_to_scan.append(fetched_content)
 
-                # 2. Entity Parsing (Code/Pre/Blockquote - Cleaning newlines)
+                # 4. Clean Code/Pre blocks
                 if message.entities:
                     for entity in message.entities:
                         target_types = [enums.MessageEntityType.CODE, enums.MessageEntityType.PRE]
-                        if hasattr(enums.MessageEntityType, 'BLOCKQUOTE'):
-                            target_types.append(enums.MessageEntityType.BLOCKQUOTE)
-                        
+                        if hasattr(enums.MessageEntityType, 'BLOCKQUOTE'): target_types.append(enums.MessageEntityType.BLOCKQUOTE)
                         if entity.type in target_types:
                             raw_block = text_to_check[entity.offset : entity.offset + entity.length]
-                            # Clean newlines to fix broken configs
                             cleaned_block = raw_block.replace('\n', '').replace(' ', '')
                             texts_to_scan.append(cleaned_block)
                             texts_to_scan.append(raw_block)
 
-                # 3. Base64
+                # 5. Base64
                 for b64_str in BASE64_PATTERN.findall(text_to_check):
                     try:
                         decoded = base64.b64decode(b64_str + '=' * (-len(b64_str) % 4)).decode('utf-8', errors='ignore')
                         texts_to_scan.append(decoded)
                     except Exception: continue
                 
-                # 4. Extract
+                # 6. Final Extract
                 initial_count = len(self.raw_configs)
                 for text in texts_to_scan: 
                     if not text: continue
                     self.raw_configs.update(self.extract_configs_from_text(text))
                 
-                new_found = len(self.raw_configs) - initial_count
-                if new_found > 0:
-                    print(f"      🎉 Found {new_found} new config(s) in this message!")
+                if (new := len(self.raw_configs) - initial_count) > 0:
+                    print(f"      🎉 Found {new} new config(s)!")
         
         except FloodWait as e:
             if retries <= 0: return print(f"❌ Max retries reached for chat {chat_id}.")
@@ -385,7 +402,7 @@ class V2RayExtractor:
                 continue
 
             host_to_check = proxy.get('servername') or proxy.get('sni') or proxy.get('server', '')
-            country_code = self.get_country_iso_code(host_to_check)
+            country_code = get_country_iso_code(host_to_check)
             country_flag = COUNTRY_FLAGS.get(country_code, '🏳️')
 
             name_compatible = f"{country_code} Config_jo-{i:02d}"
