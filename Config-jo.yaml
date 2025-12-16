@@ -1,0 +1,741 @@
+port: 7890
+socks-port: 7891
+allow-lan: true
+mode: rule
+log-level: info
+external-controller: 127.0.0.1:9090
+dns:
+  enable: true
+  listen: 0.0.0.0:53
+  default-nameserver:
+  - 8.8.8.8
+  - 1.1.1.1
+  enhanced-mode: fake-ip
+  fake-ip-range: 198.18.0.1/16
+  fallback:
+  - https://dns.google/dns-query
+  - https://cloudflare-dns.com/dns-query
+  fallback-filter:
+    geoip: true
+    ipcidr:
+    - 240.0.0.0/4
+    - 0.0.0.0/32
+proxies:
+- name: CH Config_jo-01
+  type: vless
+  server: ch-1-direct.healingfluence.com
+  port: 8000
+  uuid: 3b7e9f84-af03-40a6-8b21-98527379f81d
+  udp: true
+  tls: true
+  network: tcp
+  servername: ch-1.claudify.org
+  ws-opts: null
+  reality-opts: null
+- name: DE Config_jo-02
+  type: vless
+  server: de-1-direct.healingfluence.com
+  port: 8000
+  uuid: 3b7e9f84-af03-40a6-8b21-98527379f81d
+  udp: true
+  tls: true
+  network: tcp
+  servername: de-1.claudify.org
+  ws-opts: null
+  reality-opts: null
+- name: DE Config_jo-03
+  type: vless
+  server: de-1-direct.healingfluence.com
+  port: 8000
+  uuid: 3b7e9f84-af03-40a6-8b21-98527379f81d
+  udp: true
+  tls: true
+  network: tcp
+  servername: de-1.claudify.org
+  ws-opts: null
+  reality-opts: null
+- name: FI Config_jo-04
+  type: vless
+  server: fin-1-direct.healingfluence.com
+  port: 8000
+  uuid: 3b7e9f84-af03-40a6-8b21-98527379f81d
+  udp: true
+  tls: true
+  network: tcp
+  servername: fin-1.claudify.org
+  ws-opts: null
+  reality-opts: null
+- name: FR Config_jo-05
+  type: vless
+  server: fr-1-direct.healingfluence.com
+  port: 8000
+  uuid: 3b7e9f84-af03-40a6-8b21-98527379f81d
+  udp: true
+  tls: true
+  network: tcp
+  servername: fr-1.claudify.org
+  ws-opts: null
+  reality-opts: null
+- name: NL Config_jo-06
+  type: vless
+  server: nl-1-direct.healingfluence.com
+  port: 8000
+  uuid: 3b7e9f84-af03-40a6-8b21-98527379f81d
+  udp: true
+  tls: true
+  network: tcp
+  servername: nl-1.claudify.org
+  ws-opts: null
+  reality-opts: null
+- name: RU Config_jo-07
+  type: vless
+  server: ru-1-direct.healingfluence.com
+  port: 8000
+  uuid: 3b7e9f84-af03-40a6-8b21-98527379f81d
+  udp: true
+  tls: true
+  network: tcp
+  servername: ru-1.claudify.org
+  ws-opts: null
+  reality-opts: null
+- name: BG Config_jo-08
+  type: vless
+  server: se-1-direct.healingfluence.com
+  port: 8000
+  uuid: 3b7e9f84-af03-40a6-8b21-98527379f81d
+  udp: true
+  tls: true
+  network: tcp
+  servername: se-1.claudify.org
+  ws-opts: null
+  reality-opts: null
+- name: BG Config_jo-09
+  type: vless
+  server: se-1-direct.healingfluence.com
+  port: 8000
+  uuid: 3b7e9f84-af03-40a6-8b21-98527379f81d
+  udp: true
+  tls: true
+  network: tcp
+  servername: se-1.claudify.org
+  ws-opts: null
+  reality-opts: null
+- name: TR Config_jo-10
+  type: vless
+  server: tr-1-direct.healingfluence.com
+  port: 8000
+  uuid: 3b7e9f84-af03-40a6-8b21-98527379f81d
+  udp: true
+  tls: true
+  network: tcp
+  servername: tr-1.claudify.org
+  ws-opts: null
+  reality-opts: null
+- name: UA Config_jo-11
+  type: vless
+  server: ua-1-direct.healingfluence.com
+  port: 8000
+  uuid: 3b7e9f84-af03-40a6-8b21-98527379f81d
+  udp: true
+  tls: true
+  network: tcp
+  servername: ua-1.claudify.org
+  ws-opts: null
+  reality-opts: null
+- name: AE Config_jo-12
+  type: vless
+  server: uae-1-direct.healingfluence.com
+  port: 8000
+  uuid: 3b7e9f84-af03-40a6-8b21-98527379f81d
+  udp: true
+  tls: true
+  network: tcp
+  servername: uae-1.claudify.org
+  ws-opts: null
+  reality-opts: null
+- name: GB Config_jo-13
+  type: vless
+  server: uk-1-direct.healingfluence.com
+  port: 8000
+  uuid: 3b7e9f84-af03-40a6-8b21-98527379f81d
+  udp: true
+  tls: true
+  network: tcp
+  servername: uk-1.claudify.org
+  ws-opts: null
+  reality-opts: null
+- name: US Config_jo-14
+  type: vless
+  server: usa-1-direct.healingfluence.com
+  port: 8000
+  uuid: 3b7e9f84-af03-40a6-8b21-98527379f81d
+  udp: true
+  tls: true
+  network: tcp
+  servername: usa-1.claudify.org
+  ws-opts: null
+  reality-opts: null
+- name: CH Config_jo-15
+  type: vless
+  server: ch-1-direct.healingfluence.com
+  port: 8000
+  uuid: 82ca91a1-2ff4-46d8-b8a5-cf30628406b0
+  udp: true
+  tls: true
+  network: tcp
+  servername: ch-1.claudify.org
+  ws-opts: null
+  reality-opts: null
+- name: DE Config_jo-16
+  type: vless
+  server: de-1-direct.healingfluence.com
+  port: 8000
+  uuid: 82ca91a1-2ff4-46d8-b8a5-cf30628406b0
+  udp: true
+  tls: true
+  network: tcp
+  servername: de-1.claudify.org
+  ws-opts: null
+  reality-opts: null
+- name: DE Config_jo-17
+  type: vless
+  server: de-1-direct.healingfluence.com
+  port: 8000
+  uuid: 82ca91a1-2ff4-46d8-b8a5-cf30628406b0
+  udp: true
+  tls: true
+  network: tcp
+  servername: de-1.claudify.org
+  ws-opts: null
+  reality-opts: null
+- name: FI Config_jo-18
+  type: vless
+  server: fin-1-direct.healingfluence.com
+  port: 8000
+  uuid: 82ca91a1-2ff4-46d8-b8a5-cf30628406b0
+  udp: true
+  tls: true
+  network: tcp
+  servername: fin-1.claudify.org
+  ws-opts: null
+  reality-opts: null
+- name: FR Config_jo-19
+  type: vless
+  server: fr-1-direct.healingfluence.com
+  port: 8000
+  uuid: 82ca91a1-2ff4-46d8-b8a5-cf30628406b0
+  udp: true
+  tls: true
+  network: tcp
+  servername: fr-1.claudify.org
+  ws-opts: null
+  reality-opts: null
+- name: NL Config_jo-20
+  type: vless
+  server: nl-1-direct.healingfluence.com
+  port: 8000
+  uuid: 82ca91a1-2ff4-46d8-b8a5-cf30628406b0
+  udp: true
+  tls: true
+  network: tcp
+  servername: nl-1.claudify.org
+  ws-opts: null
+  reality-opts: null
+- name: RU Config_jo-21
+  type: vless
+  server: ru-1-direct.healingfluence.com
+  port: 8000
+  uuid: 82ca91a1-2ff4-46d8-b8a5-cf30628406b0
+  udp: true
+  tls: true
+  network: tcp
+  servername: ru-1.claudify.org
+  ws-opts: null
+  reality-opts: null
+- name: BG Config_jo-22
+  type: vless
+  server: se-1-direct.healingfluence.com
+  port: 8000
+  uuid: 82ca91a1-2ff4-46d8-b8a5-cf30628406b0
+  udp: true
+  tls: true
+  network: tcp
+  servername: se-1.claudify.org
+  ws-opts: null
+  reality-opts: null
+- name: BG Config_jo-23
+  type: vless
+  server: se-1-direct.healingfluence.com
+  port: 8000
+  uuid: 82ca91a1-2ff4-46d8-b8a5-cf30628406b0
+  udp: true
+  tls: true
+  network: tcp
+  servername: se-1.claudify.org
+  ws-opts: null
+  reality-opts: null
+- name: TR Config_jo-24
+  type: vless
+  server: tr-1-direct.healingfluence.com
+  port: 8000
+  uuid: 82ca91a1-2ff4-46d8-b8a5-cf30628406b0
+  udp: true
+  tls: true
+  network: tcp
+  servername: tr-1.claudify.org
+  ws-opts: null
+  reality-opts: null
+- name: UA Config_jo-25
+  type: vless
+  server: ua-1-direct.healingfluence.com
+  port: 8000
+  uuid: 82ca91a1-2ff4-46d8-b8a5-cf30628406b0
+  udp: true
+  tls: true
+  network: tcp
+  servername: ua-1.claudify.org
+  ws-opts: null
+  reality-opts: null
+- name: AE Config_jo-26
+  type: vless
+  server: uae-1-direct.healingfluence.com
+  port: 8000
+  uuid: 82ca91a1-2ff4-46d8-b8a5-cf30628406b0
+  udp: true
+  tls: true
+  network: tcp
+  servername: uae-1.claudify.org
+  ws-opts: null
+  reality-opts: null
+- name: GB Config_jo-27
+  type: vless
+  server: uk-1-direct.healingfluence.com
+  port: 8000
+  uuid: 82ca91a1-2ff4-46d8-b8a5-cf30628406b0
+  udp: true
+  tls: true
+  network: tcp
+  servername: uk-1.claudify.org
+  ws-opts: null
+  reality-opts: null
+- name: US Config_jo-28
+  type: vless
+  server: usa-1-direct.healingfluence.com
+  port: 8000
+  uuid: 82ca91a1-2ff4-46d8-b8a5-cf30628406b0
+  udp: true
+  tls: true
+  network: tcp
+  servername: usa-1.claudify.org
+  ws-opts: null
+  reality-opts: null
+- name: IR Config_jo-29
+  type: vmess
+  server: ch-1-tun.claudify.org
+  port: 8080
+  uuid: f42cbb91-75b6-4ddb-909e-94beb917985a
+  alterId: 0
+  cipher: auto
+  tls: false
+  network: tcp
+  udp: true
+  ws-opts: null
+  servername: myket.ir
+- name: IR Config_jo-30
+  type: vmess
+  server: ch-1-tun.claudify.org
+  port: 8080
+  uuid: 347ff78e-15ca-4f22-a49b-bdf819adb29f
+  alterId: 0
+  cipher: auto
+  tls: false
+  network: tcp
+  udp: true
+  ws-opts: null
+  servername: telewebion.com
+- name: IR Config_jo-31
+  type: vmess
+  server: de-1-tun.claudify.org
+  port: 8080
+  uuid: f42cbb91-75b6-4ddb-909e-94beb917985a
+  alterId: 0
+  cipher: auto
+  tls: false
+  network: tcp
+  udp: true
+  ws-opts: null
+  servername: cafebazaar.ir
+- name: IR Config_jo-32
+  type: vmess
+  server: de-1-tun.claudify.org
+  port: 8080
+  uuid: 347ff78e-15ca-4f22-a49b-bdf819adb29f
+  alterId: 0
+  cipher: auto
+  tls: false
+  network: tcp
+  udp: true
+  ws-opts: null
+  servername: myket.ir
+- name: IR Config_jo-33
+  type: vmess
+  server: fin-1-tun.claudify.org
+  port: 8080
+  uuid: f42cbb91-75b6-4ddb-909e-94beb917985a
+  alterId: 0
+  cipher: auto
+  tls: false
+  network: tcp
+  udp: true
+  ws-opts: null
+  servername: cafebazaar.ir
+- name: IR Config_jo-34
+  type: vmess
+  server: fin-1-tun.claudify.org
+  port: 8080
+  uuid: 347ff78e-15ca-4f22-a49b-bdf819adb29f
+  alterId: 0
+  cipher: auto
+  tls: false
+  network: tcp
+  udp: true
+  ws-opts: null
+  servername: telewebion.com
+- name: IR Config_jo-35
+  type: vmess
+  server: fr-1-tun.claudify.org
+  port: 8080
+  uuid: 347ff78e-15ca-4f22-a49b-bdf819adb29f
+  alterId: 0
+  cipher: auto
+  tls: false
+  network: tcp
+  udp: true
+  ws-opts: null
+  servername: myket.ir
+- name: IR Config_jo-36
+  type: vmess
+  server: fr-1-tun.claudify.org
+  port: 8080
+  uuid: f42cbb91-75b6-4ddb-909e-94beb917985a
+  alterId: 0
+  cipher: auto
+  tls: false
+  network: tcp
+  udp: true
+  ws-opts: null
+  servername: telewebion.com
+- name: IR Config_jo-37
+  type: vmess
+  server: nl-1-tun.claudify.org
+  port: 8080
+  uuid: f42cbb91-75b6-4ddb-909e-94beb917985a
+  alterId: 0
+  cipher: auto
+  tls: false
+  network: tcp
+  udp: true
+  ws-opts: null
+  servername: cafebazaar.ir
+- name: IR Config_jo-38
+  type: vmess
+  server: nl-1-tun.claudify.org
+  port: 8080
+  uuid: 347ff78e-15ca-4f22-a49b-bdf819adb29f
+  alterId: 0
+  cipher: auto
+  tls: false
+  network: tcp
+  udp: true
+  ws-opts: null
+  servername: myket.ir
+- name: IR Config_jo-39
+  type: vmess
+  server: se-1-tun.claudify.org
+  port: 8080
+  uuid: f42cbb91-75b6-4ddb-909e-94beb917985a
+  alterId: 0
+  cipher: auto
+  tls: false
+  network: tcp
+  udp: true
+  ws-opts: null
+  servername: myket.ir
+- name: IR Config_jo-40
+  type: vmess
+  server: se-1-tun.claudify.org
+  port: 8080
+  uuid: 347ff78e-15ca-4f22-a49b-bdf819adb29f
+  alterId: 0
+  cipher: auto
+  tls: false
+  network: tcp
+  udp: true
+  ws-opts: null
+  servername: telewebion.com
+- name: IR Config_jo-41
+  type: vmess
+  server: tr-1-tun.claudify.org
+  port: 8080
+  uuid: f42cbb91-75b6-4ddb-909e-94beb917985a
+  alterId: 0
+  cipher: auto
+  tls: false
+  network: tcp
+  udp: true
+  ws-opts: null
+  servername: cafebazaar.ir
+- name: IR Config_jo-42
+  type: vmess
+  server: tr-1-tun.claudify.org
+  port: 8080
+  uuid: 347ff78e-15ca-4f22-a49b-bdf819adb29f
+  alterId: 0
+  cipher: auto
+  tls: false
+  network: tcp
+  udp: true
+  ws-opts: null
+  servername: myket.ir
+- name: IR Config_jo-43
+  type: vmess
+  server: ua-1-tun.claudify.org
+  port: 8080
+  uuid: 347ff78e-15ca-4f22-a49b-bdf819adb29f
+  alterId: 0
+  cipher: auto
+  tls: false
+  network: tcp
+  udp: true
+  ws-opts: null
+  servername: telewebion.com
+- name: IR Config_jo-44
+  type: vmess
+  server: ua-1-tun.claudify.org
+  port: 8080
+  uuid: f42cbb91-75b6-4ddb-909e-94beb917985a
+  alterId: 0
+  cipher: auto
+  tls: false
+  network: tcp
+  udp: true
+  ws-opts: null
+  servername: telewebion.com
+- name: IR Config_jo-45
+  type: vmess
+  server: uae-1-tun.claudify.org
+  port: 8080
+  uuid: f42cbb91-75b6-4ddb-909e-94beb917985a
+  alterId: 0
+  cipher: auto
+  tls: false
+  network: tcp
+  udp: true
+  ws-opts: null
+  servername: myket.ir
+- name: IR Config_jo-46
+  type: vmess
+  server: uae-1-tun.claudify.org
+  port: 8080
+  uuid: 347ff78e-15ca-4f22-a49b-bdf819adb29f
+  alterId: 0
+  cipher: auto
+  tls: false
+  network: tcp
+  udp: true
+  ws-opts: null
+  servername: telewebion.com
+- name: IR Config_jo-47
+  type: vmess
+  server: uk-1-tun.claudify.org
+  port: 8080
+  uuid: 347ff78e-15ca-4f22-a49b-bdf819adb29f
+  alterId: 0
+  cipher: auto
+  tls: false
+  network: tcp
+  udp: true
+  ws-opts: null
+  servername: cafebazaar.ir
+- name: IR Config_jo-48
+  type: vmess
+  server: uk-1-tun.claudify.org
+  port: 8080
+  uuid: f42cbb91-75b6-4ddb-909e-94beb917985a
+  alterId: 0
+  cipher: auto
+  tls: false
+  network: tcp
+  udp: true
+  ws-opts: null
+  servername: telewebion.com
+- name: IR Config_jo-49
+  type: vmess
+  server: usa-1-tun.claudify.org
+  port: 8080
+  uuid: 347ff78e-15ca-4f22-a49b-bdf819adb29f
+  alterId: 0
+  cipher: auto
+  tls: false
+  network: tcp
+  udp: true
+  ws-opts: null
+  servername: cafebazaar.ir
+- name: IR Config_jo-50
+  type: vmess
+  server: usa-1-tun.claudify.org
+  port: 8080
+  uuid: f42cbb91-75b6-4ddb-909e-94beb917985a
+  alterId: 0
+  cipher: auto
+  tls: false
+  network: tcp
+  udp: true
+  ws-opts: null
+  servername: cafebazaar.ir
+proxy-groups:
+- name: PROXY
+  type: select
+  proxies:
+  - ⚡ Auto-Select
+  - DIRECT
+  - CH Config_jo-01
+  - DE Config_jo-02
+  - DE Config_jo-03
+  - FI Config_jo-04
+  - FR Config_jo-05
+  - NL Config_jo-06
+  - RU Config_jo-07
+  - BG Config_jo-08
+  - BG Config_jo-09
+  - TR Config_jo-10
+  - UA Config_jo-11
+  - AE Config_jo-12
+  - GB Config_jo-13
+  - US Config_jo-14
+  - CH Config_jo-15
+  - DE Config_jo-16
+  - DE Config_jo-17
+  - FI Config_jo-18
+  - FR Config_jo-19
+  - NL Config_jo-20
+  - RU Config_jo-21
+  - BG Config_jo-22
+  - BG Config_jo-23
+  - TR Config_jo-24
+  - UA Config_jo-25
+  - AE Config_jo-26
+  - GB Config_jo-27
+  - US Config_jo-28
+  - IR Config_jo-29
+  - IR Config_jo-30
+  - IR Config_jo-31
+  - IR Config_jo-32
+  - IR Config_jo-33
+  - IR Config_jo-34
+  - IR Config_jo-35
+  - IR Config_jo-36
+  - IR Config_jo-37
+  - IR Config_jo-38
+  - IR Config_jo-39
+  - IR Config_jo-40
+  - IR Config_jo-41
+  - IR Config_jo-42
+  - IR Config_jo-43
+  - IR Config_jo-44
+  - IR Config_jo-45
+  - IR Config_jo-46
+  - IR Config_jo-47
+  - IR Config_jo-48
+  - IR Config_jo-49
+  - IR Config_jo-50
+- name: ⚡ Auto-Select
+  type: url-test
+  proxies:
+  - CH Config_jo-01
+  - DE Config_jo-02
+  - DE Config_jo-03
+  - FI Config_jo-04
+  - FR Config_jo-05
+  - NL Config_jo-06
+  - RU Config_jo-07
+  - BG Config_jo-08
+  - BG Config_jo-09
+  - TR Config_jo-10
+  - UA Config_jo-11
+  - AE Config_jo-12
+  - GB Config_jo-13
+  - US Config_jo-14
+  - CH Config_jo-15
+  - DE Config_jo-16
+  - DE Config_jo-17
+  - FI Config_jo-18
+  - FR Config_jo-19
+  - NL Config_jo-20
+  - RU Config_jo-21
+  - BG Config_jo-22
+  - BG Config_jo-23
+  - TR Config_jo-24
+  - UA Config_jo-25
+  - AE Config_jo-26
+  - GB Config_jo-27
+  - US Config_jo-28
+  - IR Config_jo-29
+  - IR Config_jo-30
+  - IR Config_jo-31
+  - IR Config_jo-32
+  - IR Config_jo-33
+  - IR Config_jo-34
+  - IR Config_jo-35
+  - IR Config_jo-36
+  - IR Config_jo-37
+  - IR Config_jo-38
+  - IR Config_jo-39
+  - IR Config_jo-40
+  - IR Config_jo-41
+  - IR Config_jo-42
+  - IR Config_jo-43
+  - IR Config_jo-44
+  - IR Config_jo-45
+  - IR Config_jo-46
+  - IR Config_jo-47
+  - IR Config_jo-48
+  - IR Config_jo-49
+  - IR Config_jo-50
+  url: http://www.gstatic.com/generate_204
+  interval: 300
+- name: 🇮🇷 Iran
+  type: select
+  proxies:
+  - DIRECT
+  - PROXY
+- name: 🛑 Block-Ads
+  type: select
+  proxies:
+  - REJECT
+  - DIRECT
+rule-providers:
+  iran_domains:
+    type: http
+    behavior: domain
+    url: https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/iran-domains.txt
+    path: ./rules/iran_domains.txt
+    interval: 86400
+  blocked_domains:
+    type: http
+    behavior: domain
+    url: https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/blocked-domains.txt
+    path: ./rules/blocked_domains.txt
+    interval: 86400
+  ad_domains:
+    type: http
+    behavior: domain
+    url: https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/ad-domains.txt
+    path: ./rules/ad_domains.txt
+    interval: 86400
+rules:
+- RULE-SET,ad_domains,🛑 Block-Ads
+- RULE-SET,blocked_domains,PROXY
+- RULE-SET,iran_domains,🇮🇷 Iran
+- GEOIP,IR,🇮🇷 Iran
+- MATCH,PROXY
