@@ -5,7 +5,7 @@ import json
 import yaml
 import os
 import uuid
-import requests  # اضافه شده برای دانلود لینک‌های ساب
+import requests
 from urllib.parse import urlparse, parse_qs, unquote, urlunparse
 from pyrogram import Client, enums
 from pyrogram.errors import FloodWait
@@ -77,6 +77,25 @@ class V2RayExtractor:
     def __init__(self):
         self.raw_configs: Set[str] = set()
         self.client = Client("my_account", api_id=API_ID, api_hash=API_HASH, session_string=SESSION_STRING)
+
+    # ---[ Helper Method: IP to Country ]---
+    def get_country_iso_code(self, hostname: str) -> str:
+        """Gets the country ISO code for a given hostname."""
+        if not hostname: return "N/A"
+        if not GEOIP_READER: return "N/A"
+        try:
+            ip_address = hostname
+            try:
+                socket.inet_aton(hostname)
+            except socket.error:
+                ip_address = socket.gethostbyname(hostname)
+            
+            response = GEOIP_READER.country(ip_address)
+            return response.country.iso_code or "N/A"
+        except (geoip2.errors.AddressNotFoundError, socket.gaierror):
+            return "N/A"
+        except Exception:
+            return "N/A"
 
     # ---[ Parsing Logic Methods ]---
     def _is_valid_shadowsocks(self, ss_url: str) -> bool:
@@ -366,7 +385,7 @@ class V2RayExtractor:
                 continue
 
             host_to_check = proxy.get('servername') or proxy.get('sni') or proxy.get('server', '')
-            country_code = get_country_iso_code(host_to_check)
+            country_code = self.get_country_iso_code(host_to_check)
             country_flag = COUNTRY_FLAGS.get(country_code, '🏳️')
 
             name_compatible = f"{country_code} Config_jo-{i:02d}"
