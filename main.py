@@ -6,7 +6,7 @@ import yaml
 import os
 import uuid
 from urllib.parse import urlparse, parse_qs, unquote, urlunparse
-from pyrogram import Client, enums  # enums رو اضافه کردم که ارور نده
+from pyrogram import Client
 from pyrogram.errors import FloodWait
 from typing import Optional, Dict, Any, Set, List
 import socket
