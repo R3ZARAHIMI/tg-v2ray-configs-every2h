@@ -6,7 +6,7 @@ import yaml
 import os
 import uuid
 from urllib.parse import urlparse, parse_qs, unquote, urlunparse
-from pyrogram import Client
+from pyrogram import Client, enums  # enums اضافه شد
 from pyrogram.errors import FloodWait
 from typing import Optional, Dict, Any, Set, List
 import socket
@@ -269,11 +269,30 @@ class V2RayExtractor:
             async for message in self.client.get_chat_history(chat_id, limit=limit):
                 if not (text_to_check := message.text or message.caption): continue
                 texts_to_scan = [text_to_check]
+                
+                # --- FIX: Handle configs broken in code/quote blocks ---
+                if message.entities:
+                    for entity in message.entities:
+                        if entity.type in [enums.MessageEntityType.CODE, enums.MessageEntityType.PRE, enums.MessageEntityType.BLOCKQUOTE]:
+                            segment = text_to_check[entity.offset : entity.offset + entity.length]
+                            # Count how many protocols exist in this segment
+                            protocol_count = sum(1 for p in ['vless://', 'vmess://', 'ss://', 'trojan://', 'hy2://', 'hysteria2://', 'tuic://'] if p in segment)
+                            
+                            # If only one config is present, remove newlines to fix broken links
+                            if protocol_count == 1:
+                                cleaned_segment = segment.replace('\n', '').replace(' ', '')
+                                texts_to_scan.append(cleaned_segment)
+                            else:
+                                texts_to_scan.append(segment)
+                # -----------------------------------------------------
+
                 for b64_str in BASE64_PATTERN.findall(text_to_check):
                     try:
                         texts_to_scan.append(base64.b64decode(b64_str + '=' * (-len(b64_str) % 4)).decode('utf-8', errors='ignore'))
                     except Exception: continue
+                
                 for text in texts_to_scan: self.raw_configs.update(self.extract_configs_from_text(text))
+        
         except FloodWait as e:
             if retries <= 0: return print(f"❌ Max retries reached for chat {chat_id}.")
             wait_time = min(e.value + 5, 300)
