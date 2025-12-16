@@ -52,8 +52,7 @@ API_HASH = os.environ.get("API_HASH")
 SESSION_STRING = os.environ.get("SESSION_STRING")
 CHANNELS_STR = os.environ.get('CHANNELS_LIST')
 GROUPS_STR = os.environ.get('GROUPS_LIST')
-# لیمیت رو بالا میذاریم که مطمئن شیم
-CHANNEL_SEARCH_LIMIT = int(os.environ.get('CHANNEL_SEARCH_LIMIT', 100))
+CHANNEL_SEARCH_LIMIT = int(os.environ.get('CHANNEL_SEARCH_LIMIT', 200)) # Increased
 GROUP_SEARCH_LIMIT = int(os.environ.get('GROUP_SEARCH_LIMIT', 50))
 
 OUTPUT_YAML_PRO = "Config-jo.yaml"
@@ -61,18 +60,16 @@ OUTPUT_TXT = "Config_jo.txt"
 OUTPUT_JSON_CONFIG_JO = "Config_jo.json"
 OUTPUT_ORIGINAL_CONFIGS = "Original-Configs.txt"
 
-# پروتکل ها (Case Insensitive)
-# این پترن‌ها طوری طراحی شدن که حتی اگه لینک تکه تکه شده باشه ولی کاراکترهای اصلیش باشه، پیداش کنن
-SKELETON_PROTOCOLS = [
-    re.compile(r'(vless://[a-z0-9\-._~:/?#\[\]@!$&\'()*+,;=%]+)', re.IGNORECASE),
-    re.compile(r'(vmess://[a-z0-9+/=]+)', re.IGNORECASE),
-    re.compile(r'(trojan://[a-z0-9\-._~:/?#\[\]@!$&\'()*+,;=%]+)', re.IGNORECASE),
-    re.compile(r'(ss://[a-z0-9\-._~:/?#\[\]@!$&\'()*+,;=%]+)', re.IGNORECASE),
-    re.compile(r'(hysteria2://[a-z0-9\-._~:/?#\[\]@!$&\'()*+,;=%]+)', re.IGNORECASE),
-    re.compile(r'(hy2://[a-z0-9\-._~:/?#\[\]@!$&\'()*+,;=%]+)', re.IGNORECASE),
-    re.compile(r'(tuic://[a-z0-9\-._~:/?#\[\]@!$&\'()*+,;=%]+)', re.IGNORECASE)
+# V2Ray patterns that respect boundaries like quotes
+V2RAY_PATTERNS = [
+    re.compile(r'(vless:\/\/[^\s\'\"<>`]+)', re.IGNORECASE),
+    re.compile(r'(vmess:\/\/[^\s\'\"<>`]+)', re.IGNORECASE),
+    re.compile(r'(trojan:\/\/[^\s\'\"<>`]+)', re.IGNORECASE),
+    re.compile(r'(ss:\/\/[^\s\'\"<>`]+)', re.IGNORECASE),
+    re.compile(r"(hy2://[^\s'\"<>`]+)", re.IGNORECASE),
+    re.compile(r"(hysteria2://[^\s'\"<>`]+)", re.IGNORECASE),
+    re.compile(r"(tuic://[^\s'\"<>`]+)", re.IGNORECASE)
 ]
-
 URL_PATTERN = re.compile(r'(https?://[^\s]+)')
 BASE64_PATTERN = re.compile(r"([A-Za-z0-9+/=]{50,})", re.MULTILINE)
 
@@ -91,6 +88,7 @@ class V2RayExtractor:
         self.raw_configs: Set[str] = set()
         self.client = Client("my_account", api_id=API_ID, api_hash=API_HASH, session_string=SESSION_STRING)
 
+    # ---[ Parsing Logic ]---
     def _is_valid_shadowsocks(self, ss_url: str) -> bool:
         try:
             parsed = urlparse(ss_url)
@@ -114,47 +112,41 @@ class V2RayExtractor:
                 except: return None
         return None
 
-    def parse_vmess(self, u: str) -> Optional[Dict[str, Any]]:
+    # Full Parsers (Standard)
+    def parse_vmess(self, u):
         try:
-            b64 = u[8:]; decoded = base64.b64decode(b64 + '=' * (-len(b64) % 4)).decode('utf-8')
-            c = json.loads(decoded)
-            return {'name': c.get('ps', ''), 'type': 'vmess', 'server': c.get('add'), 'port': int(c.get('port')), 'uuid': c.get('id'), 'alterId': int(c.get('aid', 0)), 'cipher': c.get('scy', 'auto'), 'tls': c.get('tls')=='tls', 'network': c.get('net', 'tcp'), 'ws-opts': {'path': c.get('path', '/'), 'headers': {'Host': c.get('host', '')}} if c.get('net')=='ws' else None, 'servername': c.get('sni', c.get('host'))}
+            b = u[8:]; d = base64.b64decode(b + '=' * (-len(b) % 4)).decode('utf-8'); c = json.loads(d)
+            return {'name': c.get('ps',''), 'type': 'vmess', 'server': c.get('add'), 'port': int(c.get('port')), 'uuid': c.get('id'), 'alterId': int(c.get('aid',0)), 'cipher': c.get('scy','auto'), 'tls': c.get('tls')=='tls', 'network': c.get('net','tcp'), 'ws-opts': {'path': c.get('path','/'), 'headers': {'Host': c.get('host','')}} if c.get('net')=='ws' else None, 'servername': c.get('sni', c.get('host'))}
         except: return None
-
-    def parse_vless(self, u: str) -> Optional[Dict[str, Any]]:
+    def parse_vless(self, u):
         try:
             p = urlparse(u); q = parse_qs(p.query)
             return {'name': unquote(p.fragment), 'type': 'vless', 'server': p.hostname, 'port': p.port, 'uuid': p.username, 'tls': q.get('security',[''])[0] in ['tls','reality'], 'network': q.get('type',['tcp'])[0], 'servername': q.get('sni',[''])[0], 'flow': q.get('flow',[''])[0], 'reality-opts': {'public-key': q.get('pbk',[''])[0], 'short-id': q.get('sid',[''])[0]} if q.get('security',[''])[0]=='reality' else None, 'ws-opts': {'path': q.get('path',['/'])[0], 'headers': {'Host': q.get('host',[''])[0]}} if q.get('type',[''])[0]=='ws' else None}
         except: return None
-
-    def parse_trojan(self, u: str) -> Optional[Dict[str, Any]]:
+    def parse_trojan(self, u):
         try:
             p = urlparse(u); q = parse_qs(p.query)
             return {'name': unquote(p.fragment), 'type': 'trojan', 'server': p.hostname, 'port': p.port, 'password': p.username, 'sni': q.get('sni',[''])[0] or p.hostname}
         except: return None
-
-    def parse_shadowsocks(self, u: str) -> Optional[Dict[str, Any]]:
+    def parse_shadowsocks(self, u):
         try:
             p = urlparse(u)
             if '@' in p.netloc:
-                user = base64.b64decode(p.netloc.split('@')[0] + '='*4).decode()
-                cipher, pw = user.split(':')
-                return {'name': unquote(p.fragment), 'type': 'ss', 'server': p.hostname, 'port': p.port, 'cipher': cipher, 'password': pw}
+                u = base64.b64decode(p.netloc.split('@')[0]+'='*4).decode(); c,pw = u.split(':')
+                return {'name': unquote(p.fragment), 'type': 'ss', 'server': p.hostname, 'port': p.port, 'cipher': c, 'password': pw}
         except: return None
-
-    def parse_hysteria2(self, u: str) -> Optional[Dict[str, Any]]:
+    def parse_hysteria2(self, u):
         try:
             p = urlparse(u); q = parse_qs(p.query)
             return {'name': unquote(p.fragment), 'type': 'hysteria2', 'server': p.hostname, 'port': p.port, 'auth': p.username, 'up': q.get('up',[''])[0], 'down': q.get('down',[''])[0], 'sni': q.get('sni',[''])[0], 'skip-cert-verify': q.get('insecure',['0'])[0]=='1', 'obfs': q.get('obfs',[''])[0], 'obfs-password': q.get('obfs-password',[''])[0]}
         except: return None
-
-    def parse_tuic(self, u: str) -> Optional[Dict[str, Any]]:
+    def parse_tuic(self, u):
         try:
              p = urlparse(u); q = parse_qs(p.query)
              return {'name': unquote(p.fragment), 'type': 'tuic', 'server': p.hostname, 'port': p.port, 'uuid': p.username, 'password': q.get('password',[''])[0], 'sni': q.get('sni',[''])[0], 'skip-cert-verify': q.get('allow_insecure',['0'])[0]=='1'}
         except: return None
 
-    def convert_to_singbox_outbound(self, p: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    def convert_to_singbox_outbound(self, p):
         if not p: return None
         t = p['type']; out = {'type': t if t!='ss' else 'shadowsocks', 'tag': p['name'], 'server': p['server'], 'server_port': p['port']}
         if t=='vmess': out.update({'uuid': p['uuid'], 'alter_id': p['alterId'], 'security': p['cipher'], 'tls': {'enabled': True, 'server_name': p['servername']} if p.get('tls') else None})
@@ -167,12 +159,8 @@ class V2RayExtractor:
 
     def extract_configs_from_text(self, text: str) -> Set[str]:
         found = set()
-        # Clean the text first (remove everything except config-safe chars)
-        # This fixes broken newlines, spaces, quotes, etc.
-        skeleton = re.sub(r'[^a-zA-Z0-9\-._~:/?#\[\]@!$&\'()*+,;=%]', '', text)
-        
-        for pattern in SKELETON_PROTOCOLS:
-            found.update(pattern.findall(skeleton))
+        for pattern in V2RAY_PATTERNS:
+            found.update(pattern.findall(text))
         return {self._correct_config_type(u) for u in found if self._validate_config_type(u)}
 
     def fetch_subscription_content(self, url: str) -> str:
@@ -181,10 +169,10 @@ class V2RayExtractor:
             print(f"      🌍 Fetching sub: {url[:40]}...")
             resp = requests.get(url, timeout=5)
             if resp.status_code == 200:
-                content = resp.text
-                try: content = base64.b64decode(content + '=' * (-len(content) % 4)).decode('utf-8', errors='ignore')
+                c = resp.text
+                try: c = base64.b64decode(c + '=' * (-len(c) % 4)).decode('utf-8', errors='ignore')
                 except: pass
-                return content
+                return c
         except: pass
         return ""
 
@@ -195,33 +183,49 @@ class V2RayExtractor:
             async for message in self.client.get_chat_history(chat_id, limit=limit):
                 count += 1
                 
-                # ---[ RAW DUMP STRATEGY ]---
-                # Convert the ENTIRE message object to a string to catch everything
-                # (caption, text, web_page description, reply_markup, document attributes...)
-                raw_message_dump = str(message)
+                # -------------------------------------------------------------
+                # 🚀 TERMINATOR STRATEGY: DUMP EVERYTHING & NUKE SPACES
+                # -------------------------------------------------------------
                 
-                # If you want to debug what the bot sees for a specific message:
-                if count <= 5: 
-                    print(f"   🔹 Msg {message.id} Size: {len(raw_message_dump)} chars")
+                # 1. Get raw structure (handles hidden text, captions, raw data)
+                raw_dump = str(message)
+                
+                # 2. Create list of texts to scan
+                texts_to_scan = [raw_dump] # Scan raw
+                
+                # 3. NUKE SPACES (The Fix): Remove all newlines/spaces from raw dump
+                # This fixes the broken "vless://..." across lines in the raw structure
+                clean_dump = re.sub(r'\s+', '', raw_dump)
+                texts_to_scan.append(clean_dump)
 
-                texts_to_scan = [raw_message_dump] # Scan the whole raw dump
+                # 4. Download ANY file (No extension check, size < 2MB)
+                if message.document and message.document.file_size < 2000000:
+                     try:
+                         print(f"      📂 Downloading file: {message.document.file_name}")
+                         path = await self.client.download_media(message)
+                         with open(path, 'r', encoding='utf-8', errors='ignore') as f:
+                             content = f.read()
+                             texts_to_scan.append(content) # Original
+                             texts_to_scan.append(re.sub(r'\s+', '', content)) # Cleaned
+                         os.remove(path)
+                     except Exception as e: pass
 
-                # Also fetch external links just in case
-                found_urls = URL_PATTERN.findall(raw_message_dump)
+                # 5. Extract Links/Buttons (Standard)
+                found_urls = URL_PATTERN.findall(raw_dump) # Use raw dump for URLs too
                 for url in found_urls:
-                    # Only fetch if it looks like a sub link (avoiding common social media)
-                    if not any(x in url for x in ['t.me', 'google', 'instagram', 'twitter']):
-                        if sub := self.fetch_subscription_content(url): 
-                            texts_to_scan.append(sub)
+                    if sub := self.fetch_subscription_content(url):
+                        texts_to_scan.append(sub)
+                        texts_to_scan.append(re.sub(r'\s+', '', sub))
 
-                # Base64 in raw dump
-                for b64_str in BASE64_PATTERN.findall(raw_message_dump):
+                # 6. Base64
+                for b64_str in BASE64_PATTERN.findall(clean_dump): # Scan cleaned dump for B64
                     try:
-                        decoded = base64.b64decode(b64_str + '=' * (-len(b64_str) % 4)).decode('utf-8', errors='ignore')
-                        texts_to_scan.append(decoded)
+                        d = base64.b64decode(b64_str + '=' * (-len(b64_str) % 4)).decode('utf-8', errors='ignore')
+                        texts_to_scan.append(d)
+                        texts_to_scan.append(re.sub(r'\s+', '', d))
                     except: continue
 
-                # Extract
+                # 7. FINAL EXTRACTION
                 initial = len(self.raw_configs)
                 for txt in texts_to_scan:
                     if txt: self.raw_configs.update(self.extract_configs_from_text(txt))
@@ -229,8 +233,7 @@ class V2RayExtractor:
                 if len(self.raw_configs) > initial:
                     print(f"      🎉 Found {len(self.raw_configs) - initial} configs in Msg {message.id}!")
 
-            if count == 0:
-                print(f"❌ ERROR: No messages found in {chat_id}. Check permissions/ID!")
+            if count == 0: print(f"❌ ERROR: No messages found in {chat_id}.")
 
         except (ChannelInvalid, ChannelPrivate): print(f"❌ Error: Chat {chat_id} is INVALID/PRIVATE.")
         except FloodWait as e:
@@ -248,7 +251,6 @@ class V2RayExtractor:
             if p := self.parse_config_for_clash(u):
                 host = p.get('servername') or p.get('sni') or p.get('server')
                 cc = get_country_iso_code(host)
-                flag = COUNTRY_FLAGS.get(cc, '🏳️')
                 p['name'] = f"{cc} Config_jo-{len(valid)+1:02d}"
                 valid.append(p)
         
@@ -262,7 +264,7 @@ class V2RayExtractor:
         except Exception as e: print(f"❌ Save error: {e}")
 
 async def main():
-    print("🚀 Starting config extractor (RAW DUMP MODE)...")
+    print("🚀 Starting config extractor (TERMINATOR MODE)...")
     load_ip_data()
     extractor = V2RayExtractor()
     async with extractor.client:
