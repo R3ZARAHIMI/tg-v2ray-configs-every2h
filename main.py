@@ -52,8 +52,8 @@ API_HASH = os.environ.get("API_HASH")
 SESSION_STRING = os.environ.get("SESSION_STRING")
 CHANNELS_STR = os.environ.get('CHANNELS_LIST')
 GROUPS_STR = os.environ.get('GROUPS_LIST')
-# Increase limit significantly to find old messages
-CHANNEL_SEARCH_LIMIT = int(os.environ.get('CHANNEL_SEARCH_LIMIT', 200))
+# لیمیت رو بالا میذاریم که مطمئن شیم
+CHANNEL_SEARCH_LIMIT = int(os.environ.get('CHANNEL_SEARCH_LIMIT', 100))
 GROUP_SEARCH_LIMIT = int(os.environ.get('GROUP_SEARCH_LIMIT', 50))
 
 OUTPUT_YAML_PRO = "Config-jo.yaml"
@@ -61,12 +61,18 @@ OUTPUT_TXT = "Config_jo.txt"
 OUTPUT_JSON_CONFIG_JO = "Config_jo.json"
 OUTPUT_ORIGINAL_CONFIGS = "Original-Configs.txt"
 
-V2RAY_PATTERNS = [
-    re.compile(r'(vless:\/\/[^\s\'\"<>`]+)'), re.compile(r'(vmess:\/\/[^\s\'\"<>`]+)'),
-    re.compile(r'(trojan:\/\/[^\s\'\"<>`]+)'), re.compile(r'(ss:\/\/[^\s\'\"<>`]+)'),
-    re.compile(r"(hy2://[^\s'\"<>`]+)"), re.compile(r"(hysteria2://[^\s'\"<>`]+)"),
-    re.compile(r"(tuic://[^\s'\"<>`]+)")
+# پروتکل ها (Case Insensitive)
+# این پترن‌ها طوری طراحی شدن که حتی اگه لینک تکه تکه شده باشه ولی کاراکترهای اصلیش باشه، پیداش کنن
+SKELETON_PROTOCOLS = [
+    re.compile(r'(vless://[a-z0-9\-._~:/?#\[\]@!$&\'()*+,;=%]+)', re.IGNORECASE),
+    re.compile(r'(vmess://[a-z0-9+/=]+)', re.IGNORECASE),
+    re.compile(r'(trojan://[a-z0-9\-._~:/?#\[\]@!$&\'()*+,;=%]+)', re.IGNORECASE),
+    re.compile(r'(ss://[a-z0-9\-._~:/?#\[\]@!$&\'()*+,;=%]+)', re.IGNORECASE),
+    re.compile(r'(hysteria2://[a-z0-9\-._~:/?#\[\]@!$&\'()*+,;=%]+)', re.IGNORECASE),
+    re.compile(r'(hy2://[a-z0-9\-._~:/?#\[\]@!$&\'()*+,;=%]+)', re.IGNORECASE),
+    re.compile(r'(tuic://[a-z0-9\-._~:/?#\[\]@!$&\'()*+,;=%]+)', re.IGNORECASE)
 ]
+
 URL_PATTERN = re.compile(r'(https?://[^\s]+)')
 BASE64_PATTERN = re.compile(r"([A-Za-z0-9+/=]{50,})", re.MULTILINE)
 
@@ -85,7 +91,6 @@ class V2RayExtractor:
         self.raw_configs: Set[str] = set()
         self.client = Client("my_account", api_id=API_ID, api_hash=API_HASH, session_string=SESSION_STRING)
 
-    # ---[ Parsing Helpers ]---
     def _is_valid_shadowsocks(self, ss_url: str) -> bool:
         try:
             parsed = urlparse(ss_url)
@@ -99,17 +104,16 @@ class V2RayExtractor:
         return config_url
 
     def _validate_config_type(self, config_url: str) -> bool:
-        return any(config_url.startswith(p) for p in ['vless://', 'vmess://', 'trojan://', 'ss://', 'hy2://', 'hysteria2://', 'tuic://'])
+        return any(config_url.lower().startswith(p) for p in ['vless://', 'vmess://', 'trojan://', 'ss://', 'hy2://', 'hysteria2://', 'tuic://'])
 
     def parse_config_for_clash(self, config_url: str) -> Optional[Dict[str, Any]]:
         parsers = {'vmess://': self.parse_vmess, 'vless://': self.parse_vless, 'trojan://': self.parse_trojan, 'ss://': self.parse_shadowsocks, 'hysteria2://': self.parse_hysteria2, 'hy2://': self.parse_hysteria2, 'tuic://': self.parse_tuic}
         for prefix, parser in parsers.items():
-            if config_url.startswith(prefix):
+            if config_url.lower().startswith(prefix):
                 try: return parser(config_url)
                 except: return None
         return None
 
-    # --- Parsers ---
     def parse_vmess(self, u: str) -> Optional[Dict[str, Any]]:
         try:
             b64 = u[8:]; decoded = base64.b64decode(b64 + '=' * (-len(b64) % 4)).decode('utf-8')
@@ -163,8 +167,12 @@ class V2RayExtractor:
 
     def extract_configs_from_text(self, text: str) -> Set[str]:
         found = set()
-        for pattern in V2RAY_PATTERNS:
-            found.update(pattern.findall(text))
+        # Clean the text first (remove everything except config-safe chars)
+        # This fixes broken newlines, spaces, quotes, etc.
+        skeleton = re.sub(r'[^a-zA-Z0-9\-._~:/?#\[\]@!$&\'()*+,;=%]', '', text)
+        
+        for pattern in SKELETON_PROTOCOLS:
+            found.update(pattern.findall(skeleton))
         return {self._correct_config_type(u) for u in found if self._validate_config_type(u)}
 
     def fetch_subscription_content(self, url: str) -> str:
@@ -186,36 +194,31 @@ class V2RayExtractor:
             count = 0
             async for message in self.client.get_chat_history(chat_id, limit=limit):
                 count += 1
-                text_to_check = message.text or message.caption or ""
                 
-                # DEBUG PRINT: Show exactly what is being scanned
-                if count <= 5: # Only show first 5 to avoid spam, but proves access
-                    snippet = text_to_check[:50].replace('\n', ' ')
-                    print(f"   🔹 Msg {message.id}: {snippet}...")
+                # ---[ RAW DUMP STRATEGY ]---
+                # Convert the ENTIRE message object to a string to catch everything
+                # (caption, text, web_page description, reply_markup, document attributes...)
+                raw_message_dump = str(message)
+                
+                # If you want to debug what the bot sees for a specific message:
+                if count <= 5: 
+                    print(f"   🔹 Msg {message.id} Size: {len(raw_message_dump)} chars")
 
-                texts_to_scan = [text_to_check]
+                texts_to_scan = [raw_message_dump] # Scan the whole raw dump
 
-                # -------------------------------------------------------------
-                # ☢️ NUCLEAR FIX: ALWAYS CLEAN THE WHOLE TEXT
-                # -------------------------------------------------------------
-                # This ignores entities/formatting and blindly forces links together.
-                # It fixes broken lines in quotes, code blocks, or normal text.
-                if text_to_check:
-                    nuclear_clean = text_to_check.replace('\n', '').replace(' ', '')
-                    texts_to_scan.append(nuclear_clean)
-                # -------------------------------------------------------------
-
-                # Text Links
-                found_urls = URL_PATTERN.findall(text_to_check)
-                if message.entities:
-                    for entity in message.entities:
-                         if entity.type == enums.MessageEntityType.TEXT_LINK and entity.url: found_urls.append(entity.url)
+                # Also fetch external links just in case
+                found_urls = URL_PATTERN.findall(raw_message_dump)
                 for url in found_urls:
-                    if sub := self.fetch_subscription_content(url): texts_to_scan.append(sub)
+                    # Only fetch if it looks like a sub link (avoiding common social media)
+                    if not any(x in url for x in ['t.me', 'google', 'instagram', 'twitter']):
+                        if sub := self.fetch_subscription_content(url): 
+                            texts_to_scan.append(sub)
 
-                # Base64
-                for b64_str in BASE64_PATTERN.findall(text_to_check):
-                    try: texts_to_scan.append(base64.b64decode(b64_str + '=' * (-len(b64_str) % 4)).decode('utf-8', errors='ignore'))
+                # Base64 in raw dump
+                for b64_str in BASE64_PATTERN.findall(raw_message_dump):
+                    try:
+                        decoded = base64.b64decode(b64_str + '=' * (-len(b64_str) % 4)).decode('utf-8', errors='ignore')
+                        texts_to_scan.append(decoded)
                     except: continue
 
                 # Extract
@@ -238,7 +241,7 @@ class V2RayExtractor:
     def save_files(self):
         print(f"\n⚙️ Saving {len(self.raw_configs)} configs...")
         if not self.raw_configs: return
-        with open(OUTPUT_ORIGINAL_CONFIGS, 'w', encoding='utf-8') as f: f.write("\n".join(self.raw_configs))
+        with open(OUTPUT_ORIGINAL_CONFIGS, 'w') as f: f.write("\n".join(self.raw_configs))
         
         valid = []
         for u in self.raw_configs:
@@ -259,7 +262,7 @@ class V2RayExtractor:
         except Exception as e: print(f"❌ Save error: {e}")
 
 async def main():
-    print("🚀 Starting config extractor (NUCLEAR MODE)...")
+    print("🚀 Starting config extractor (RAW DUMP MODE)...")
     load_ip_data()
     extractor = V2RayExtractor()
     async with extractor.client:
