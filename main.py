@@ -267,57 +267,61 @@ class V2RayExtractor:
         try:
             print(f"🔍 Searching in chat {chat_id} (limit: {limit} messages)...")
             async for message in self.client.get_chat_history(chat_id, limit=limit):
-                if not (text_to_check := message.text or message.caption): continue
+                # 1. Basic Text Extraction
+                text_to_check = message.text or message.caption or ""
+                
+                # DEBUG LOG: ببینیم اصلا پیامی دریافت میشه یا نه
+                if text_to_check:
+                    print(f"   📄 Msg found (len={len(text_to_check)}): {text_to_check[:30].replace(chr(10), ' ')}...")
+                else:
+                    # اگر متنی نیست، شاید فایل یا سرویس باشه
+                    pass
+
                 texts_to_scan = [text_to_check]
                 
-                # --- FIX: Robustly handle configs in Code/Quote blocks (even if broken by newlines) ---
+                # 2. Extract from Entities (Text Links, Code, Pre, etc.)
                 if message.entities:
                     for entity in message.entities:
-                        # Define target entity types. Use getattr to avoid crash on older Pyrogram versions without BLOCKQUOTE
+                        # A. Handle "Text Links" (Hyperlinks hiding the config)
+                        if entity.type == enums.MessageEntityType.TEXT_LINK:
+                            if entity.url:
+                                texts_to_scan.append(entity.url)
+                                # DEBUG
+                                print(f"      🔗 Found Text Link: {entity.url[:30]}...")
+
+                        # B. Handle Code/Pre/Blockquote (Force Clean Newlines)
                         target_types = [enums.MessageEntityType.CODE, enums.MessageEntityType.PRE]
                         if hasattr(enums.MessageEntityType, 'BLOCKQUOTE'):
                             target_types.append(enums.MessageEntityType.BLOCKQUOTE)
-                            
+                        
                         if entity.type in target_types:
-                            block_text = text_to_check[entity.offset : entity.offset + entity.length]
+                            # Extract raw content of the block
+                            raw_block = text_to_check[entity.offset : entity.offset + entity.length]
                             
-                            # Identify ALL protocol start positions inside this block
-                            protocol_indices = []
-                            protocols = ['vless://', 'vmess://', 'trojan://', 'ss://', 'hy2://', 'hysteria2://', 'tuic://']
+                            # STRATEGY: Aggressive Cleaning
+                            # حذف تمام اینترها و فاصله‌ها در این بلوک خاص برای چسباندن لینک‌های شکسته
+                            cleaned_block = raw_block.replace('\n', '').replace(' ', '')
+                            texts_to_scan.append(cleaned_block)
                             
-                            for proto in protocols:
-                                start = 0
-                                while True:
-                                    idx = block_text.find(proto, start)
-                                    if idx == -1: break
-                                    protocol_indices.append(idx)
-                                    start = idx + 1
-                            
-                            if not protocol_indices:
-                                continue
-                                
-                            # Sort by position to process them in order
-                            protocol_indices.sort()
-                            
-                            # Process each segment (from one protocol start to the next)
-                            for i, start_idx in enumerate(protocol_indices):
-                                # The end of this config is either the start of the next one, or the end of the block
-                                end_idx = protocol_indices[i+1] if i + 1 < len(protocol_indices) else len(block_text)
-                                
-                                chunk = block_text[start_idx:end_idx]
-                                
-                                # CRITICAL: Remove ALL whitespace (newlines, spaces) from the chunk to fix broken links
-                                cleaned_chunk = "".join(chunk.split())
-                                
-                                texts_to_scan.append(cleaned_chunk)
-                # --------------------------------------------------------------------------------------
+                            # Also append raw block just in case regex handles it better
+                            texts_to_scan.append(raw_block)
 
+                # 3. Base64 Handling
                 for b64_str in BASE64_PATTERN.findall(text_to_check):
                     try:
-                        texts_to_scan.append(base64.b64decode(b64_str + '=' * (-len(b64_str) % 4)).decode('utf-8', errors='ignore'))
+                        decoded = base64.b64decode(b64_str + '=' * (-len(b64_str) % 4)).decode('utf-8', errors='ignore')
+                        texts_to_scan.append(decoded)
                     except Exception: continue
                 
-                for text in texts_to_scan: self.raw_configs.update(self.extract_configs_from_text(text))
+                # 4. Final Extraction
+                initial_count = len(self.raw_configs)
+                for text in texts_to_scan: 
+                    if not text: continue
+                    self.raw_configs.update(self.extract_configs_from_text(text))
+                
+                new_found = len(self.raw_configs) - initial_count
+                if new_found > 0:
+                    print(f"      🎉 Found {new_found} new config(s) in this message!")
         
         except FloodWait as e:
             if retries <= 0: return print(f"❌ Max retries reached for chat {chat_id}.")
