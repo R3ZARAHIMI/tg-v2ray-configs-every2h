@@ -6,7 +6,7 @@ import yaml
 import os
 import uuid
 from urllib.parse import urlparse, parse_qs, unquote, urlunparse
-from pyrogram import Client
+from pyrogram import Client, enums
 from pyrogram.errors import FloodWait
 from typing import Optional, Dict, Any, Set, List
 import socket
@@ -79,17 +79,32 @@ V2RAY_PATTERNS = [
 BASE64_PATTERN = re.compile(r"([A-Za-z0-9+/=]{50,})", re.MULTILINE)
 
 def process_lists():
-    """Read and process the list of channels and groups from environment variables"""
+    """Robustly read and process the list of channels and groups."""
     channels = [ch.strip() for ch in CHANNELS_STR.split(',')] if CHANNELS_STR else []
     if channels: print(f"✅ {len(channels)} channels read from secrets.")
     else: print("⚠️ Warning: CHANNELS_LIST secret not found or is empty.")
+    
     groups = []
     if GROUPS_STR:
-        try:
-            groups = [int(g.strip()) for g in GROUPS_STR.split(',')]
+        # Improved parsing logic: Handle errors individually
+        raw_groups = GROUPS_STR.split(',')
+        for g in raw_groups:
+            g_clean = g.strip()
+            if not g_clean: continue
+            try:
+                # Try converting to integer (standard chat ID)
+                groups.append(int(g_clean))
+            except ValueError:
+                # Keep as string if it's a username or non-numeric ID
+                groups.append(g_clean)
+        
+        if groups:
             print(f"✅ {len(groups)} groups read from secrets.")
-        except ValueError: print("❌ Error: GROUPS_LIST secret must only contain numeric IDs.")
-    else: print("⚠️ Warning: GROUPS_LIST secret is empty.")
+        else:
+            print("❌ Error: GROUPS_LIST was not empty but no valid IDs found.")
+    else:
+        print("⚠️ Warning: GROUPS_LIST secret is empty.")
+        
     return channels, groups
 
 CHANNELS, GROUPS = process_lists()
@@ -269,11 +284,25 @@ class V2RayExtractor:
             async for message in self.client.get_chat_history(chat_id, limit=limit):
                 if not (text_to_check := message.text or message.caption): continue
                 texts_to_scan = [text_to_check]
+                
+                # --- FIX: Handle configs broken in code/quote blocks (Added this based on your broken link issue) ---
+                if message.entities:
+                    for entity in message.entities:
+                        if entity.type in [enums.MessageEntityType.CODE, enums.MessageEntityType.PRE, enums.MessageEntityType.BLOCKQUOTE]:
+                            segment = text_to_check[entity.offset : entity.offset + entity.length]
+                            # Simple fix: Remove newlines in code blocks to stitch links
+                            cleaned_segment = segment.replace('\n', '').replace(' ', '')
+                            texts_to_scan.append(cleaned_segment)
+                # -----------------------------------------------------
+
                 for b64_str in BASE64_PATTERN.findall(text_to_check):
                     try:
-                        texts_to_scan.append(base64.b64decode(b64_str + '=' * (-len(b64_str) % 4)).decode('utf-8', errors='ignore'))
+                        decoded = base64.b64decode(b64_str + '=' * (-len(b64_str) % 4)).decode('utf-8', errors='ignore')
+                        texts_to_scan.append(decoded)
                     except Exception: continue
+                
                 for text in texts_to_scan: self.raw_configs.update(self.extract_configs_from_text(text))
+        
         except FloodWait as e:
             if retries <= 0: return print(f"❌ Max retries reached for chat {chat_id}.")
             wait_time = min(e.value + 5, 300)
