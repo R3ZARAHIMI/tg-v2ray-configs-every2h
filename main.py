@@ -79,32 +79,33 @@ V2RAY_PATTERNS = [
 BASE64_PATTERN = re.compile(r"([A-Za-z0-9+/=]{50,})", re.MULTILINE)
 
 def process_lists():
-    """Robustly read and process the list of channels and groups."""
+    """Read and process the list of channels and groups from environment variables"""
     channels = [ch.strip() for ch in CHANNELS_STR.split(',')] if CHANNELS_STR else []
     if channels: print(f"✅ {len(channels)} channels read from secrets.")
     else: print("⚠️ Warning: CHANNELS_LIST secret not found or is empty.")
     
     groups = []
     if GROUPS_STR:
-        # Improved parsing logic: Handle errors individually
+        # [اصلاح شده] خواندن مطمئن لیست گروه‌ها
         raw_groups = GROUPS_STR.split(',')
         for g in raw_groups:
             g_clean = g.strip()
             if not g_clean: continue
             try:
-                # Try converting to integer (standard chat ID)
+                # تلاش برای تبدیل به عدد (آیدی عددی)
                 groups.append(int(g_clean))
             except ValueError:
-                # Keep as string if it's a username or non-numeric ID
+                # اگر عدد نبود (مثلا یوزرنیم)، به صورت متن ذخیره کن
+                print(f"⚠️ Note: '{g_clean}' interpreted as username/string ID.")
                 groups.append(g_clean)
         
         if groups:
             print(f"✅ {len(groups)} groups read from secrets.")
         else:
-            print("❌ Error: GROUPS_LIST was not empty but no valid IDs found.")
+            print("⚠️ Warning: GROUPS_LIST provided but no valid IDs parsed.")
     else:
         print("⚠️ Warning: GROUPS_LIST secret is empty.")
-        
+    
     return channels, groups
 
 CHANNELS, GROUPS = process_lists()
@@ -283,17 +284,13 @@ class V2RayExtractor:
             print(f"🔍 Searching in chat {chat_id} (limit: {limit} messages)...")
             async for message in self.client.get_chat_history(chat_id, limit=limit):
                 if not (text_to_check := message.text or message.caption): continue
-                texts_to_scan = [text_to_check]
                 
-                # --- FIX: Handle configs broken in code/quote blocks (Added this based on your broken link issue) ---
-                if message.entities:
-                    for entity in message.entities:
-                        if entity.type in [enums.MessageEntityType.CODE, enums.MessageEntityType.PRE, enums.MessageEntityType.BLOCKQUOTE]:
-                            segment = text_to_check[entity.offset : entity.offset + entity.length]
-                            # Simple fix: Remove newlines in code blocks to stitch links
-                            cleaned_segment = segment.replace('\n', '').replace(' ', '')
-                            texts_to_scan.append(cleaned_segment)
-                # -----------------------------------------------------
+                # [اصلاح شده] اضافه کردن نسخه بدون فاصله برای حل مشکل لینک شکسته
+                # این کار لینک‌ها را به هم می‌چسباند تا Regex بتواند پیدایشان کند
+                texts_to_scan = [
+                    text_to_check, 
+                    text_to_check.replace('\n', '').replace(' ', '')
+                ]
 
                 for b64_str in BASE64_PATTERN.findall(text_to_check):
                     try:
