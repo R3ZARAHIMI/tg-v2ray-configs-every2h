@@ -5,6 +5,7 @@ import json
 import yaml
 import os
 import uuid
+import requests  # اضافه شده برای دانلود لینک‌های ساب
 from urllib.parse import urlparse, parse_qs, unquote, urlunparse
 from pyrogram import Client, enums
 from pyrogram.errors import FloodWait
@@ -13,14 +14,13 @@ import socket
 import geoip2.database
 
 # =================================================================================
-# IP Geolocation Section (using GeoIP2)
+# IP Geolocation Section
 # =================================================================================
 
 GEOIP_DATABASE_PATH = 'dbip-country-lite.mmdb'
 GEOIP_READER = None
 
 def load_ip_data():
-    """Loads the GeoIP database into a global reader."""
     global GEOIP_READER
     print("Attempting to load GeoIP database...")
     try:
@@ -35,26 +35,8 @@ COUNTRY_FLAGS = {
     'AD': '🇦🇩', 'AE': '🇦🇪', 'AF': '🇦🇫', 'AG': '🇦🇬', 'AI': '🇦🇮', 'AL': '🇦🇱', 'AM': '🇦🇲', 'AO': '🇦🇴', 'AQ': '🇦🇶', 'AR': '🇦🇷', 'AS': '🇦🇸', 'AT': '🇦🇹', 'AU': '🇦🇺', 'AW': '🇦🇼', 'AX': '🇦🇽', 'AZ': '🇦🇿', 'BA': '🇧🇦', 'BB': '🇧🇧', 'BD': '🇧🇩', 'BE': '🇧🇪', 'BF': '🇧🇫', 'BG': '🇧🇬', 'BH': '🇧🇭', 'BI': '🇧🇮', 'BJ': '🇧🇯', 'BL': '🇧🇱', 'BM': '🇧🇲', 'BN': '🇧🇳', 'BO': '🇧🇴', 'BR': '🇧🇷', 'BS': '🇧🇸', 'BT': '🇧🇹', 'BW': '🇧🇼', 'BY': '🇧🇾', 'BZ': '🇧🇿', 'CA': '🇨🇦', 'CC': '🇨🇨', 'CD': '🇨🇩', 'CF': '🇨🇫', 'CG': '🇨🇬', 'CH': '🇨🇭', 'CI': '🇨🇮', 'CK': '🇨🇰', 'CL': '🇨🇱', 'CM': '🇨🇲', 'CN': '🇨🇳', 'CO': '🇨🇴', 'CR': '🇨🇷', 'CU': '🇨🇺', 'CV': '🇨🇻', 'CW': '🇨🇼', 'CX': '🇨🇽', 'CY': '🇨🇾', 'CZ': '🇨🇿', 'DE': '🇩🇪', 'DJ': '🇩🇯', 'DK': '🇩🇰', 'DM': '🇩🇲', 'DO': '🇩🇴', 'DZ': '🇩🇿', 'EC': '🇪🇨', 'EE': '🇪🇪', 'EG': '🇪🇬', 'EH': '🇪🇭', 'ER': '🇪🇷', 'ES': '🇪🇸', 'ET': '🇪🇹', 'FI': '🇫🇮', 'FJ': '🇫🇯', 'FK': '🇫🇰', 'FM': '🇫🇲', 'FO': '🇫🇴', 'FR': '🇫🇷', 'GA': '🇬🇦', 'GB': '🇬🇧', 'GD': '🇬🇩', 'GE': '🇬🇪', 'GF': '🇬🇫', 'GG': '🇬🇬', 'GH': '🇬🇭', 'GI': '🇬🇮', 'GL': '🇬🇱', 'GM': '🇬🇲', 'GN': '🇬🇳', 'GP': '🇬🇵', 'GQ': '🇬🇶', 'GR': '🇬🇷', 'GT': '🇬🇹', 'GU': '🇬🇺', 'GW': '🇬🇼', 'GY': '🇬🇾', 'HK': '🇭🇰', 'HN': '🇭🇳', 'HR': '🇭🇷', 'HT': '🇭🇹', 'HU': '🇭🇺', 'ID': '🇮🇩', 'IE': '🇮🇪', 'IL': '🇮🇱', 'IM': '🇮🇲', 'IN': '🇮🇳', 'IO': '🇮🇴', 'IQ': '🇮🇶', 'IR': '🇮🇷', 'IS': '🇮🇸', 'IT': '🇮🇹', 'JE': '🇯🇪', 'JM': '🇯🇲', 'JO': '🇯🇴', 'JP': '🇯🇵', 'KE': '🇰🇪', 'KG': '🇰🇬', 'KH': '🇰🇭', 'KI': '🇰🇮', 'KM': '🇰🇲', 'KN': '🇰🇳', 'KP': '🇰🇵', 'KR': '🇰🇷', 'KW': '🇰🇼', 'KY': '🇰🇾', 'KZ': '🇰🇿', 'LA': '🇱🇦', 'LB': '🇱🇧', 'LC': '🇱🇨', 'LI': '🇱🇮', 'LK': '🇱🇰', 'LR': '🇱🇷', 'LS': '🇱🇸', 'LT': '🇱🇹', 'LU': '🇱🇺', 'LV': '🇱🇻', 'LY': '🇱🇾', 'MA': '🇲🇦', 'MC': '🇲🇨', 'MD': '🇲🇩', 'ME': '🇲🇪', 'MF': '🇲🇫', 'MG': '🇲🇬', 'MH': '🇲🇭', 'MK': '🇲🇰', 'ML': '🇲🇱', 'MM': '🇲🇲', 'MN': '🇲🇳', 'MO': '🇲🇴', 'MP': '🇲🇵', 'MQ': '🇲🇶', 'MR': '🇲🇷', 'MS': '🇲🇸', 'MT': '🇲🇹', 'MU': '🇲🇺', 'MV': '🇲🇻', 'MW': '🇲🇼', 'MX': '🇲🇽', 'MY': '🇲🇾', 'MZ': '🇲🇿', 'NA': '🇳🇦', 'NC': '🇳🇨', 'NE': '🇳🇪', 'NF': '🇳🇫', 'NG': '🇳🇬', 'NI': '🇳🇮', 'NL': '🇳🇱', 'NO': '🇳🇴', 'NP': '🇳🇵', 'NR': '🇳🇷', 'NU': '🇳🇺', 'NZ': '🇳🇿', 'OM': '🇴🇲', 'PA': '🇵🇦', 'PE': '🇵🇪', 'PF': '🇵🇫', 'PG': '🇵🇬', 'PH': '🇵🇭', 'PK': '🇵🇰', 'PL': '🇵🇱', 'PM': '🇵🇲', 'PN': '🇵🇳', 'PR': '🇵🇷', 'PS': '🇵🇸', 'PT': '🇵🇹', 'PW': '🇵🇼', 'PY': '🇵🇾', 'QA': '🇶🇦', 'RE': '🇷🇪', 'RO': '🇷🇴', 'RS': '🇷🇸', 'RU': '🇷🇺', 'RW': '🇷🇼', 'SA': '🇸🇦', 'SB': '🇸🇧', 'SC': '🇸🇨', 'SD': '🇸🇩', 'SE': '🇸🇪', 'SG': '🇸🇬', 'SH': '🇸🇭', 'SI': '🇸🇮', 'SK': '🇸🇰', 'SL': '🇸🇱', 'SM': '🇸🇲', 'SN': '🇸🇳', 'SO': '🇸🇴', 'SR': '🇸🇷', 'SS': '🇸🇸', 'ST': '🇸🇹', 'SV': '🇸🇻', 'SX': '🇸🇽', 'SY': '🇸🇾', 'SZ': '🇸🇿', 'TC': '🇹🇨', 'TD': '🇹🇩', 'TG': '🇹🇬', 'TH': '🇹🇭', 'TJ': '🇹🇯', 'TK': '🇹🇰', 'TL': '🇹🇱', 'TM': '🇹🇲', 'TN': '🇹🇳', 'TO': '🇹🇴', 'TR': '🇹🇷', 'TT': '🇹🇹', 'TV': '🇹🇻', 'TW': '🇹🇼', 'TZ': '🇹🇿', 'UA': '🇺🇦', 'UG': '🇺🇬', 'US': '🇺🇸', 'UY': '🇺🇾', 'UZ': '🇺🇿', 'VA': '🇻🇦', 'VC': '🇻🇨', 'VE': '🇻🇪', 'VG': '🇻🇬', 'VI': '🇻🇮', 'VN': '🇻🇳', 'VU': '🇻🇺', 'WF': '🇼🇫', 'WS': '🇼🇸', 'YE': '🇾🇪', 'YT': '🇾🇹', 'ZA': '🇿🇦', 'ZM': '🇿🇲', 'ZW': '🇿🇼'
 }
 
-def get_country_iso_code(hostname: str) -> str:
-    """Gets the country ISO code for a given hostname."""
-    if not GEOIP_READER:
-        return "N/A"
-    try:
-        ip_address = hostname
-        try:
-            socket.inet_aton(hostname)
-        except socket.error:
-            ip_address = socket.gethostbyname(hostname)
-        
-        response = GEOIP_READER.country(ip_address)
-        return response.country.iso_code or "N/A"
-    except (geoip2.errors.AddressNotFoundError, socket.gaierror):
-        return "N/A"
-    except Exception:
-        return "N/A"
-
 # =================================================================================
-# Settings and Constants Section
+# Settings and Constants
 # =================================================================================
 
 API_ID = int(os.environ.get("API_ID"))
@@ -76,20 +58,17 @@ V2RAY_PATTERNS = [
     re.compile(r"(hy2://[^\s'\"<>`]+)"), re.compile(r"(hysteria2://[^\s'\"<>`]+)"),
     re.compile(r"(tuic://[^\s'\"<>`]+)")
 ]
+# Regex to find HTTP/HTTPS links
+URL_PATTERN = re.compile(r'(https?://[^\s]+)')
 BASE64_PATTERN = re.compile(r"([A-Za-z0-9+/=]{50,})", re.MULTILINE)
 
 def process_lists():
-    """Read and process the list of channels and groups from environment variables"""
     channels = [ch.strip() for ch in CHANNELS_STR.split(',')] if CHANNELS_STR else []
-    if channels: print(f"✅ {len(channels)} channels read from secrets.")
-    else: print("⚠️ Warning: CHANNELS_LIST secret not found or is empty.")
     groups = []
     if GROUPS_STR:
         try:
             groups = [int(g.strip()) for g in GROUPS_STR.split(',')]
-            print(f"✅ {len(groups)} groups read from secrets.")
-        except ValueError: print("❌ Error: GROUPS_LIST secret must only contain numeric IDs.")
-    else: print("⚠️ Warning: GROUPS_LIST secret is empty.")
+        except ValueError: pass
     return channels, groups
 
 CHANNELS, GROUPS = process_lists()
@@ -99,6 +78,7 @@ class V2RayExtractor:
         self.raw_configs: Set[str] = set()
         self.client = Client("my_account", api_id=API_ID, api_hash=API_HASH, session_string=SESSION_STRING)
 
+    # ---[ Parsing Logic Methods ]---
     def _is_valid_shadowsocks(self, ss_url: str) -> bool:
         try:
             parsed = urlparse(ss_url)
@@ -146,8 +126,7 @@ class V2RayExtractor:
         for prefix, parser in parsers.items():
             if config_url.startswith(prefix):
                 try: return parser(config_url)
-                except Exception as e:
-                    return None
+                except Exception: return None
         return None
 
     def parse_vmess(self, vmess_url: str) -> Optional[Dict[str, Any]]:
@@ -263,57 +242,70 @@ class V2RayExtractor:
             found_configs.update(pattern.findall(text))
         return {corrected for url in found_configs if (corrected := self._correct_config_type(url.strip())) and self._validate_config_type(corrected)}
 
+    # ---[ New Logic: Fetch HTTP Sub Links ]---
+    def fetch_subscription_content(self, url: str) -> str:
+        try:
+            # Ignore common non-sub links to save time
+            if any(x in url for x in ['google.com', 't.me', 'instagram.com', 'youtube.com']):
+                return ""
+                
+            print(f"      🌍 Fetching sub link: {url[:50]}...")
+            resp = requests.get(url, timeout=5)
+            if resp.status_code == 200:
+                # Try to decode if base64
+                content = resp.text
+                try:
+                    content = base64.b64decode(content + '=' * (-len(content) % 4)).decode('utf-8', errors='ignore')
+                except Exception:
+                    pass # It was plain text
+                return content
+        except Exception as e:
+            # print(f"      ⚠️ Failed to fetch {url}: {e}")
+            pass
+        return ""
+
     async def find_raw_configs_from_chat(self, chat_id: int, limit: int, retries: int = 3):
         try:
             print(f"🔍 Searching in chat {chat_id} (limit: {limit} messages)...")
             async for message in self.client.get_chat_history(chat_id, limit=limit):
-                # 1. Basic Text Extraction
                 text_to_check = message.text or message.caption or ""
-                
-                # DEBUG LOG: ببینیم اصلا پیامی دریافت میشه یا نه
-                if text_to_check:
-                    print(f"   📄 Msg found (len={len(text_to_check)}): {text_to_check[:30].replace(chr(10), ' ')}...")
-                else:
-                    # اگر متنی نیست، شاید فایل یا سرویس باشه
-                    pass
-
                 texts_to_scan = [text_to_check]
                 
-                # 2. Extract from Entities (Text Links, Code, Pre, etc.)
+                # 1. URL Extraction (For Subscription Links)
+                found_urls = URL_PATTERN.findall(text_to_check)
                 if message.entities:
                     for entity in message.entities:
-                        # A. Handle "Text Links" (Hyperlinks hiding the config)
-                        if entity.type == enums.MessageEntityType.TEXT_LINK:
-                            if entity.url:
-                                texts_to_scan.append(entity.url)
-                                # DEBUG
-                                print(f"      🔗 Found Text Link: {entity.url[:30]}...")
+                         if entity.type == enums.MessageEntityType.TEXT_LINK and entity.url:
+                             found_urls.append(entity.url)
+                
+                # Fetch content of found URLs
+                for url in found_urls:
+                    fetched_content = self.fetch_subscription_content(url)
+                    if fetched_content:
+                        texts_to_scan.append(fetched_content)
 
-                        # B. Handle Code/Pre/Blockquote (Force Clean Newlines)
+                # 2. Entity Parsing (Code/Pre/Blockquote - Cleaning newlines)
+                if message.entities:
+                    for entity in message.entities:
                         target_types = [enums.MessageEntityType.CODE, enums.MessageEntityType.PRE]
                         if hasattr(enums.MessageEntityType, 'BLOCKQUOTE'):
                             target_types.append(enums.MessageEntityType.BLOCKQUOTE)
                         
                         if entity.type in target_types:
-                            # Extract raw content of the block
                             raw_block = text_to_check[entity.offset : entity.offset + entity.length]
-                            
-                            # STRATEGY: Aggressive Cleaning
-                            # حذف تمام اینترها و فاصله‌ها در این بلوک خاص برای چسباندن لینک‌های شکسته
+                            # Clean newlines to fix broken configs
                             cleaned_block = raw_block.replace('\n', '').replace(' ', '')
                             texts_to_scan.append(cleaned_block)
-                            
-                            # Also append raw block just in case regex handles it better
                             texts_to_scan.append(raw_block)
 
-                # 3. Base64 Handling
+                # 3. Base64
                 for b64_str in BASE64_PATTERN.findall(text_to_check):
                     try:
                         decoded = base64.b64decode(b64_str + '=' * (-len(b64_str) % 4)).decode('utf-8', errors='ignore')
                         texts_to_scan.append(decoded)
                     except Exception: continue
                 
-                # 4. Final Extraction
+                # 4. Extract
                 initial_count = len(self.raw_configs)
                 for text in texts_to_scan: 
                     if not text: continue
@@ -329,12 +321,12 @@ class V2RayExtractor:
             print(f"⏳ FloodWait: Waiting for {wait_time} seconds...")
             await asyncio.sleep(wait_time)
             await self.find_raw_configs_from_chat(chat_id, limit, retries - 1)
-        except Exception as e: print(f"❌ Error scanning chat {chat_id}: {e}")
+        except Exception as e: 
+            print(f"❌ Error scanning chat {chat_id}: {e}")
 
     def save_files(self):
         print("\n" + "="*40 + "\n⚙️ Starting to process and build config files...")
         
-        # مرحله ۱: ذخیره تمام کانفیگ‌های خام
         if not self.raw_configs:
             print("⚠️ No configs found. Output files will be empty.")
             for f in [OUTPUT_YAML_PRO, OUTPUT_TXT, OUTPUT_JSON_CONFIG_JO, OUTPUT_ORIGINAL_CONFIGS]: 
@@ -348,7 +340,7 @@ class V2RayExtractor:
             except Exception as e:
                 print(f"❌ Error saving original configs file: {e}")
 
-        # مرحله ۲: فیلتر کردن
+        # Filter
         valid_configs = set()
         for url in self.raw_configs:
             try:
@@ -368,14 +360,12 @@ class V2RayExtractor:
         proxies_list_clash, renamed_txt_configs = [], []
         parse_errors = 0
         
-        # مرحله ۳: پردازش
         for i, url in enumerate(sorted(list(valid_configs)), 1):
             if not (proxy := self.parse_config_for_clash(url)):
                 parse_errors += 1
                 continue
 
             host_to_check = proxy.get('servername') or proxy.get('sni') or proxy.get('server', '')
-            
             country_code = get_country_iso_code(host_to_check)
             country_flag = COUNTRY_FLAGS.get(country_code, '🏳️')
 
@@ -393,7 +383,7 @@ class V2RayExtractor:
         if parse_errors > 0: print(f"⚠️ {parse_errors} configs were ignored due to parsing errors.")
         
         if not proxies_list_clash:
-            print("⚠️ No valid configs to build Clash/Sing-box/Txt files (Original-Configs.txt was already saved).")
+            print("⚠️ No valid configs to build output files.")
             for f in [OUTPUT_YAML_PRO, OUTPUT_TXT, OUTPUT_JSON_CONFIG_JO]: 
                 open(f, "w").close()
             return
@@ -401,7 +391,6 @@ class V2RayExtractor:
         print(f"👍 {len(proxies_list_clash)} configs prepared for output files.")
         all_proxy_names = [p['name'] for p in proxies_list_clash]
 
-        # مرحله ۴: ذخیره فایل‌ها
         try:
             os.makedirs('rules', exist_ok=True)
             pro_config = self.build_pro_config(proxies_list_clash, all_proxy_names)
@@ -421,48 +410,12 @@ class V2RayExtractor:
 
     def build_pro_config(self, proxies, proxy_names):
         return {
-            'port': 7890,
-            'socks-port': 7891,
-            'allow-lan': True,
-            'mode': 'rule',
-            'log-level': 'info',
-            'external-controller': '127.0.0.1:9090',
-            'dns': {
-                'enable': True,
-                'listen': '0.0.0.0:53',
-                'default-nameserver': ['8.8.8.8', '1.1.1.1'],
-                'enhanced-mode': 'fake-ip',
-                'fake-ip-range': '198.18.0.1/16',
-                'fallback': ['https://dns.google/dns-query', 'https://cloudflare-dns.com/dns-query'],
-                'fallback-filter': {
-                    'geoip': True,
-                    'ipcidr': [
-                        '240.0.0.0/4',
-                        '0.0.0.0/32',
-                        '178.22.122.100/32', # Shecan DNS
-                        '185.51.200.2/32'     # Shecan DNS
-                    ]
-                }
-            },
+            'port': 7890, 'socks-port': 7891, 'allow-lan': True, 'mode': 'rule', 'log-level': 'info', 'external-controller': '127.0.0.1:9090',
+            'dns': {'enable': True, 'listen': '0.0.0.0:53', 'default-nameserver': ['8.8.8.8', '1.1.1.1'], 'enhanced-mode': 'fake-ip', 'fake-ip-range': '198.18.0.1/16', 'fallback': ['https://dns.google/dns-query', 'https://cloudflare-dns.com/dns-query'], 'fallback-filter': {'geoip': True, 'ipcidr': ['240.0.0.0/4', '0.0.0.0/32']}},
             'proxies': proxies,
-            'proxy-groups': [
-                {'name': 'PROXY', 'type': 'select', 'proxies': ['⚡ Auto-Select', 'DIRECT', *proxy_names]},
-                {'name': '⚡ Auto-Select', 'type': 'url-test', 'proxies': proxy_names, 'url': 'http://www.gstatic.com/generate_204', 'interval': 300},
-                {'name': '🇮🇷 Iran', 'type': 'select', 'proxies': ['DIRECT', 'PROXY']},
-                {'name': '🛑 Block-Ads', 'type': 'select', 'proxies': ['REJECT', 'DIRECT']}
-            ],
-            'rule-providers': {
-                'iran_domains': {'type': 'http', 'behavior': 'domain', 'url': "https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/iran-domains.txt", 'path': './rules/iran_domains.txt', 'interval': 86400},
-                'blocked_domains': {'type': 'http', 'behavior': 'domain', 'url': "https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/blocked-domains.txt", 'path': './rules/blocked_domains.txt', 'interval': 86400},
-                'ad_domains': {'type': 'http', 'behavior': 'domain', 'url': "https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/ad-domains.txt", 'path': './rules/ad_domains.txt', 'interval': 86400}
-            },
-            'rules': [
-                'RULE-SET,ad_domains,🛑 Block-Ads',
-                'RULE-SET,blocked_domains,PROXY',
-                'RULE-SET,iran_domains,🇮🇷 Iran',
-                'GEOIP,IR,🇮🇷 Iran',
-                'MATCH,PROXY'
-            ]
+            'proxy-groups': [{'name': 'PROXY', 'type': 'select', 'proxies': ['⚡ Auto-Select', 'DIRECT', *proxy_names]}, {'name': '⚡ Auto-Select', 'type': 'url-test', 'proxies': proxy_names, 'url': 'http://www.gstatic.com/generate_204', 'interval': 300}, {'name': '🇮🇷 Iran', 'type': 'select', 'proxies': ['DIRECT', 'PROXY']}, {'name': '🛑 Block-Ads', 'type': 'select', 'proxies': ['REJECT', 'DIRECT']}],
+            'rule-providers': {'iran_domains': {'type': 'http', 'behavior': 'domain', 'url': "https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/iran-domains.txt", 'path': './rules/iran_domains.txt', 'interval': 86400}, 'blocked_domains': {'type': 'http', 'behavior': 'domain', 'url': "https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/blocked-domains.txt", 'path': './rules/blocked_domains.txt', 'interval': 86400}, 'ad_domains': {'type': 'http', 'behavior': 'domain', 'url': "https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/ad-domains.txt", 'path': './rules/ad_domains.txt', 'interval': 86400}},
+            'rules': ['RULE-SET,ad_domains,🛑 Block-Ads', 'RULE-SET,blocked_domains,PROXY', 'RULE-SET,iran_domains,🇮🇷 Iran', 'GEOIP,IR,🇮🇷 Iran', 'MATCH,PROXY']
         }
 
     def build_sing_box_config(self, proxies_clash: List[Dict[str, Any]]) -> Dict[str, Any]:
