@@ -36,7 +36,6 @@ COUNTRY_FLAGS = {
 }
 
 def get_country_iso_code(hostname: str) -> str:
-    """Gets the country ISO code for a given hostname."""
     if not GEOIP_READER:
         return "N/A"
     try:
@@ -62,6 +61,7 @@ API_HASH = os.environ.get("API_HASH")
 SESSION_STRING = os.environ.get("SESSION_STRING")
 CHANNELS_STR = os.environ.get('CHANNELS_LIST')
 GROUPS_STR = os.environ.get('GROUPS_LIST')
+# لیمیت‌ها دست نخورده باقی ماندند
 CHANNEL_SEARCH_LIMIT = int(os.environ.get('CHANNEL_SEARCH_LIMIT', 5))
 GROUP_SEARCH_LIMIT = int(os.environ.get('GROUP_SEARCH_LIMIT', 100))
 
@@ -79,24 +79,20 @@ V2RAY_PATTERNS = [
 BASE64_PATTERN = re.compile(r"([A-Za-z0-9+/=]{50,})", re.MULTILINE)
 
 def process_lists():
-    """Read and process the list of channels and groups from environment variables"""
     channels = [ch.strip() for ch in CHANNELS_STR.split(',')] if CHANNELS_STR else []
     if channels: print(f"✅ {len(channels)} channels read from secrets.")
     else: print("⚠️ Warning: CHANNELS_LIST secret not found or is empty.")
     
     groups = []
     if GROUPS_STR:
-        # [اصلاح شده] خواندن مطمئن لیست گروه‌ها
+        # [اصلاح شده] خواندن تک به تک گروه‌ها برای جلوگیری از کرش کل لیست
         raw_groups = GROUPS_STR.split(',')
         for g in raw_groups:
             g_clean = g.strip()
             if not g_clean: continue
             try:
-                # تلاش برای تبدیل به عدد (آیدی عددی)
                 groups.append(int(g_clean))
             except ValueError:
-                # اگر عدد نبود (مثلا یوزرنیم)، به صورت متن ذخیره کن
-                print(f"⚠️ Note: '{g_clean}' interpreted as username/string ID.")
                 groups.append(g_clean)
         
         if groups:
@@ -285,12 +281,12 @@ class V2RayExtractor:
             async for message in self.client.get_chat_history(chat_id, limit=limit):
                 if not (text_to_check := message.text or message.caption): continue
                 
-                # [اصلاح شده] اضافه کردن نسخه بدون فاصله برای حل مشکل لینک شکسته
-                # این کار لینک‌ها را به هم می‌چسباند تا Regex بتواند پیدایشان کند
-                texts_to_scan = [
-                    text_to_check, 
-                    text_to_check.replace('\n', '').replace(' ', '')
-                ]
+                # --- بخش اضافه شده برای حل مشکل کانفیگ‌های چند خطی ---
+                texts_to_scan = [text_to_check]
+                # نسخه بدون فاصله و اینتر برای لینک‌های شکسته شده
+                if '\n' in text_to_check:
+                    texts_to_scan.append(text_to_check.replace('\n', '').replace(' ', ''))
+                # ----------------------------------------------------
 
                 for b64_str in BASE64_PATTERN.findall(text_to_check):
                     try:
@@ -457,6 +453,13 @@ async def main():
     load_ip_data()
     extractor = V2RayExtractor()
     async with extractor.client:
+        # --- FIX: REFRESH DIALOGS TO CACHE PEER IDS FOR GROUPS ---
+        # این خط باعث می‌شود مشکل Peer id invalid برای گروه‌ها حل شود
+        print("🔄 Refreshing dialogs to cache access hashes...")
+        async for dialog in extractor.client.get_dialogs():
+            pass 
+        # ---------------------------------------------------------
+        
         tasks = [extractor.find_raw_configs_from_chat(channel, CHANNEL_SEARCH_LIMIT) for channel in CHANNELS]
         tasks.extend(extractor.find_raw_configs_from_chat(group, GROUP_SEARCH_LIMIT) for group in GROUPS)
         if tasks:
