@@ -5,7 +5,6 @@ import json
 import yaml
 import os
 import uuid
-import requests
 from urllib.parse import urlparse, parse_qs, unquote, urlunparse
 from pyrogram import Client, enums
 from pyrogram.errors import FloodWait
@@ -58,7 +57,6 @@ V2RAY_PATTERNS = [
     re.compile(r"(hy2://[^\s'\"<>`]+)"), re.compile(r"(hysteria2://[^\s'\"<>`]+)"),
     re.compile(r"(tuic://[^\s'\"<>`]+)")
 ]
-URL_PATTERN = re.compile(r'(https?://[^\s]+)')
 BASE64_PATTERN = re.compile(r"([A-Za-z0-9+/=]{50,})", re.MULTILINE)
 
 def process_lists():
@@ -177,36 +175,30 @@ class V2RayExtractor:
             found.update(pattern.findall(text))
         return {corrected for url in found if (corrected := self._correct_config_type(url.strip())) and self._validate_config_type(corrected)}
 
-    def fetch_subscription_content(self, url: str) -> str:
-        # === [ DISABLED ] ===
-        return ""
-
     async def find_raw_configs_from_chat(self, chat_id: int, limit: int, retries: int = 3):
-        # 1. Get Chat Name
+        # 1. Setup Local Set for THIS specific chat
+        local_configs = set()
         chat_title = str(chat_id)
-        try:
-            chat_obj = await self.client.get_chat(chat_id)
-            chat_title = chat_obj.title or chat_obj.username or str(chat_id)
-        except: pass
-
-        print(f"🔍 Searching in: {chat_title} (ID: {chat_id})")
         
-        # 2. Record count before scanning this chat
-        initial_count_for_this_chat = len(self.raw_configs)
-
         try:
+            try:
+                chat_obj = await self.client.get_chat(chat_id)
+                chat_title = chat_obj.title or chat_obj.username or str(chat_id)
+            except: pass
+
+            print(f"🔍 Searching in: {chat_title} (ID: {chat_id})")
+            
             async for message in self.client.get_chat_history(chat_id, limit=limit):
                 text_to_check = message.text or message.caption or ""
                 texts_to_scan = [text_to_check]
                 
-                # --- FIX: Repair Broken Links in Code Blocks ---
+                # FIX: Broken Lines in Code Blocks
                 if message.entities:
                     for entity in message.entities:
                         if entity.type in [enums.MessageEntityType.CODE, enums.MessageEntityType.PRE, getattr(enums.MessageEntityType, 'BLOCKQUOTE', 'blockquote')]:
                             raw_segment = text_to_check[entity.offset : entity.offset + entity.length]
                             cleaned_segment = raw_segment.replace('\n', '').replace(' ', '')
                             texts_to_scan.append(cleaned_segment)
-                # -----------------------------------------------
 
                 # Base64 scan
                 for b64_str in BASE64_PATTERN.findall(text_to_check):
@@ -217,11 +209,13 @@ class V2RayExtractor:
                 
                 # Extract
                 for text in texts_to_scan:
-                    if text: self.raw_configs.update(self.extract_configs_from_text(text))
+                    if text: local_configs.update(self.extract_configs_from_text(text))
             
-            # 3. Calculate and print specific count for this chat
-            found_in_this_chat = len(self.raw_configs) - initial_count_for_this_chat
-            print(f"   ✅ Finished {chat_title}: Found {found_in_this_chat} new configs.")
+            # 2. Print EXACT count found in THIS chat
+            print(f"   ✅ Finished {chat_title}: Found {len(local_configs)} new configs.")
+            
+            # 3. Add to Global Set
+            self.raw_configs.update(local_configs)
 
         except FloodWait as e:
             if retries > 0:
@@ -232,7 +226,6 @@ class V2RayExtractor:
             print(f"❌ Error scanning {chat_id}: {e}")
 
     def save_files(self):
-        # 4. Total Count
         print(f"\n⚙️ ∑ Total Unique Configs Found: {len(self.raw_configs)}")
         
         if not self.raw_configs:
