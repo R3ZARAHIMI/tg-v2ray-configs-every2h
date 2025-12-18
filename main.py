@@ -58,6 +58,7 @@ V2RAY_PATTERNS = [
     re.compile(r"(hy2://[^\s'\"<>`]+)"), re.compile(r"(hysteria2://[^\s'\"<>`]+)"),
     re.compile(r"(tuic://[^\s'\"<>`]+)")
 ]
+URL_PATTERN = re.compile(r'(https?://[^\s]+)')
 BASE64_PATTERN = re.compile(r"([A-Za-z0-9+/=]{50,})", re.MULTILINE)
 
 def process_lists():
@@ -76,238 +77,163 @@ class V2RayExtractor:
         self.raw_configs: Set[str] = set()
         self.client = Client("my_account", api_id=API_ID, api_hash=API_HASH, session_string=SESSION_STRING)
 
-    # ---[ Helper Method: IP to Country ]---
     def get_country_iso_code(self, hostname: str) -> str:
-        """Gets the country ISO code for a given hostname."""
         if not hostname: return "N/A"
         if not GEOIP_READER: return "N/A"
         try:
             ip_address = hostname
-            try:
-                socket.inet_aton(hostname)
-            except socket.error:
-                ip_address = socket.gethostbyname(hostname)
-            
+            try: socket.inet_aton(hostname)
+            except: ip_address = socket.gethostbyname(hostname)
             response = GEOIP_READER.country(ip_address)
             return response.country.iso_code or "N/A"
-        except (geoip2.errors.AddressNotFoundError, socket.gaierror):
-            return "N/A"
-        except Exception:
-            return "N/A"
+        except: return "N/A"
 
-    # ---[ Parsing Logic Methods ]---
     def _is_valid_shadowsocks(self, ss_url: str) -> bool:
         try:
             parsed = urlparse(ss_url)
             if not parsed.hostname: return False
             try:
-                _ = base64.b64decode(parsed.netloc.split('@')[0] + '=' * (-len(parsed.netloc.split('@')[0]) % 4)).decode('utf-8')
+                base64.b64decode(parsed.netloc.split('@')[0] + '=' * 4)
                 return True
-            except Exception: return ':' in parsed.netloc.split('@')[0]
+            except: return ':' in parsed.netloc.split('@')[0]
         except: return False
 
     def _correct_config_type(self, config_url: str) -> str:
-        try:
-            if config_url.startswith('ss://'):
-                parsed = urlparse(config_url)
-                if parsed.username and re.match(r'[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}', parsed.username):
-                    return config_url.replace('ss://', 'vless://', 1)
-                if data_part := parsed.netloc:
-                    try:
-                        decoded = base64.b64decode(data_part + '=' * (-len(data_part) % 4)).decode('utf-8')
-                        if json.loads(decoded).get('v') == '2': return config_url.replace('ss://', 'vmess://', 1)
-                    except Exception: pass
-            return config_url
-        except: return config_url
+        if config_url.startswith('ss://') and 'v=2' in config_url: return config_url.replace('ss://', 'vmess://', 1)
+        return config_url
 
     def _validate_config_type(self, config_url: str) -> bool:
         try:
-            parsed = urlparse(config_url)
-            if config_url.startswith('vless://'): return bool(parsed.hostname and parsed.username)
+            if config_url.startswith('vless://'): return True
             elif config_url.startswith('vmess://'):
-                decoded_str = base64.b64decode(config_url[8:] + '=' * (-len(config_url[8:]) % 4)).decode('utf-8')
+                decoded_str = base64.b64decode(config_url[8:] + '=' * 4).decode('utf-8')
                 config = json.loads(decoded_str)
                 return bool(config.get('add') and config.get('id'))
-            elif config_url.startswith('trojan://'): return bool(parsed.hostname and parsed.username)
+            elif config_url.startswith('trojan://'): return True
             elif config_url.startswith('ss://'): return self._is_valid_shadowsocks(config_url)
             return True
         except: return False
 
     def parse_config_for_clash(self, config_url: str) -> Optional[Dict[str, Any]]:
-        parsers = {
-            'vmess://': self.parse_vmess, 'vless://': self.parse_vless,
-            'trojan://': self.parse_trojan, 'ss://': self.parse_shadowsocks,
-            'hysteria2://': self.parse_hysteria2, 'hy2://': self.parse_hysteria2,
-            'tuic://': self.parse_tuic
-        }
+        parsers = {'vmess://': self.parse_vmess, 'vless://': self.parse_vless, 'trojan://': self.parse_trojan, 'ss://': self.parse_shadowsocks, 'hysteria2://': self.parse_hysteria2, 'hy2://': self.parse_hysteria2, 'tuic://': self.parse_tuic}
         for prefix, parser in parsers.items():
             if config_url.startswith(prefix):
                 try: return parser(config_url)
-                except Exception: return None
+                except: return None
         return None
 
     def parse_vmess(self, vmess_url: str) -> Optional[Dict[str, Any]]:
-        decoded_str = base64.b64decode(vmess_url[8:] + '=' * (-len(vmess_url[8:]) % 4)).decode('utf-8')
-        config = json.loads(decoded_str)
-        if not all(k in config for k in ['add', 'port', 'id', 'ps']): return None
+        decoded_str = base64.b64decode(vmess_url[8:] + '=' * 4).decode('utf-8')
+        c = json.loads(decoded_str)
         ws_opts = None
-        if config.get('net') == 'ws':
-            host_header = config.get('host', '').strip() or config.get('add', '').strip()
-            if host_header: ws_opts = {'path': config.get('path', '/'), 'headers': {'Host': host_header}}
-        return {'name': config.get('ps', ''), 'type': 'vmess', 'server': config.get('add'), 'port': int(config.get('port', 443)), 'uuid': config.get('id'), 'alterId': int(config.get('aid', 0)), 'cipher': config.get('scy', 'auto'), 'tls': config.get('tls') == 'tls', 'network': config.get('net', 'tcp'), 'udp': True, 'ws-opts': ws_opts, 'servername': config.get('sni', config.get('host'))}
+        if c.get('net') == 'ws':
+            ws_opts = {'path': c.get('path', '/'), 'headers': {'Host': c.get('host', '')}}
+        return {'name': c.get('ps', ''), 'type': 'vmess', 'server': c.get('add'), 'port': int(c.get('port', 443)), 'uuid': c.get('id'), 'alterId': int(c.get('aid', 0)), 'cipher': c.get('scy', 'auto'), 'tls': c.get('tls')=='tls', 'network': c.get('net', 'tcp'), 'udp': True, 'ws-opts': ws_opts, 'servername': c.get('sni', c.get('host'))}
 
     def parse_vless(self, vless_url: str) -> Optional[Dict[str, Any]]:
-        parsed, query = urlparse(vless_url), parse_qs(urlparse(vless_url).query)
-        if not parsed.hostname or not parsed.username: return None
+        p, q = urlparse(vless_url), parse_qs(urlparse(vless_url).query)
         ws_opts, reality_opts = None, None
-        if query.get('type', [''])[0] == 'ws':
-            host_header = (query.get('host', [''])[0] or query.get('sni', [''])[0] or parsed.hostname).strip()
-            if host_header: ws_opts = {'path': query.get('path', ['/'])[0], 'headers': {'Host': host_header}}
-        if query.get('security', [''])[0] == 'reality' and (pbk := query.get('pbk', [None])[0]):
-            reality_opts = {'public-key': pbk, 'short-id': query.get('sid', [''])[0]}
-        return {'name': unquote(parsed.fragment or ''), 'type': 'vless', 'server': parsed.hostname, 'port': parsed.port or 443, 'uuid': parsed.username, 'udp': True, 'tls': query.get('security', [''])[0] in ['tls', 'reality'], 'network': query.get('type', ['tcp'])[0], 'servername': query.get('sni', [None])[0], 'ws-opts': ws_opts, 'reality-opts': reality_opts}
+        if q.get('type', [''])[0] == 'ws':
+            ws_opts = {'path': q.get('path', ['/'])[0], 'headers': {'Host': q.get('host', [''])[0]}}
+        if q.get('security', [''])[0] == 'reality':
+            reality_opts = {'public-key': q.get('pbk', [''])[0], 'short-id': q.get('sid', [''])[0]}
+        return {'name': unquote(p.fragment or ''), 'type': 'vless', 'server': p.hostname, 'port': p.port or 443, 'uuid': p.username, 'udp': True, 'tls': q.get('security', [''])[0] in ['tls', 'reality'], 'network': q.get('type', ['tcp'])[0], 'servername': q.get('sni', [None])[0], 'ws-opts': ws_opts, 'reality-opts': reality_opts}
 
     def parse_trojan(self, trojan_url: str) -> Optional[Dict[str, Any]]:
-        parsed, query = urlparse(trojan_url), parse_qs(urlparse(trojan_url).query)
-        if not parsed.hostname or not parsed.username: return None
-        sni = query.get('peer', [None])[0] or query.get('sni', [None])[0] or parsed.hostname
-        return {'name': unquote(parsed.fragment or ''), 'type': 'trojan', 'server': parsed.hostname, 'port': parsed.port or 443, 'password': parsed.username, 'udp': True, 'sni': sni}
+        p, q = urlparse(trojan_url), parse_qs(urlparse(trojan_url).query)
+        return {'name': unquote(p.fragment or ''), 'type': 'trojan', 'server': p.hostname, 'port': p.port or 443, 'password': p.username, 'udp': True, 'sni': q.get('sni', [p.hostname])[0]}
 
     def parse_shadowsocks(self, ss_url: str) -> Optional[Dict[str, Any]]:
-        try:
-            content_part = ss_url.split("://")[1].split("#")[0]
-            base64.b64decode(content_part + '=' * (-len(content_part) % 4)).decode('utf-8')
-            return None
-        except Exception: pass
-        parsed = urlparse(ss_url)
-        user_info, host, port = '', parsed.hostname, parsed.port
-        if '@' in parsed.netloc:
-            user_info_part = parsed.netloc.split('@')[0]
-            try: user_info = base64.b64decode(user_info_part + '=' * (-len(user_info_part) % 4)).decode('utf-8')
-            except Exception: user_info = unquote(user_info_part)
-        if not user_info or ':' not in user_info or not host or not port: return None
-        cipher, password = user_info.split(':', 1)
-        return {'name': unquote(parsed.fragment or ''), 'type': 'ss', 'server': host, 'port': int(port), 'cipher': cipher, 'password': password, 'udp': True}
+        p = urlparse(ss_url)
+        if '@' in p.netloc:
+            u = base64.b64decode(p.netloc.split('@')[0] + '='*4).decode('utf-8')
+            c, pw = u.split(':')
+            return {'name': unquote(p.fragment or ''), 'type': 'ss', 'server': p.hostname, 'port': int(p.port), 'cipher': c, 'password': pw, 'udp': True}
+        return None
 
     def parse_hysteria2(self, hy2_url: str) -> Optional[Dict[str, Any]]:
-        parsed, query = urlparse(hy2_url), parse_qs(urlparse(hy2_url).query)
-        if not parsed.hostname or not parsed.username: return None
-        config = {'name': unquote(parsed.fragment or ''), 'type': 'hysteria2', 'server': parsed.hostname, 'port': parsed.port or 443, 'auth': parsed.username, 'up': query.get('up', ['100 Mbps'])[0], 'down': query.get('down', ['100 Mbps'])[0], 'sni': query.get('sni', [parsed.hostname])[0], 'skip-cert-verify': query.get('insecure', ['false'])[0].lower() == 'true'}
-        if obfs_mode := query.get('obfs', [None])[0]:
-            config['obfs'] = obfs_mode
-            if obfs_password := query.get('obfs-password', [None])[0]: config['obfs-password'] = obfs_password
-        return config
+        p, q = urlparse(hy2_url), parse_qs(urlparse(hy2_url).query)
+        return {'name': unquote(p.fragment or ''), 'type': 'hysteria2', 'server': p.hostname, 'port': p.port or 443, 'auth': p.username, 'up': q.get('up', [''])[0], 'down': q.get('down', [''])[0], 'sni': q.get('sni', [p.hostname])[0], 'skip-cert-verify': q.get('insecure', ['0'])[0]=='1'}
 
     def parse_tuic(self, tuic_url: str) -> Optional[Dict[str, Any]]:
-        parsed, query = urlparse(tuic_url), parse_qs(urlparse(tuic_url).query)
-        if not parsed.hostname or not parsed.username or not query.get('password'): return None
-        return {'name': unquote(parsed.fragment or ''), 'type': 'tuic', 'server': parsed.hostname, 'port': parsed.port or 443, 'uuid': parsed.username, 'password': query.get('password', [''])[0], 'udp': True, 'sni': query.get('sni', [parsed.hostname])[0], 'skip-cert-verify': query.get('allow_insecure', ['false'])[0].lower() == 'true'}
+        p, q = urlparse(tuic_url), parse_qs(urlparse(tuic_url).query)
+        return {'name': unquote(p.fragment or ''), 'type': 'tuic', 'server': p.hostname, 'port': p.port or 443, 'uuid': p.username, 'password': q.get('password', [''])[0], 'udp': True, 'sni': q.get('sni', [p.hostname])[0], 'skip-cert-verify': q.get('allow_insecure', ['0'])[0]=='1'}
 
     def convert_to_singbox_outbound(self, proxy: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        ptype = proxy.get('type')
-        if not ptype: return None
-        sb_type = 'shadowsocks' if ptype == 'ss' else ptype
-        server = proxy.get('server')
-        if not server: return None
-        try: port = int(proxy.get('port') or 443)
-        except Exception: port = 443
-        tag = proxy.get('name') or f"{ptype}-{server}:{port}"
-        out: Dict[str, Any] = {"type": sb_type, "tag": tag, "server": server, "server_port": port}
-        uuid_re = re.compile(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$')
-
-        if ptype == 'vless':
-            if not (uid := proxy.get('uuid')) or not uuid_re.match(uid): return None
-            out.update({"uuid": uid, "flow": proxy.get('flow', '')})
-            if proxy.get('tls'):
-                out['tls'] = {"enabled": True, "server_name": proxy.get('servername')}
-                if ro := proxy.get('reality-opts'):
-                    out['tls'].setdefault('utls', {"enabled": True, "fingerprint": "chrome"})
-                    out['tls']['reality'] = {"enabled": True, "public_key": ro.get('public-key'), "short_id": ro.get('short-id')}
-            if proxy.get('network') == 'ws' and (ws := proxy.get('ws-opts')):
-                headers = {'Host': h} if (h := (ws.get('headers') or {}).get('Host')) else {}
-                out['transport'] = {"type": "ws", "path": ws.get('path', '/'), "headers": headers}
-        elif ptype == 'vmess':
-            if not (uid := proxy.get('uuid')) or not uuid_re.match(uid): return None
-            security = (proxy.get('cipher') or 'auto').lower()
-            out.update({"uuid": uid, "alter_id": int(proxy.get('alterId', 0)), "security": security if security in ('auto', 'none', 'aes-128-gcm', 'chacha20-poly1305') else 'auto'})
-            if proxy.get('tls'): out['tls'] = {"enabled": True, "server_name": proxy.get('servername')}
-            if proxy.get('network') == 'ws' and (ws := proxy.get('ws-opts')):
-                headers = {'Host': h} if (h := (ws.get('headers') or {}).get('Host')) else {}
-                out['transport'] = {"type": "ws", "path": ws.get('path', '/'), "headers": headers}
-        elif ptype == 'trojan':
-            if not (pw := proxy.get('password')): return None
-            out.update({"password": pw})
-            if proxy.get('tls') is not False:
-                out['tls'] = {"enabled": True, "server_name": proxy.get('sni') or proxy.get('servername')}
-        elif ptype == 'ss':
-            if not (method := proxy.get('cipher')) or not (pw := proxy.get('password')): return None
-            out.update({"method": method, "password": pw})
-        elif ptype == 'hysteria2':
-            if not (auth := proxy.get('auth')): return None
-            out.update({"password": auth})
-            out['tls'] = {"enabled": True, "server_name": proxy.get('sni') or proxy.get('server'), "insecure": bool(proxy.get('skip-cert-verify'))}
-        elif ptype == 'tuic':
-            if not (uid := proxy.get('uuid')) or not uuid_re.match(uid) or not (pw := proxy.get('password')): return None
-            out.update({"uuid": uid, "password": pw})
-            out['tls'] = {"enabled": True, "server_name": proxy.get('sni') or proxy.get('server'), "insecure": bool(proxy.get('skip-cert-verify'))}
-        else: return None
+        if not proxy: return None
+        t = proxy['type']
+        out = {'type': t if t!='ss' else 'shadowsocks', 'tag': proxy['name'], 'server': proxy['server'], 'server_port': proxy['port']}
+        if t=='vmess': out.update({'uuid': proxy['uuid'], 'alter_id': proxy['alterId'], 'security': proxy['cipher'], 'tls': {'enabled': True, 'server_name': proxy['servername']} if proxy.get('tls') else None})
+        if t=='vless': out.update({'uuid': proxy['uuid'], 'flow': proxy.get('flow',''), 'tls': {'enabled': True, 'server_name': proxy['servername'], 'reality': {'enabled': True, 'public_key': proxy.get('reality-opts',{}).get('public-key'), 'short_id': proxy.get('reality-opts',{}).get('short-id')} if proxy.get('reality-opts') else None} if proxy.get('tls') else None})
+        if t=='trojan': out.update({'password': proxy['password'], 'tls': {'enabled': True, 'server_name': proxy.get('sni')}})
+        if t=='ss': out.update({'method': proxy['cipher'], 'password': proxy['password']})
+        if t in ['hysteria2','tuic']: out.update({'password': proxy.get('auth') or proxy.get('password'), 'tls': {'enabled': True, 'server_name': proxy['sni'], 'insecure': proxy.get('skip-cert-verify')}})
+        if proxy.get('ws-opts'): out['transport'] = {'type': 'ws', 'path': proxy['ws-opts']['path'], 'headers': proxy['ws-opts']['headers']}
         return out
 
     def extract_configs_from_text(self, text: str) -> Set[str]:
-        found_configs = set()
+        found = set()
         for pattern in V2RAY_PATTERNS:
-            found_configs.update(pattern.findall(text))
-        return {corrected for url in found_configs if (corrected := self._correct_config_type(url.strip())) and self._validate_config_type(corrected)}
+            found.update(pattern.findall(text))
+        return {corrected for url in found if (corrected := self._correct_config_type(url.strip())) and self._validate_config_type(corrected)}
+
+    def fetch_subscription_content(self, url: str) -> str:
+        # === [ DISABLED ] ===
+        return ""
 
     async def find_raw_configs_from_chat(self, chat_id: int, limit: int, retries: int = 3):
+        # 1. Get Chat Name
+        chat_title = str(chat_id)
         try:
-            print(f"🔍 Searching in chat {chat_id} (limit: {limit} messages)...")
+            chat_obj = await self.client.get_chat(chat_id)
+            chat_title = chat_obj.title or chat_obj.username or str(chat_id)
+        except: pass
+
+        print(f"🔍 Searching in: {chat_title} (ID: {chat_id})")
+        
+        # 2. Record count before scanning this chat
+        initial_count_for_this_chat = len(self.raw_configs)
+
+        try:
             async for message in self.client.get_chat_history(chat_id, limit=limit):
                 text_to_check = message.text or message.caption or ""
                 texts_to_scan = [text_to_check]
                 
-                # 2. Entity Parsing (Code/Pre/Blockquote - Cleaning newlines)
+                # --- FIX: Repair Broken Links in Code Blocks ---
                 if message.entities:
                     for entity in message.entities:
-                        target_types = [enums.MessageEntityType.CODE, enums.MessageEntityType.PRE]
-                        if hasattr(enums.MessageEntityType, 'BLOCKQUOTE'):
-                            target_types.append(enums.MessageEntityType.BLOCKQUOTE)
-                        
-                        if entity.type in target_types:
-                            raw_block = text_to_check[entity.offset : entity.offset + entity.length]
-                            # Clean newlines to fix broken configs
-                            cleaned_block = raw_block.replace('\n', '').replace(' ', '')
-                            texts_to_scan.append(cleaned_block)
-                            texts_to_scan.append(raw_block)
+                        if entity.type in [enums.MessageEntityType.CODE, enums.MessageEntityType.PRE, getattr(enums.MessageEntityType, 'BLOCKQUOTE', 'blockquote')]:
+                            raw_segment = text_to_check[entity.offset : entity.offset + entity.length]
+                            cleaned_segment = raw_segment.replace('\n', '').replace(' ', '')
+                            texts_to_scan.append(cleaned_segment)
+                # -----------------------------------------------
 
-                # 3. Base64
+                # Base64 scan
                 for b64_str in BASE64_PATTERN.findall(text_to_check):
                     try:
-                        decoded = base64.b64decode(b64_str + '=' * (-len(b64_str) % 4)).decode('utf-8', errors='ignore')
+                        decoded = base64.b64decode(b64_str + '=' * 4).decode('utf-8', errors='ignore')
                         texts_to_scan.append(decoded)
-                    except Exception: continue
+                    except: continue
                 
-                # 4. Extract
-                initial_count = len(self.raw_configs)
-                for text in texts_to_scan: 
-                    if not text: continue
-                    self.raw_configs.update(self.extract_configs_from_text(text))
-                
-                new_found = len(self.raw_configs) - initial_count
-                if new_found > 0:
-                    print(f"      🎉 Found {new_found} new config(s) in this message!")
-        
+                # Extract
+                for text in texts_to_scan:
+                    if text: self.raw_configs.update(self.extract_configs_from_text(text))
+            
+            # 3. Calculate and print specific count for this chat
+            found_in_this_chat = len(self.raw_configs) - initial_count_for_this_chat
+            print(f"   ✅ Finished {chat_title}: Found {found_in_this_chat} new configs.")
+
         except FloodWait as e:
-            if retries <= 0: return print(f"❌ Max retries reached for chat {chat_id}.")
-            wait_time = min(e.value + 5, 300)
-            print(f"⏳ FloodWait: Waiting for {wait_time} seconds...")
-            await asyncio.sleep(wait_time)
-            await self.find_raw_configs_from_chat(chat_id, limit, retries - 1)
-        except Exception as e: 
-            print(f"❌ Error scanning chat {chat_id}: {e}")
+            if retries > 0:
+                print(f"⏳ FloodWait {e.value}s in {chat_id}. Sleeping...")
+                await asyncio.sleep(e.value + 2)
+                await self.find_raw_configs_from_chat(chat_id, limit, retries - 1)
+        except Exception as e:
+            print(f"❌ Error scanning {chat_id}: {e}")
 
     def save_files(self):
-        print("\n" + "="*40 + "\n⚙️ Starting to process and build config files...")
+        # 4. Total Count
+        print(f"\n⚙️ ∑ Total Unique Configs Found: {len(self.raw_configs)}")
         
         if not self.raw_configs:
             print("⚠️ No configs found. Output files will be empty.")
