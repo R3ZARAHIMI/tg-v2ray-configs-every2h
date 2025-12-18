@@ -1,3109 +1,1917 @@
-allow-lan: true
-external-controller: 127.0.0.1:9090
-log-level: info
-mode: rule
 port: 7890
+socks-port: 7891
+allow-lan: true
+mode: rule
+log-level: info
+external-controller: 127.0.0.1:9090
+dns:
+  enable: true
+  listen: 0.0.0.0:53
+  default-nameserver:
+  - 8.8.8.8
+  - 1.1.1.1
+  enhanced-mode: fake-ip
+  fake-ip-range: 198.18.0.1/16
+  fallback:
+  - https://dns.google/dns-query
+  - https://cloudflare-dns.com/dns-query
+  fallback-filter:
+    geoip: true
+    ipcidr:
+    - 240.0.0.0/4
+    - 0.0.0.0/32
 proxies:
-- auth: 4d5018bf-0e8b-4087-8b8a-bfa51ae86f5c
-  down: ''
-  name: JP Config-001
-  port: 35789
+- name: JP Config_jo-01
+  type: hysteria2
   server: 160.16.137.28
-  skip-cert-verify: false
+  port: 35789
+  auth: 4d5018bf-0e8b-4087-8b8a-bfa51ae86f5c
+  up: 100 Mbps
+  down: 100 Mbps
   sni: iij.mggl.wang
-  type: hysteria2
-  up: ''
-- auth: 693a3ce6-2188-4fe9-82c0-c5c289532534
-  down: ''
-  name: DE Config-002
-  port: 20000
-  server: hl.dabache.top
   skip-cert-verify: false
-  sni: hl.dabache.top
+- name: DE Config_jo-02
   type: hysteria2
-  up: ''
-- auth: 693a3ce6-2188-4fe9-82c0-c5c289532534
-  down: ''
-  name: DE Config-003
-  port: 20000
   server: hl.dabache.top
-  skip-cert-verify: false
+  port: 20000
+  auth: 693a3ce6-2188-4fe9-82c0-c5c289532534
+  up: 100 Mbps
+  down: 100 Mbps
   sni: hl.dabache.top
+  skip-cert-verify: false
+- name: DE Config_jo-03
   type: hysteria2
-  up: ''
-- cipher: chacha20-ietf-poly1305
-  name: PL Config-124
-  password: L2fN5ZhwKrkgY02gyZUyTt
-  port: 443
+  server: hl.dabache.top
+  port: 20000
+  auth: 693a3ce6-2188-4fe9-82c0-c5c289532534
+  up: 100 Mbps
+  down: 100 Mbps
+  sni: hl.dabache.top
+  skip-cert-verify: false
+- name: PL Config_jo-04
+  type: ss
   server: 92.62.251.201
-  type: ss
+  port: 443
+  cipher: chacha20-ietf-poly1305
+  password: L2fN5ZhwKrkgY02gyZUyTt
   udp: true
-- cipher: chacha20-ietf-poly1305
-  name: LT Config-125
-  password: cvII85TrW6n0OGyfpHVS1u
-  port: 8080
+- name: LT Config_jo-05
+  type: ss
   server: 45.87.175.193
-  type: ss
+  port: 8080
+  cipher: chacha20-ietf-poly1305
+  password: cvII85TrW6n0OGyfpHVS1u
   udp: true
-- cipher: chacha20-ietf-poly1305
-  name: CY Config-126
-  password: g5RQoxQuVtnFv3Xxsa8edPisXNPnyWKy
-  port: 443
-  server: 45.83.20.206
+- name: CH Config_jo-07
   type: ss
-  udp: true
-- cipher: chacha20-ietf-poly1305
-  name: CH Config-127
-  password: hNOZp9FIp83Q6ZeWIJbeTM
-  port: 4248
   server: 45.95.232.236
-  type: ss
+  port: 4248
+  cipher: chacha20-ietf-poly1305
+  password: hNOZp9FIp83Q6ZeWIJbeTM
   udp: true
-- cipher: chacha20-ietf-poly1305
-  name: SE Config-128
-  password: hc8LMJew3Fl9MbcFCoFgT0
-  port: 31561
+- name: SE Config_jo-08
+  type: ss
   server: 46.246.96.30
-  type: ss
+  port: 31561
+  cipher: chacha20-ietf-poly1305
+  password: hc8LMJew3Fl9MbcFCoFgT0
   udp: true
-- cipher: chacha20-ietf-poly1305
-  name: GB Config-129
-  password: k1dBOmOB4oqi7Ump37a1bQ
-  port: 8080
+- name: GB Config_jo-09
+  type: ss
   server: 82.38.31.199
-  type: ss
-  udp: true
-- cipher: chacha20-ietf-poly1305
-  name: GB Config-130
-  password: k1dBOmOB4oqi7Ump37a1bQ
   port: 8080
+  cipher: chacha20-ietf-poly1305
+  password: k1dBOmOB4oqi7Ump37a1bQ
+  udp: true
+- name: GB Config_jo-10
+  type: ss
   server: 82.38.31.205
-  type: ss
-  udp: true
-- cipher: chacha20-ietf-poly1305
-  name: GB Config-131
-  password: k1dBOmOB4oqi7Ump37a1bQ
   port: 8080
+  cipher: chacha20-ietf-poly1305
+  password: k1dBOmOB4oqi7Ump37a1bQ
+  udp: true
+- name: GB Config_jo-11
+  type: ss
   server: 82.38.31.205
-  type: ss
-  udp: true
-- cipher: chacha20-ietf-poly1305
-  name: GB Config-132
-  password: k1dBOmOB4oqi7Ump37a1bQ
   port: 8080
+  cipher: chacha20-ietf-poly1305
+  password: k1dBOmOB4oqi7Ump37a1bQ
+  udp: true
+- name: GB Config_jo-12
+  type: ss
   server: 82.38.31.205
-  type: ss
-  udp: true
-- cipher: chacha20-ietf-poly1305
-  name: GB Config-133
-  password: k1dBOmOB4oqi7Ump37a1bQ
   port: 8080
+  cipher: chacha20-ietf-poly1305
+  password: k1dBOmOB4oqi7Ump37a1bQ
+  udp: true
+- name: GB Config_jo-13
+  type: ss
   server: 82.38.31.205
-  type: ss
-  udp: true
-- cipher: chacha20-ietf-poly1305
-  name: GB Config-134
-  password: k1dBOmOB4oqi7Ump37a1bQ
   port: 8080
+  cipher: chacha20-ietf-poly1305
+  password: k1dBOmOB4oqi7Ump37a1bQ
+  udp: true
+- name: GB Config_jo-14
+  type: ss
   server: 82.38.31.205
-  type: ss
-  udp: true
-- cipher: chacha20-ietf-poly1305
-  name: GB Config-135
-  password: k1dBOmOB4oqi7Ump37a1bQ
   port: 8080
+  cipher: chacha20-ietf-poly1305
+  password: k1dBOmOB4oqi7Ump37a1bQ
+  udp: true
+- name: GB Config_jo-15
+  type: ss
   server: 82.38.31.205
-  type: ss
-  udp: true
-- cipher: chacha20-ietf-poly1305
-  name: GB Config-136
-  password: k1dBOmOB4oqi7Ump37a1bQ
   port: 8080
+  cipher: chacha20-ietf-poly1305
+  password: k1dBOmOB4oqi7Ump37a1bQ
+  udp: true
+- name: GB Config_jo-16
+  type: ss
   server: 82.38.31.217
-  type: ss
-  udp: true
-- cipher: chacha20-ietf-poly1305
-  name: GB Config-137
-  password: k1dBOmOB4oqi7Ump37a1bQ
   port: 8080
+  cipher: chacha20-ietf-poly1305
+  password: k1dBOmOB4oqi7Ump37a1bQ
+  udp: true
+- name: GB Config_jo-17
+  type: ss
   server: 82.38.31.217
-  type: ss
-  udp: true
-- cipher: chacha20-ietf-poly1305
-  name: GB Config-138
-  password: k1dBOmOB4oqi7Ump37a1bQ
   port: 8080
+  cipher: chacha20-ietf-poly1305
+  password: k1dBOmOB4oqi7Ump37a1bQ
+  udp: true
+- name: GB Config_jo-18
+  type: ss
   server: 82.38.31.217
-  type: ss
-  udp: true
-- cipher: chacha20-ietf-poly1305
-  name: GB Config-139
-  password: k1dBOmOB4oqi7Ump37a1bQ
   port: 8080
+  cipher: chacha20-ietf-poly1305
+  password: k1dBOmOB4oqi7Ump37a1bQ
+  udp: true
+- name: GB Config_jo-19
+  type: ss
   server: 82.38.31.217
-  type: ss
-  udp: true
-- cipher: chacha20-ietf-poly1305
-  name: GB Config-140
-  password: k1dBOmOB4oqi7Ump37a1bQ
   port: 8080
+  cipher: chacha20-ietf-poly1305
+  password: k1dBOmOB4oqi7Ump37a1bQ
+  udp: true
+- name: GB Config_jo-20
+  type: ss
   server: 82.38.31.217
-  type: ss
-  udp: true
-- cipher: chacha20-ietf-poly1305
-  name: GB Config-141
-  password: k1dBOmOB4oqi7Ump37a1bQ
   port: 8080
+  cipher: chacha20-ietf-poly1305
+  password: k1dBOmOB4oqi7Ump37a1bQ
+  udp: true
+- name: GB Config_jo-21
+  type: ss
   server: 82.38.31.217
-  type: ss
-  udp: true
-- cipher: chacha20-ietf-poly1305
-  name: GB Config-142
-  password: k1dBOmOB4oqi7Ump37a1bQ
   port: 8080
+  cipher: chacha20-ietf-poly1305
+  password: k1dBOmOB4oqi7Ump37a1bQ
+  udp: true
+- name: GB Config_jo-22
+  type: ss
   server: 82.38.31.217
-  type: ss
-  udp: true
-- cipher: chacha20-ietf-poly1305
-  name: GB Config-143
-  password: k1dBOmOB4oqi7Ump37a1bQ
   port: 8080
+  cipher: chacha20-ietf-poly1305
+  password: k1dBOmOB4oqi7Ump37a1bQ
+  udp: true
+- name: GB Config_jo-23
+  type: ss
   server: 82.38.31.218
-  type: ss
-  udp: true
-- cipher: chacha20-ietf-poly1305
-  name: GB Config-144
+  port: 8080
+  cipher: chacha20-ietf-poly1305
   password: k1dBOmOB4oqi7Ump37a1bQ
-  port: 8080
-  server: 82.38.31.218
-  type: ss
   udp: true
-- cipher: chacha20-ietf-poly1305
-  name: NL Config-145
-  password: oZIoA69Q8yhcQV8ka3Pa3A
+- name: GB Config_jo-24
+  type: ss
+  server: 82.38.31.218
   port: 8080
+  cipher: chacha20-ietf-poly1305
+  password: k1dBOmOB4oqi7Ump37a1bQ
+  udp: true
+- name: NL Config_jo-25
+  type: ss
   server: 193.29.139.152
-  type: ss
-  udp: true
-- cipher: chacha20-ietf-poly1305
-  name: LT Config-146
-  password: oZIoA69Q8yhcQV8ka3Pa3A
   port: 8080
+  cipher: chacha20-ietf-poly1305
+  password: oZIoA69Q8yhcQV8ka3Pa3A
+  udp: true
+- name: LT Config_jo-26
+  type: ss
   server: 45.158.171.70
-  type: ss
+  port: 8080
+  cipher: chacha20-ietf-poly1305
+  password: oZIoA69Q8yhcQV8ka3Pa3A
   udp: true
-- cipher: aes-256-gcm
-  name: US Config-147
-  password: g5MeD6Ft3CWlJId
-  port: 5003
+- name: US Config_jo-27
+  type: ss
   server: 38.91.102.40
-  type: ss
+  port: 5003
+  cipher: aes-256-gcm
+  password: g5MeD6Ft3CWlJId
   udp: true
-- name: CLOUDFLARE Config-218
-  password: POORIARED
-  port: 443
+- name: CLOUDFLARE Config_jo-29
+  type: trojan
   server: 172.67.134.185
-  sni: reDfRee8.REDFree8.ir
-  type: trojan
-  udp: true
-- name: IT Config-219
-  password: blhwsknjxmfuydz0vhfv
-  port: 53809
-  server: 146.70.73.211
-  sni: www.vk.com
-  type: trojan
-  udp: true
-- name: IT Config-220
-  password: blhwsknjxmfuydz0vhfv
-  port: 53809
-  server: 146.70.73.214
-  sni: www.vk.com
-  type: trojan
-  udp: true
-- name: IT Config-221
-  password: blhwsknjxmfuydz0vhfv
-  port: 53809
-  server: 146.70.73.214
-  sni: www.vk.com
-  type: trojan
-  udp: true
-- name: CLOUDFLARE Config-222
-  network: ws
   port: 443
-  reality-opts: null
-  server: clyde.ns.cloudflare.com
-  servername: redlabell.info
-  tls: true
-  type: vless
+  password: POORIARED
   udp: true
+  sni: reDfRee8.REDFree8.ir
+- name: RU Config_jo-30
+  type: trojan
+  server: 146.70.73.211
+  port: 53809
+  password: blhwsknjxmfuydz0vhfv
+  udp: true
+  sni: www.vk.com
+- name: RU Config_jo-31
+  type: trojan
+  server: 146.70.73.214
+  port: 53809
+  password: blhwsknjxmfuydz0vhfv
+  udp: true
+  sni: www.vk.com
+- name: RU Config_jo-32
+  type: trojan
+  server: 146.70.73.214
+  port: 53809
+  password: blhwsknjxmfuydz0vhfv
+  udp: true
+  sni: www.vk.com
+- name: CLOUDFLARE Config_jo-33
+  type: vless
+  server: clyde.ns.cloudflare.com
+  port: 443
   uuid: 02e46039-200d-4ae4-ac90-b0d619f72034
+  udp: true
+  tls: true
+  network: ws
+  servername: redlabell.info
   ws-opts:
+    path: /aafeuws
     headers:
       Host: redlabell.info
-    path: /aafeuws
-- name: CLOUDFLARE Config-223
-  network: ws
-  port: 443
   reality-opts: null
-  server: betty.ns.cloudflare.com
-  servername: 638991995737742135.swift-amsib.info
-  tls: true
+- name: CLOUDFLARE Config_jo-34
   type: vless
-  udp: true
+  server: betty.ns.cloudflare.com
+  port: 443
   uuid: 038a42d5-05b0-4d12-af99-37643ac347a1
+  udp: true
+  tls: true
+  network: ws
+  servername: 638991995737742135.swift-amsib.info
   ws-opts:
+    path: /fhujaiws
     headers:
       Host: 638991995737742135.swift-amsib.info
-    path: /fhujaiws
-- name: FI Config-224
-  network: tcp
-  port: 33801
   reality-opts: null
-  server: m85a.vip784.com
-  servername: null
-  tls: false
+- name: CY Config_jo-35
   type: vless
-  udp: true
-  uuid: 05c0a076-9ebc-42e5-8d9b-22074d5036a6
-  ws-opts: null
-- name: CY Config-225
-  network: ws
-  port: 443
-  reality-opts: null
   server: 45.12.138.8
-  servername: null
-  tls: true
-  type: vless
-  udp: true
+  port: 443
   uuid: 0d0782a3-2c62-4936-b893-5790188778ea
+  udp: true
+  tls: true
+  network: ws
+  servername: null
   ws-opts:
-    headers:
-      Host: ''
     path: /
-- name: DE Config-226
-  network: grpc
-  port: 6423
+    headers:
+      Host: 45.12.138.8
   reality-opts: null
-  server: masterserver1.heloisfood.ir
-  servername: null
-  tls: false
+- name: GOOGLE Config_jo-36
   type: vless
-  udp: true
-  uuid: 0d25085e-b6c4-410a-b206-4dde607cff6c
-  ws-opts: null
-- name: DE Config-227
-  network: grpc
-  port: 6423
-  reality-opts: null
-  server: masterserver1.heloisfood.ir
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: 0d25085e-b6c4-410a-b206-4dde607cff6c
-  ws-opts: null
-- name: DE Config-228
-  network: grpc
-  port: 4488
-  reality-opts: null
-  server: v2ngnet.heloisfood.ir
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: 0d25085e-b6c4-410a-b206-4dde607cff6c
-  ws-opts: null
-- name: DE Config-229
-  network: grpc
-  port: 4488
-  reality-opts: null
-  server: v2ngnet.heloisfood.ir
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: 0d25085e-b6c4-410a-b206-4dde607cff6c
-  ws-opts: null
-- name: DE Config-230
-  network: grpc
-  port: 6673
-  reality-opts: null
-  server: v2rayngselllbot.m.heloisfood.ir
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: 0d25085e-b6c4-410a-b206-4dde607cff6c
-  ws-opts: null
-- name: DE Config-231
-  network: grpc
-  port: 6673
-  reality-opts: null
-  server: v2rayngselllbot.m.heloisfood.ir
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: 0d25085e-b6c4-410a-b206-4dde607cff6c
-  ws-opts: null
-- name: FR Config-232
-  network: xhttp
+  server: 157.173.127.225
   port: 443
-  reality-opts: null
-  server: 135.125.143.200
-  servername: null
-  tls: false
-  type: vless
+  uuid: 11beaf11-726d-4c11-8ce9-27308c1c608c
   udp: true
-  uuid: 109282ee-8e89-4879-8d94-cfefe654d625
-  ws-opts: null
-- name: FR Config-233
+  tls: true
   network: tcp
-  port: 443
+  servername: analytics.google.com
+  ws-opts: null
   reality-opts:
     public-key: v3EwzA9RIIh5Ndxm-gypRY6RCJhOpQ-2WO7KaH8nsC8
     short-id: eab26c4a32
-  server: 157.173.127.225
-  servername: analytics.google.com
-  tls: true
+- name: GOOGLE Config_jo-37
   type: vless
-  udp: true
-  uuid: 11beaf11-726d-4c11-8ce9-27308c1c608c
-  ws-opts: null
-- name: FR Config-234
-  network: tcp
+  server: 157.173.127.225
   port: 443
+  uuid: 11beaf11-726d-4c11-8ce9-27308c1c608c
+  udp: true
+  tls: true
+  network: tcp
+  servername: analytics.google.com
+  ws-opts: null
   reality-opts:
     public-key: v3EwzA9RIIh5Ndxm-gypRY6RCJhOpQ-2WO7KaH8nsC8
     short-id: eab26c4a32
-  server: 157.173.127.225
-  servername: analytics.google.com
-  tls: true
+- name: US Config_jo-38
   type: vless
-  udp: true
-  uuid: 11beaf11-726d-4c11-8ce9-27308c1c608c
-  ws-opts: null
-- name: DE Config-235
-  network: tcp
+  server: parsonline.aparat-movies-download.ir
   port: 4450
+  uuid: 11d5ccbb-2aab-4d8e-bb19-637fd86fa2a0
+  udp: true
+  tls: true
+  network: tcp
+  servername: www.adobe.com
+  ws-opts: null
   reality-opts:
     public-key: y6JSkggQ__RA_nmCJpX1_ddSQC6vzDUPaN7KyvjVuic
     short-id: ''
-  server: parsonline.aparat-movies-download.ir
-  servername: www.adobe.com
-  tls: true
+- name: CLOUDFLARE Config_jo-39
   type: vless
-  udp: true
-  uuid: 11d5ccbb-2aab-4d8e-bb19-637fd86fa2a0
-  ws-opts: null
-- name: CLOUDFLARE Config-236
-  network: ws
-  port: 443
-  reality-opts: null
   server: delilah.ns.cloudflare.com
-  servername: 639003456253079909.defender-amsis.info
-  tls: true
-  type: vless
-  udp: true
+  port: 443
   uuid: 134563d7-f835-4110-a36b-e0db5d262ae0
+  udp: true
+  tls: true
+  network: ws
+  servername: 639003456253079909.defender-amsis.info
   ws-opts:
+    path: /dupbatws
     headers:
       Host: 639003456253079909.defender-amsis.info
-    path: /dupbatws
-- name: US Config-237
-  network: tcp
+  reality-opts: null
+- name: CLOUDFRONT Config_jo-40
+  type: vless
+  server: 159.89.87.21
   port: 28190
+  uuid: 14c80e0e-f7ce-4991-94fc-99a1db4a9b1e
+  udp: true
+  tls: true
+  network: tcp
+  servername: aws.amazon.com
+  ws-opts: null
   reality-opts:
     public-key: ZJRnFU-1s1JOnO8E9uZ7b00l1fPEh63fGRbdBANFRno
     short-id: ''
-  server: 159.89.87.21
-  servername: aws.amazon.com
-  tls: true
+- name: CLOUDFLARE Config_jo-41
   type: vless
-  udp: true
-  uuid: 14c80e0e-f7ce-4991-94fc-99a1db4a9b1e
-  ws-opts: null
-- name: FR Config-238
-  network: grpc
-  port: 33920
-  reality-opts: null
-  server: 141.227.162.151
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: 17907db4-a235-40ca-8a97-05323021f9ff
-  ws-opts: null
-- name: AT Config-239
-  network: tcp
+  server: silverzebra.fonixapp.org
   port: 443
+  uuid: 1808de5c-08db-4d3f-8688-34ed85a0322d
+  udp: true
+  tls: true
+  network: tcp
+  servername: workers.cloudflare.com
+  ws-opts: null
   reality-opts:
     public-key: LyhCTXS-yRgKZ052TlzwAs-hbj4n1qvJE2OLnbnCGDo
     short-id: dab7
-  server: silverzebra.fonixapp.org
-  servername: workers.cloudflare.com
-  tls: true
+- name: CLOUDFLARE Config_jo-42
   type: vless
-  udp: true
-  uuid: 1808de5c-08db-4d3f-8688-34ed85a0322d
-  ws-opts: null
-- name: CLOUDFLARE Config-240
-  network: ws
-  port: 80
-  reality-opts: null
-  server: 172.66.156.81
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: 18ea2e4d-f5d3-4da9-8f49-eae26e011ce3
-  ws-opts:
-    headers:
-      Host: websocket.network.www.speedtest.net.flutter.dev.russia.pyt.digitalcity5.xyz.
-    path: /@Shh_Proxy----@Shh_Proxy----@Shh_Proxy----@Shh_Proxy----@Shh_Proxy----@Shh_Proxy----@Shh_Proxy----@Shh_Proxy----@Shh_Proxy----@Shh_Proxy----@Shh_Proxy----@Shh_Proxy
-- name: NL Config-241
-  network: tcp
-  port: 443
-  reality-opts: null
-  server: 144.124.255.72
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: 1a79938c-e170-4d9b-99ac-2bfd19582461
-  ws-opts: null
-- name: CLOUDFLARE Config-242
-  network: ws
-  port: 443
-  reality-opts: null
   server: 172.64.34.176
-  servername: terazhedi.info
-  tls: true
-  type: vless
-  udp: true
-  uuid: 1b2c91ab-f6c9-42f8-b2c6-8de0ac133d63
-  ws-opts:
-    headers:
-      Host: ''
-    path: /sghiyws
-- name: CLOUDFLARE Config-243
-  network: ws
   port: 443
-  reality-opts: null
-  server: brenna.ns.cloudflare.com
-  servername: terazhedi.info
-  tls: true
-  type: vless
-  udp: true
   uuid: 1b2c91ab-f6c9-42f8-b2c6-8de0ac133d63
+  udp: true
+  tls: true
+  network: ws
+  servername: terazhedi.info
   ws-opts:
+    path: /sghiyws
     headers:
       Host: terazhedi.info
-    path: /sghiyws
-- name: CLOUDFLARE Config-244
-  network: ws
-  port: 443
   reality-opts: null
-  server: brenna.ns.cloudflare.com
-  servername: terazhedi.info
-  tls: true
+- name: CLOUDFLARE Config_jo-43
   type: vless
-  udp: true
+  server: brenna.ns.cloudflare.com
+  port: 443
   uuid: 1b2c91ab-f6c9-42f8-b2c6-8de0ac133d63
+  udp: true
+  tls: true
+  network: ws
+  servername: terazhedi.info
   ws-opts:
+    path: /sghiyws
     headers:
       Host: terazhedi.info
-    path: /sghiyws
-- name: CLOUDFLARE Config-245
-  network: ws
-  port: 443
   reality-opts: null
-  server: brenna.ns.cloudflare.com
-  servername: terazhedi.info
-  tls: true
+- name: CLOUDFLARE Config_jo-44
   type: vless
-  udp: true
+  server: brenna.ns.cloudflare.com
+  port: 443
   uuid: 1b2c91ab-f6c9-42f8-b2c6-8de0ac133d63
+  udp: true
+  tls: true
+  network: ws
+  servername: terazhedi.info
   ws-opts:
+    path: /sghiyws
     headers:
       Host: terazhedi.info
-    path: /sghiyws
-- name: CLOUDFLARE Config-246
-  network: ws
-  port: 443
   reality-opts: null
-  server: brenna.ns.cloudflare.com
-  servername: terazhedi.info
-  tls: true
+- name: CLOUDFLARE Config_jo-45
   type: vless
-  udp: true
+  server: brenna.ns.cloudflare.com
+  port: 443
   uuid: 1b2c91ab-f6c9-42f8-b2c6-8de0ac133d63
+  udp: true
+  tls: true
+  network: ws
+  servername: terazhedi.info
   ws-opts:
+    path: /sghiyws
     headers:
-      Host: ''
+      Host: terazhedi.info
+  reality-opts: null
+- name: CLOUDFLARE Config_jo-46
+  type: vless
+  server: brenna.ns.cloudflare.com
+  port: 443
+  uuid: 1b2c91ab-f6c9-42f8-b2c6-8de0ac133d63
+  udp: true
+  tls: true
+  network: ws
+  servername: terazhedi.info
+  ws-opts:
     path: /sghiyws?ed
-- name: CLOUDFLARE Config-247
-  network: ws
-  port: 443
-  reality-opts: null
-  server: brenna.ns.cloudflare.com
-  servername: terazhedi.info
-  tls: true
-  type: vless
-  udp: true
-  uuid: 1b2c91ab-f6c9-42f8-b2c6-8de0ac133d63
-  ws-opts:
     headers:
-      Host: ''
+      Host: terazhedi.info
+  reality-opts: null
+- name: CLOUDFLARE Config_jo-47
+  type: vless
+  server: brenna.ns.cloudflare.com
+  port: 443
+  uuid: 1b2c91ab-f6c9-42f8-b2c6-8de0ac133d63
+  udp: true
+  tls: true
+  network: ws
+  servername: terazhedi.info
+  ws-opts:
     path: /sghiyws?ed
-- name: CLOUDFLARE Config-248
-  network: ws
-  port: 443
-  reality-opts: null
-  server: brenna.ns.cloudflare.com
-  servername: terazhedi.info
-  tls: true
-  type: vless
-  udp: true
-  uuid: 1b2c91ab-f6c9-42f8-b2c6-8de0ac133d63
-  ws-opts:
-    headers:
-      Host: ''
-    path: /sghiyws
-- name: CLOUDFLARE Config-249
-  network: ws
-  port: 443
-  reality-opts: null
-  server: brenna.ns.cloudflare.com
-  servername: terazhedi.info
-  tls: true
-  type: vless
-  udp: true
-  uuid: 1b2c91ab-f6c9-42f8-b2c6-8de0ac133d63
-  ws-opts:
     headers:
       Host: terazhedi.info
-    path: /sghiyws
-- name: CLOUDFLARE Config-250
-  network: ws
-  port: 443
   reality-opts: null
-  server: brenna.ns.cloudflare.com
-  servername: terazhedi.info
-  tls: true
+- name: CLOUDFLARE Config_jo-48
   type: vless
-  udp: true
+  server: brenna.ns.cloudflare.com
+  port: 443
   uuid: 1b2c91ab-f6c9-42f8-b2c6-8de0ac133d63
+  udp: true
+  tls: true
+  network: ws
+  servername: terazhedi.info
   ws-opts:
+    path: /sghiyws
     headers:
       Host: terazhedi.info
-    path: /sghiyws
-- name: CLOUDFLARE Config-251
-  network: ws
-  port: 443
   reality-opts: null
-  server: brenna.ns.cloudflare.com
-  servername: terazhedi.info
-  tls: true
+- name: CLOUDFLARE Config_jo-49
   type: vless
-  udp: true
+  server: brenna.ns.cloudflare.com
+  port: 443
   uuid: 1b2c91ab-f6c9-42f8-b2c6-8de0ac133d63
+  udp: true
+  tls: true
+  network: ws
+  servername: terazhedi.info
   ws-opts:
+    path: /sghiyws
     headers:
       Host: terazhedi.info
-    path: /sghiyws
-- name: CLOUDFLARE Config-252
-  network: ws
-  port: 443
   reality-opts: null
-  server: brenna.ns.cloudflare.com
-  servername: terazhedi.info
-  tls: true
+- name: CLOUDFLARE Config_jo-50
   type: vless
-  udp: true
+  server: brenna.ns.cloudflare.com
+  port: 443
   uuid: 1b2c91ab-f6c9-42f8-b2c6-8de0ac133d63
+  udp: true
+  tls: true
+  network: ws
+  servername: terazhedi.info
   ws-opts:
+    path: /sghiyws
     headers:
       Host: terazhedi.info
-    path: /sghiyws
-- name: CLOUDFLARE Config-253
-  network: ws
-  port: 443
   reality-opts: null
-  server: brenna.ns.cloudflare.com
-  servername: terazhedi.info
-  tls: true
+- name: CLOUDFLARE Config_jo-51
   type: vless
-  udp: true
-  uuid: 1b2c91ab-f6c9-42f8-b2c6-8de0ac133d63
-  ws-opts:
-    headers:
-      Host: ''
-    path: /sghiyws
-- name: CLOUDFLARE Config-254
-  network: ws
+  server: brenna.ns.cloudflare.com
   port: 443
+  uuid: 1b2c91ab-f6c9-42f8-b2c6-8de0ac133d63
+  udp: true
+  tls: true
+  network: ws
+  servername: terazhedi.info
+  ws-opts:
+    path: /sghiyws
+    headers:
+      Host: terazhedi.info
   reality-opts: null
+- name: CLOUDFLARE Config_jo-52
+  type: vless
+  server: brenna.ns.cloudflare.com
+  port: 443
+  uuid: 1b2c91ab-f6c9-42f8-b2c6-8de0ac133d63
+  udp: true
+  tls: true
+  network: ws
+  servername: terazhedi.info
+  ws-opts:
+    path: /sghiyws
+    headers:
+      Host: terazhedi.info
+  reality-opts: null
+- name: CLOUDFLARE Config_jo-53
+  type: vless
+  server: brenna.ns.cloudflare.com
+  port: 443
+  uuid: 1b2c91ab-f6c9-42f8-b2c6-8de0ac133d63
+  udp: true
+  tls: true
+  network: ws
+  servername: terazhedi.info
+  ws-opts:
+    path: /sghiyws
+    headers:
+      Host: terazhedi.info
+  reality-opts: null
+- name: CLOUDFLARE Config_jo-54
+  type: vless
   server: zula.ir
-  servername: terazhedi.info
-  tls: true
-  type: vless
-  udp: true
-  uuid: 1b2c91ab-f6c9-42f8-b2c6-8de0ac133d63
-  ws-opts:
-    headers:
-      Host: terazhedi.info
-    path: /sghiyws
-- name: CLOUDFLARE Config-255
-  network: ws
   port: 443
-  reality-opts: null
-  server: zula.ir
-  servername: terazhedi.info
-  tls: true
-  type: vless
-  udp: true
   uuid: 1b2c91ab-f6c9-42f8-b2c6-8de0ac133d63
+  udp: true
+  tls: true
+  network: ws
+  servername: terazhedi.info
   ws-opts:
+    path: /sghiyws
     headers:
       Host: terazhedi.info
+  reality-opts: null
+- name: CLOUDFLARE Config_jo-55
+  type: vless
+  server: zula.ir
+  port: 443
+  uuid: 1b2c91ab-f6c9-42f8-b2c6-8de0ac133d63
+  udp: true
+  tls: true
+  network: ws
+  servername: terazhedi.info
+  ws-opts:
     path: /sghiyws
-- name: DE Config-256
+    headers:
+      Host: terazhedi.info
+  reality-opts: null
+- name: US Config_jo-56
+  type: vless
+  server: beast-masters.fonixapp.org
+  port: 443
+  uuid: 1c83fafe-8107-46ed-a94c-1252de4ceba6
+  udp: true
+  tls: true
   network: tcp
-  port: 443
+  servername: xp.apple.com
+  ws-opts: null
   reality-opts:
     public-key: Y7WW7er4kSFYTxwTw8Lv7Iu-cPH0_Vt3kimM7vD9GHM
     short-id: '640054'
-  server: beast-masters.fonixapp.org
-  servername: xp.apple.com
-  tls: true
+- name: CLOUDFLARE Config_jo-57
   type: vless
-  udp: true
-  uuid: 1c83fafe-8107-46ed-a94c-1252de4ceba6
-  ws-opts: null
-- name: DE Config-257
-  network: tcp
-  port: 80
-  reality-opts: null
-  server: 91.99.191.47
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: 1c9054be-74c1-472e-948a-f915de932c8e
-  ws-opts: null
-- name: AT Config-258
-  network: tcp
+  server: earthshaker.fonixapp.org
   port: 34251
+  uuid: 2ace2af4-dbe1-4aa8-925c-ecbce7703356
+  udp: true
+  tls: true
+  network: tcp
+  servername: ilovepdf.com
+  ws-opts: null
   reality-opts:
     public-key: 7YnBT77FEbuPm7lDErGuskhNdiq773WQYumBa0aapXo
     short-id: a57aef
-  server: earthshaker.fonixapp.org
-  servername: ilovepdf.com
-  tls: true
+- name: FASTLY Config_jo-58
   type: vless
-  udp: true
-  uuid: 2ace2af4-dbe1-4aa8-925c-ecbce7703356
-  ws-opts: null
-- name: DE Config-259
-  network: grpc
-  port: 443
-  reality-opts: null
-  server: 91.99.210.212
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: 2ee2a715-d541-416a-8713-d66567448c2e
-  ws-opts: null
-- name: DE Config-260
-  network: grpc
-  port: 443
-  reality-opts: null
-  server: 91.99.210.212
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: 2ee2a715-d541-416a-8713-d66567448c2e
-  ws-opts: null
-- name: DE Config-261
-  network: tcp
-  port: 8443
-  reality-opts: null
   server: de2.srv.oplcdn.link
-  servername: ign.com
-  tls: true
-  type: vless
-  udp: true
+  port: 8443
   uuid: 3116cc23-0c39-4bb6-8154-d3f332e9017e
-  ws-opts: null
-- name: FASTLY Config-262
-  network: xhttp
-  port: 80
-  reality-opts: null
-  server: 151.101.205.194
-  servername: null
-  tls: false
-  type: vless
   udp: true
-  uuid: 3625a74e-5473-4ae7-abad-93ebbe1af0b8
-  ws-opts: null
-- name: FASTLY Config-263
-  network: xhttp
-  port: 80
-  reality-opts: null
-  server: 151.101.205.194
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: 3625a74e-5473-4ae7-abad-93ebbe1af0b8
-  ws-opts: null
-- name: DE Config-264
-  network: grpc
-  port: 35493
-  reality-opts:
-    public-key: qeWt8jJZTwf6vmiTvDfaalPaSZDkX7a3XkKrBxf2YVA
-    short-id: 9c24
-  server: a.confignor.site
-  servername: www.cdn77.com
   tls: true
-  type: vless
-  udp: true
-  uuid: 3949130a-a1d6-453b-91a9-870c3ba7abad
-  ws-opts: null
-- name: DE Config-265
-  network: grpc
-  port: 35493
-  reality-opts:
-    public-key: qeWt8jJZTwf6vmiTvDfaalPaSZDkX7a3XkKrBxf2YVA
-    short-id: 9c24
-  server: a.confignor.site
-  servername: www.cdn77.com
-  tls: true
-  type: vless
-  udp: true
-  uuid: 3f454ab1-76e8-4305-ad23-e3d628144217
-  ws-opts: null
-- name: DE Config-266
   network: tcp
+  servername: ign.com
+  ws-opts: null
+  reality-opts: null
+- name: US Config_jo-59
+  type: vless
+  server: a.confignor.site
+  port: 35493
+  uuid: 3949130a-a1d6-453b-91a9-870c3ba7abad
+  udp: true
+  tls: true
+  network: grpc
+  servername: www.cdn77.com
+  ws-opts: null
+  reality-opts:
+    public-key: qeWt8jJZTwf6vmiTvDfaalPaSZDkX7a3XkKrBxf2YVA
+    short-id: 9c24
+- name: US Config_jo-60
+  type: vless
+  server: a.confignor.site
+  port: 35493
+  uuid: 3f454ab1-76e8-4305-ad23-e3d628144217
+  udp: true
+  tls: true
+  network: grpc
+  servername: www.cdn77.com
+  ws-opts: null
+  reality-opts:
+    public-key: qeWt8jJZTwf6vmiTvDfaalPaSZDkX7a3XkKrBxf2YVA
+    short-id: 9c24
+- name: CLOUDFRONT Config_jo-61
+  type: vless
+  server: alchemistss.fonixapp.org
   port: 49067
+  uuid: 4945561d-534d-488f-b367-436513e43349
+  udp: true
+  tls: true
+  network: tcp
+  servername: study.com
+  ws-opts: null
   reality-opts:
     public-key: krhP4LVv8U-nFUhPdJmEsA4ojmhFPmNV7dNJBWB_5SM
     short-id: 9cdd24503fce
-  server: alchemistss.fonixapp.org
-  servername: study.com
-  tls: true
+- name: FASTLY Config_jo-62
   type: vless
-  udp: true
-  uuid: 4945561d-534d-488f-b367-436513e43349
-  ws-opts: null
-- name: DE Config-267
-  network: tcp
+  server: invoker.fonixapp.org
   port: 443
+  uuid: 50122bf3-218b-4182-b2e0-6a28b24459a6
+  udp: true
+  tls: true
+  network: tcp
+  servername: cdn.steamstatic.com
+  ws-opts: null
   reality-opts:
     public-key: ZNKJSYo6NIxLxFtgo3IjNmDqEjtuGpLZYs_sLAOkNks
     short-id: 1c
-  server: invoker.fonixapp.org
-  servername: cdn.steamstatic.com
-  tls: true
+- name: CLOUDFLARE Config_jo-63
   type: vless
-  udp: true
-  uuid: 50122bf3-218b-4182-b2e0-6a28b24459a6
-  ws-opts: null
-- name: CLOUDFLARE Config-268
-  network: ws
-  port: 443
-  reality-opts: null
   server: norman.ns.cloudflare.com
-  servername: 639001966536690941.prius-amsiq.info
-  tls: true
-  type: vless
-  udp: true
+  port: 443
   uuid: 53f0bca8-f170-4ef7-8031-c7d441189dbf
+  udp: true
+  tls: true
+  network: ws
+  servername: 639001966536690941.prius-amsiq.info
   ws-opts:
+    path: /cahttingws
     headers:
       Host: 639001966536690941.prius-amsiq.info
-    path: /cahttingws
-- name: DE Config-269
-  network: ws
-  port: 80
   reality-opts: null
-  server: 37.120.186.241
-  servername: null
-  tls: false
+- name: CLOUDFLARE Config_jo-64
   type: vless
-  udp: true
-  uuid: 53fff6cc-b4ec-43e8-ade5-e0c42972fc33
-  ws-opts:
-    headers:
-      Host: cdn.ir
-    path: /news
-- name: FASTLY Config-270
-  network: xhttp
-  port: 80
-  reality-opts: null
-  server: 151.101.205.194
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: 556d0dc1-165e-4292-aa60-05ebba264ab9
-  ws-opts: null
-- name: FASTLY Config-271
-  network: xhttp
-  port: 80
-  reality-opts: null
-  server: 151.101.205.194
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: 556d0dc1-165e-4292-aa60-05ebba264ab9
-  ws-opts: null
-- name: US Config-272
-  network: xhttp
-  port: 2053
-  reality-opts: null
   server: nl.stepson.ir
-  servername: ham.stepson.ir
-  tls: true
-  type: vless
-  udp: true
+  port: 2053
   uuid: 60e601ac-3f0e-4589-be9a-0a4ac72e4867
-  ws-opts: null
-- name: CLOUDFLARE Config-273
-  network: xhttp
-  port: 443
-  reality-opts: null
-  server: 104.21.62.144
-  servername: sauron.melkore.ir
-  tls: true
-  type: vless
   udp: true
-  uuid: 62793d13-24bc-4a0b-9b35-f565ed659773
+  tls: true
+  network: xhttp
+  servername: ham.stepson.ir
   ws-opts: null
-- name: GE Config-274
-  network: tcp
+  reality-opts: null
+- name: N/A Config_jo-65
+  type: vless
+  server: 104.21.62.144
+  port: 443
+  uuid: 62793d13-24bc-4a0b-9b35-f565ed659773
+  udp: true
+  tls: true
+  network: xhttp
+  servername: sauron.melkore.ir
+  ws-opts: null
+  reality-opts: null
+- name: CLOUDFLARE Config_jo-66
+  type: vless
+  server: 88.218.94.97
   port: 8443
+  uuid: 62b0e46b-d2a5-423d-8457-95bde707fc19
+  udp: true
+  tls: true
+  network: tcp
+  servername: cdn.discordapp.com
+  ws-opts: null
   reality-opts:
     public-key: SbVKOEMjK0sIlbwg4akyBg5mL5KZwwB-ed4eEE7YnRc
     short-id: ''
-  server: 88.218.94.97
-  servername: cdn.discordapp.com
-  tls: true
+- name: CLOUDFRONT Config_jo-67
   type: vless
-  udp: true
-  uuid: 62b0e46b-d2a5-423d-8457-95bde707fc19
-  ws-opts: null
-- name: US Config-275
-  network: tcp
-  port: 8071
-  reality-opts:
-    public-key: TZ9jAlmd-AFAvwYndEIi96pE-Y1LWs1hDP7N4HE5Uwg
-    short-id: 43e1a3a93f1eb8d6
-  server: sw.nava-shop.ir
-  servername: refersion.com
-  tls: true
-  type: vless
-  udp: true
-  uuid: 65155dc7-d2e0-4669-b13d-f9fefe18b0d6
-  ws-opts: null
-- name: AM Config-276
-  network: tcp
-  port: 42506
-  reality-opts: null
-  server: am.nava-shop.ir
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: 65155dc7-d2e0-4669-b13d-f9fefe18b0d6
-  ws-opts: null
-- name: AM Config-277
-  network: ws
-  port: 8084
-  reality-opts: null
-  server: am.nava-shop.ir
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: 65155dc7-d2e0-4669-b13d-f9fefe18b0d6
-  ws-opts:
-    headers:
-      Host: ''
-    path: /
-- name: US Config-278
-  network: tcp
-  port: 8071
-  reality-opts:
-    public-key: TZ9jAlmd-AFAvwYndEIi96pE-Y1LWs1hDP7N4HE5Uwg
-    short-id: 43e1a3a93f1eb8d6
-  server: doc.nava-shop.ir
-  servername: www.refersion.com
-  tls: true
-  type: vless
-  udp: true
-  uuid: 65155dc7-d2e0-4669-b13d-f9fefe18b0d6
-  ws-opts: null
-- name: US Config-279
-  network: ws
-  port: 8084
-  reality-opts: null
-  server: doc.nava-shop.ir
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: 65155dc7-d2e0-4669-b13d-f9fefe18b0d6
-  ws-opts:
-    headers:
-      Host: ''
-    path: /
-- name: FI Config-280
-  network: ws
-  port: 8084
-  reality-opts: null
-  server: fl.nava-shop.ir
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: 65155dc7-d2e0-4669-b13d-f9fefe18b0d6
-  ws-opts:
-    headers:
-      Host: ''
-    path: /
-- name: DE Config-281
-  network: xhttp
-  port: 2324
-  reality-opts: null
-  server: home.nava-shop.ir
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: 65155dc7-d2e0-4669-b13d-f9fefe18b0d6
-  ws-opts: null
-- name: DE Config-282
-  network: tcp
-  port: 8071
-  reality-opts:
-    public-key: TZ9jAlmd-AFAvwYndEIi96pE-Y1LWs1hDP7N4HE5Uwg
-    short-id: 43e1a3a93f1eb8d6
-  server: home.nava-shop.ir
-  servername: www.refersion.com
-  tls: true
-  type: vless
-  udp: true
-  uuid: 65155dc7-d2e0-4669-b13d-f9fefe18b0d6
-  ws-opts: null
-- name: DE Config-283
-  network: ws
-  port: 8084
-  reality-opts: null
-  server: home.nava-shop.ir
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: 65155dc7-d2e0-4669-b13d-f9fefe18b0d6
-  ws-opts:
-    headers:
-      Host: ''
-    path: /
-- name: DE Config-284
-  network: tcp
-  port: 8071
-  reality-opts:
-    public-key: TZ9jAlmd-AFAvwYndEIi96pE-Y1LWs1hDP7N4HE5Uwg
-    short-id: 43e1a3a93f1eb8d6
-  server: home2.nava-shop.ir
-  servername: www.refersion.com
-  tls: true
-  type: vless
-  udp: true
-  uuid: 65155dc7-d2e0-4669-b13d-f9fefe18b0d6
-  ws-opts: null
-- name: DE Config-285
-  network: ws
-  port: 8084
-  reality-opts: null
-  server: home2.nava-shop.ir
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: 65155dc7-d2e0-4669-b13d-f9fefe18b0d6
-  ws-opts:
-    headers:
-      Host: ''
-    path: /
-- name: IT Config-286
-  network: tcp
-  port: 8071
-  reality-opts:
-    public-key: TZ9jAlmd-AFAvwYndEIi96pE-Y1LWs1hDP7N4HE5Uwg
-    short-id: 43e1a3a93f1eb8d6
-  server: it.nava-shop.ir
-  servername: refersion.com
-  tls: true
-  type: vless
-  udp: true
-  uuid: 65155dc7-d2e0-4669-b13d-f9fefe18b0d6
-  ws-opts: null
-- name: IT Config-287
-  network: ws
-  port: 8084
-  reality-opts: null
-  server: it.nava-shop.ir
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: 65155dc7-d2e0-4669-b13d-f9fefe18b0d6
-  ws-opts:
-    headers:
-      Host: ''
-    path: /
-- name: TR Config-288
-  network: ws
-  port: 8084
-  reality-opts: null
-  server: m-tr.leperfume.ir
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: 65155dc7-d2e0-4669-b13d-f9fefe18b0d6
-  ws-opts:
-    headers:
-      Host: ''
-    path: /
-- name: IR Config-289
-  network: tcp
-  port: 42502
-  reality-opts: null
-  server: nim.bmarzvpn.store
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: 65155dc7-d2e0-4669-b13d-f9fefe18b0d6
-  ws-opts: null
-- name: IR Config-290
-  network: tcp
-  port: 42504
-  reality-opts: null
-  server: nim.bmarzvpn.store
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: 65155dc7-d2e0-4669-b13d-f9fefe18b0d6
-  ws-opts: null
-- name: IR Config-291
-  network: tcp
-  port: 4343
-  reality-opts: null
-  server: nim.bmarzvpn.store
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: 65155dc7-d2e0-4669-b13d-f9fefe18b0d6
-  ws-opts: null
-- name: IR Config-292
-  network: tcp
-  port: 43504
-  reality-opts: null
-  server: nim.bmarzvpn.store
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: 65155dc7-d2e0-4669-b13d-f9fefe18b0d6
-  ws-opts: null
-- name: IR Config-293
-  network: tcp
-  port: 43505
-  reality-opts: null
-  server: nim.bmarzvpn.store
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: 65155dc7-d2e0-4669-b13d-f9fefe18b0d6
-  ws-opts: null
-- name: IR Config-294
-  network: tcp
-  port: 44500
-  reality-opts: null
-  server: nim.bmarzvpn.store
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: 65155dc7-d2e0-4669-b13d-f9fefe18b0d6
-  ws-opts: null
-- name: IR Config-295
-  network: tcp
-  port: 42502
-  reality-opts: null
-  server: nim2.bmarzvpn.store
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: 65155dc7-d2e0-4669-b13d-f9fefe18b0d6
-  ws-opts: null
-- name: NL Config-296
-  network: tcp
-  port: 8071
-  reality-opts:
-    public-key: TZ9jAlmd-AFAvwYndEIi96pE-Y1LWs1hDP7N4HE5Uwg
-    short-id: 43e1a3a93f1eb8d6
-  server: nl-2.nava-shop.ir
-  servername: www.refersion.com
-  tls: true
-  type: vless
-  udp: true
-  uuid: 65155dc7-d2e0-4669-b13d-f9fefe18b0d6
-  ws-opts: null
-- name: NL Config-297
-  network: ws
-  port: 8084
-  reality-opts: null
-  server: node-nl.leperfume.ir
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: 65155dc7-d2e0-4669-b13d-f9fefe18b0d6
-  ws-opts:
-    headers:
-      Host: ''
-    path: /
-- name: RU Config-298
-  network: tcp
-  port: 8071
-  reality-opts:
-    public-key: TZ9jAlmd-AFAvwYndEIi96pE-Y1LWs1hDP7N4HE5Uwg
-    short-id: 43e1a3a93f1eb8d6
-  server: ru.nava-shop.ir
-  servername: refersion.com
-  tls: true
-  type: vless
-  udp: true
-  uuid: 65155dc7-d2e0-4669-b13d-f9fefe18b0d6
-  ws-opts: null
-- name: RU Config-299
-  network: ws
-  port: 8084
-  reality-opts: null
-  server: ru.nava-shop.ir
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: 65155dc7-d2e0-4669-b13d-f9fefe18b0d6
-  ws-opts:
-    headers:
-      Host: ''
-    path: /
-- name: US Config-300
-  network: ws
-  port: 8084
-  reality-opts: null
-  server: sw.nava-shop.ir
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: 65155dc7-d2e0-4669-b13d-f9fefe18b0d6
-  ws-opts:
-    headers:
-      Host: ''
-    path: /
-- name: TR Config-301
-  network: ws
-  port: 8084
-  reality-opts: null
-  server: time.nava-shop.ir
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: 65155dc7-d2e0-4669-b13d-f9fefe18b0d6
-  ws-opts:
-    headers:
-      Host: ''
-    path: /
-- name: TR Config-302
-  network: tcp
-  port: 8071
-  reality-opts:
-    public-key: TZ9jAlmd-AFAvwYndEIi96pE-Y1LWs1hDP7N4HE5Uwg
-    short-id: 43e1a3a93f1eb8d6
-  server: tr-2.nava-shop.ir
-  servername: www.refersion.com
-  tls: true
-  type: vless
-  udp: true
-  uuid: 65155dc7-d2e0-4669-b13d-f9fefe18b0d6
-  ws-opts: null
-- name: TR Config-303
-  network: ws
-  port: 8084
-  reality-opts: null
-  server: tr-2.nava-shop.ir
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: 65155dc7-d2e0-4669-b13d-f9fefe18b0d6
-  ws-opts:
-    headers:
-      Host: ''
-    path: /
-- name: NL Config-304
-  network: ws
-  port: 8084
-  reality-opts: null
-  server: web2.nava-shop.ir
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: 65155dc7-d2e0-4669-b13d-f9fefe18b0d6
-  ws-opts:
-    headers:
-      Host: ''
-    path: /
-- name: GB Config-305
-  network: tcp
-  port: 8071
-  reality-opts:
-    public-key: TZ9jAlmd-AFAvwYndEIi96pE-Y1LWs1hDP7N4HE5Uwg
-    short-id: 43e1a3a93f1eb8d6
-  server: web3.nava-shop.ir
-  servername: refersion.com
-  tls: true
-  type: vless
-  udp: true
-  uuid: 65155dc7-d2e0-4669-b13d-f9fefe18b0d6
-  ws-opts: null
-- name: GB Config-306
-  network: ws
-  port: 8084
-  reality-opts: null
-  server: web3.nava-shop.ir
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: 65155dc7-d2e0-4669-b13d-f9fefe18b0d6
-  ws-opts:
-    headers:
-      Host: ''
-    path: /
-- name: N/A Config-307
-  network: tcp
-  port: 443
-  reality-opts: null
-  server: حجم
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: 65155dc7-d2e0-4669-b13d-f9fefe18b0d6
-  ws-opts: null
-- name: FASTLY Config-308
-  network: xhttp
-  port: 80
-  reality-opts: null
-  server: trt.fastlynew.hosting-ip.com
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: 67340574-ff95-4338-8c8a-46caa044effd
-  ws-opts: null
-- name: DE Config-309
-  network: tcp
+  server: tuskar.fonixapp.org
   port: 45352
+  uuid: 6873298f-8256-4315-88c8-13dc8da308cf
+  udp: true
+  tls: true
+  network: tcp
+  servername: smallpdf.com
+  ws-opts: null
   reality-opts:
     public-key: a3usSjtSaH2XGzG5oi3oqPYKlhsJOmmJYI4nitX1rn8
     short-id: 2b
-  server: tuskar.fonixapp.org
-  servername: smallpdf.com
-  tls: true
+- name: CLOUDFLARE Config_jo-68
   type: vless
-  udp: true
-  uuid: 6873298f-8256-4315-88c8-13dc8da308cf
-  ws-opts: null
-- name: CLOUDFLARE Config-310
-  network: ws
-  port: 2087
-  reality-opts: null
   server: 104.21.80.1
-  servername: free.bxxxcws.workers.dev
-  tls: true
-  type: vless
-  udp: true
+  port: 2087
   uuid: 6b437afc-62b3-40ba-9112-ee667a783c3d
+  udp: true
+  tls: true
+  network: ws
+  servername: free.bxxxcws.workers.dev
   ws-opts:
+    path: /ejr8thzf35mla7oh?ed=2560
     headers:
       Host: free.bxxxcws.workers.dev
-    path: /ejr8thzf35mla7oh?ed=2560
-- name: CLOUDFLARE Config-311
-  network: ws
-  port: 443
   reality-opts: null
-  server: cosmin.ns.cloudflare.com
-  servername: picassoo.info
-  tls: true
+- name: CLOUDFLARE Config_jo-69
   type: vless
-  udp: true
+  server: cosmin.ns.cloudflare.com
+  port: 443
   uuid: 7270612b-49f6-4b04-999c-34d8263da767
+  udp: true
+  tls: true
+  network: ws
+  servername: picassoo.info
   ws-opts:
-    headers:
-      Host: ''
     path: /aymdlws
-- name: FI Config-312
-  network: tcp
+    headers:
+      Host: picassoo.info
+  reality-opts: null
+- name: US Config_jo-70
+  type: vless
+  server: helsinki.fonixapp.org
   port: 28264
+  uuid: 78302036-66e6-4018-ae95-d168cff5a475
+  udp: true
+  tls: true
+  network: tcp
+  servername: lowes.com
+  ws-opts: null
   reality-opts:
     public-key: ETlf5jYSfWCurnzl9iZ3URUFHWB8_JWWR8jrp2UizVs
     short-id: 9e7234a45944
-  server: helsinki.fonixapp.org
-  servername: lowes.com
-  tls: true
+- name: CLOUDFLARE Config_jo-71
   type: vless
-  udp: true
-  uuid: 78302036-66e6-4018-ae95-d168cff5a475
-  ws-opts: null
-- name: FR Config-313
-  network: grpc
-  port: 25688
-  reality-opts: null
-  server: 141.227.136.51
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: 7ce55d76-b821-471a-8227-4f88b3c0ffaf
-  ws-opts: null
-- name: FR Config-314
-  network: grpc
-  port: 25688
-  reality-opts: null
-  server: 141.227.136.51
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: 7ce55d76-b821-471a-8227-4f88b3c0ffaf
-  ws-opts: null
-- name: FASTLY Config-315
-  network: xhttp
-  port: 80
-  reality-opts: null
-  server: 151.101.205.194
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: 7d444cb1-278b-4181-ab5c-8eab5878f8bc
-  ws-opts: null
-- name: FASTLY Config-316
-  network: xhttp
-  port: 80
-  reality-opts: null
-  server: 151.101.205.194
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: 7d444cb1-278b-4181-ab5c-8eab5878f8bc
-  ws-opts: null
-- name: NL Config-317
-  network: tcp
+  server: 89.42.142.155
   port: 443
+  uuid: 7e281f58-63b0-4e9a-a3fe-537e33e374b9
+  udp: true
+  tls: true
+  network: tcp
+  servername: www.cloudflare.com
+  ws-opts: null
   reality-opts:
     public-key: 0_FWbcTe6tvBuSZ7_7PrMaNmg44a8VxYRXPKjZuERwQ
     short-id: a150dff4
-  server: 89.42.142.155
-  servername: www.cloudflare.com
-  tls: true
+- name: MD Config_jo-72
   type: vless
-  udp: true
-  uuid: 7e281f58-63b0-4e9a-a3fe-537e33e374b9
-  ws-opts: null
-- name: US Config-318
-  network: ws
-  port: 2087
-  reality-opts: null
-  server: 77.110.115.143
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: 8153220491-client-b37
-  ws-opts:
-    headers:
-      Host: ws.usa1.tunnelx.space
-    path: /assets/img/banner_v3.webp/#
-- name: MD Config-319
-  network: ws
-  port: 443
-  reality-opts: null
   server: 45.67.228.224
-  servername: null
-  tls: true
-  type: vless
-  udp: true
+  port: 443
   uuid: 88872588-2a25-47f9-b498-79142565a239
+  udp: true
+  tls: true
+  network: ws
+  servername: null
   ws-opts:
-    headers:
-      Host: ''
     path: /ufhqdyws
-- name: TR Config-320
-  network: tcp
+    headers:
+      Host: 45.67.228.224
+  reality-opts: null
+- name: FASTLY Config_jo-73
+  type: vless
+  server: istanbul.fonixapp.org
   port: 25059
+  uuid: 88ba0958-d6e8-4c7b-9a80-e5180c520989
+  udp: true
+  tls: true
+  network: tcp
+  servername: yelp.com
+  ws-opts: null
   reality-opts:
     public-key: f8rRV7gssAlL-e8teb5xR9q1vRwRJ3pvORgscKSgPAM
     short-id: 1ec404fc
-  server: istanbul.fonixapp.org
-  servername: yelp.com
-  tls: true
+- name: RU Config_jo-74
   type: vless
-  udp: true
-  uuid: 88ba0958-d6e8-4c7b-9a80-e5180c520989
-  ws-opts: null
-- name: DE Config-321
-  network: grpc
-  port: 45417
-  reality-opts: null
-  server: 209.38.218.66
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: 88f41020-5b41-4051-9a18-c60fcf79a828
-  ws-opts: null
-- name: GB Config-322
-  network: ws
-  port: 443
-  reality-opts: null
   server: 167.99.91.171
-  servername: api.avito.ru
-  tls: true
-  type: vless
-  udp: true
+  port: 443
   uuid: 921290a9-6e24-4661-82fb-844d88164b74
+  udp: true
+  tls: true
+  network: ws
+  servername: api.avito.ru
   ws-opts:
-    headers:
-      Host: ''
     path: /sbqbfows
-- name: CLOUDFLARE Config-323
-  network: ws
-  port: 443
+    headers:
+      Host: api.avito.ru
   reality-opts: null
-  server: betty.ns.cloudflare.com
-  servername: vangoghh.info
-  tls: true
+- name: CLOUDFLARE Config_jo-75
   type: vless
-  udp: true
+  server: betty.ns.cloudflare.com
+  port: 443
   uuid: 94daa8ad-75ed-4dbf-a6de-d05036d98df5
+  udp: true
+  tls: true
+  network: ws
+  servername: vangoghh.info
   ws-opts:
+    path: /tixvuws
     headers:
       Host: vangoghh.info
-    path: /tixvuws
-- name: CLOUDFLARE Config-324
-  network: ws
-  port: 443
   reality-opts: null
-  server: betty.ns.cloudflare.com
-  servername: vangoghh.info
-  tls: true
+- name: CLOUDFLARE Config_jo-76
   type: vless
-  udp: true
+  server: betty.ns.cloudflare.com
+  port: 443
   uuid: 94daa8ad-75ed-4dbf-a6de-d05036d98df5
+  udp: true
+  tls: true
+  network: ws
+  servername: vangoghh.info
   ws-opts:
+    path: /tixvuws
     headers:
       Host: vangoghh.info
-    path: /tixvuws
-- name: CLOUDFLARE Config-325
-  network: ws
-  port: 443
   reality-opts: null
-  server: betty.ns.cloudflare.com
-  servername: vangoghh.info
-  tls: true
+- name: CLOUDFLARE Config_jo-77
   type: vless
-  udp: true
+  server: betty.ns.cloudflare.com
+  port: 443
   uuid: 94daa8ad-75ed-4dbf-a6de-d05036d98df5
+  udp: true
+  tls: true
+  network: ws
+  servername: vangoghh.info
   ws-opts:
+    path: /tixvuws
     headers:
       Host: vangoghh.info
-    path: /tixvuws
-- name: CLOUDFLARE Config-326
-  network: ws
-  port: 443
   reality-opts: null
-  server: betty.ns.cloudflare.com
-  servername: vangoghh.info
-  tls: true
+- name: CLOUDFLARE Config_jo-78
   type: vless
-  udp: true
+  server: betty.ns.cloudflare.com
+  port: 443
   uuid: 94daa8ad-75ed-4dbf-a6de-d05036d98df5
+  udp: true
+  tls: true
+  network: ws
+  servername: vangoghh.info
   ws-opts:
+    path: /tixvuws
     headers:
       Host: vangoghh.info
-    path: /tixvuws
-- name: MD Config-327
-  network: ws
-  port: 443
   reality-opts: null
+- name: MD Config_jo-79
+  type: vless
   server: 94.131.110.133
-  servername: null
-  tls: true
-  type: vless
-  udp: true
+  port: 443
   uuid: 9647bcf6-dfe5-40a4-89b5-c56d4b3d9a9a
-  ws-opts:
-    headers:
-      Host: ''
-    path: /ktqdgews
-- name: CLOUDFLARE Config-328
+  udp: true
+  tls: true
   network: ws
-  port: 80
-  reality-opts: null
-  server: 172.66.156.81
   servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: 9c37743b-a887-447f-a8ba-a3ca70125da7
   ws-opts:
+    path: /ktqdgews
     headers:
-      Host: websocket.network.www.speedtest.net.flutter.dev.russia.pyt.digitalcity5.xyz.skylinkserver.site.
-    path: /@Shh_Proxy----@Shh_Proxy----@Shh_Proxy----@Shh_Proxy----@Shh_Proxy----@Shh_Proxy----@Shh_Proxy----@Shh_Proxy----@Shh_Proxy----@Shh_Proxy----@Shh_Proxy----@Shh_Proxy
-- name: DE Config-329
-  network: grpc
-  port: 443
+      Host: 94.131.110.133
   reality-opts: null
-  server: 165.22.80.180
-  servername: null
-  tls: false
+- name: GOOGLE Config_jo-80
   type: vless
-  udp: true
-  uuid: 9d0f2788-472a-499e-aa32-f34ede085a41
-  ws-opts: null
-- name: AT Config-330
-  network: tcp
+  server: bloodseeker.fonixapp.org
   port: 443
+  uuid: 9ddd1f39-e7e4-4d52-b202-7d7b2f13215a
+  udp: true
+  tls: true
+  network: tcp
+  servername: clients2.google.com
+  ws-opts: null
   reality-opts:
     public-key: 4yvKWFMcxHUzMJCMupKIRvqw2gsCRsD_bfirrZ0LmAI
     short-id: 83e035aa57
-  server: bloodseeker.fonixapp.org
-  servername: clients2.google.com
+- name: GOOGLE Config_jo-81
+  type: vless
+  server: 185.176.220.154
+  port: 443
+  uuid: a0e804c3-55e2-4d51-82c7-33976d6748cb
+  udp: true
   tls: true
-  type: vless
-  udp: true
-  uuid: 9ddd1f39-e7e4-4d52-b202-7d7b2f13215a
-  ws-opts: null
-- name: CLOUDFLARE Config-331
-  network: xhttp
-  port: 80
-  reality-opts: null
-  server: mnk.sernett.ir
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: SERVERNETT-SERVERNETT1
-  ws-opts: null
-- name: FASTLY Config-332
-  network: xhttp
-  port: 80
-  reality-opts: null
-  server: 151.101.67.8
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: TELEGRAM-CONFiGLiNE-53
-  ws-opts: null
-- name: FASTLY Config-333
-  network: xhttp
-  port: 80
-  reality-opts: null
-  server: ip.fastlynew.hosting-ip.com
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: TELEGRAM-CONFiGLiNE-91
-  ws-opts: null
-- name: FASTLY Config-334
-  network: xhttp
-  port: 80
-  reality-opts: null
-  server: ip.fastlynew.hosting-ip.com
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: TELEGRAM-CONFiGLiNE-92
-  ws-opts: null
-- name: FASTLY Config-335
-  network: xhttp
-  port: 80
-  reality-opts: null
-  server: ip.fastlynew.hosting-ip.com
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: TELEGRAM-CONFiGLiNE-93
-  ws-opts: null
-- name: FASTLY Config-336
-  network: xhttp
-  port: 80
-  reality-opts: null
-  server: ip.fastlynew.hosting-ip.com
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: TELEGRAM-CONFiGLiNE-93
-  ws-opts: null
-- name: FASTLY Config-337
-  network: xhttp
-  port: 80
-  reality-opts: null
-  server: ip.fastlynew.hosting-ip.com
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: TELEGRAM-CONFiGLiNE-94
-  ws-opts: null
-- name: NL Config-338
   network: tcp
-  port: 443
-  reality-opts: null
-  server: 144.124.238.163
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: Warpi-Free-Vpn-In-GooglePlay
+  servername: google.com
   ws-opts: null
-- name: DE Config-339
-  network: tcp
-  port: 443
-  reality-opts: null
-  server: 188.34.152.210
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: Warpi-Free-Vpn-In-GooglePlay
-  ws-opts: null
-- name: DE Config-340
-  network: tcp
-  port: 443
-  reality-opts: null
-  server: 78.47.80.152
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: Warpi-Free-Vpn-In-GooglePlay
-  ws-opts: null
-- name: DE Config-341
-  network: tcp
-  port: 443
-  reality-opts: null
-  server: 91.98.153.140
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: Warpi-Free-Vpn-In-GooglePlay
-  ws-opts: null
-- name: DE Config-342
-  network: tcp
-  port: 443
-  reality-opts: null
-  server: 91.98.153.140
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: Warpi-Free-Vpn-In-GooglePlay
-  ws-opts: null
-- name: LV Config-343
-  network: tcp
-  port: 443
   reality-opts:
     public-key: qFBIVGsvXTMeJcdJz6GiL7DG0XNhCg7rItza7t0qTgU
     short-id: 9eb31eb7572c0882
-  server: 185.176.220.154
-  servername: google.com
-  tls: true
+- name: GOOGLE Config_jo-82
   type: vless
-  udp: true
-  uuid: a0e804c3-55e2-4d51-82c7-33976d6748cb
-  ws-opts: null
-- name: US Config-344
-  network: tcp
+  server: 64.227.81.81
   port: 443
+  uuid: a7e04b44-855e-4fe7-8fa0-31894e928bce
+  udp: true
+  tls: true
+  network: tcp
+  servername: www.gstatic.com
+  ws-opts: null
   reality-opts:
     public-key: RYsjWbL0kjpi144PPllR_2C_KK3a071iGBPUUCsHH1A
     short-id: a4844ba7
-  server: 64.227.81.81
-  servername: www.gstatic.com
-  tls: true
+- name: GOOGLE Config_jo-83
   type: vless
-  udp: true
-  uuid: a7e04b44-855e-4fe7-8fa0-31894e928bce
-  ws-opts: null
-- name: US Config-345
-  network: tcp
+  server: 64.227.81.81
   port: 443
+  uuid: a7e04b44-855e-4fe7-8fa0-31894e928bce
+  udp: true
+  tls: true
+  network: tcp
+  servername: www.gstatic.com
+  ws-opts: null
   reality-opts:
     public-key: RYsjWbL0kjpi144PPllR_2C_KK3a071iGBPUUCsHH1A
     short-id: a4844ba7
-  server: 64.227.81.81
-  servername: www.gstatic.com
-  tls: true
+- name: RU Config_jo-84
   type: vless
-  udp: true
-  uuid: a7e04b44-855e-4fe7-8fa0-31894e928bce
-  ws-opts: null
-- name: RU Config-346
-  network: tcp
-  port: 8443
-  reality-opts: null
   server: 217.16.24.170
-  servername: api-maps.yandex.ru
-  tls: true
-  type: vless
-  udp: true
+  port: 8443
   uuid: a91e64f0-9295-499d-bf4a-661ad99d4938
+  udp: true
+  tls: true
+  network: tcp
+  servername: api-maps.yandex.ru
   ws-opts: null
-- name: CLOUDFLARE Config-347
-  network: ws
-  port: 2083
   reality-opts: null
+- name: CLOUDFLARE Config_jo-85
+  type: vless
   server: 141.101.114.197
-  servername: RR-FF.pages.DEV
-  tls: true
-  type: vless
-  udp: true
+  port: 2083
   uuid: ac51ad36-5052-460a-842a-e13455d30cb8
+  udp: true
+  tls: true
+  network: ws
+  servername: RR-FF.pages.DEV
   ws-opts:
-    headers:
-      Host: ''
     path: /assets?ed=2560
-- name: CLOUDFLARE Config-348
-  network: xhttp
-  port: 8080
+    headers:
+      Host: RR-FF.pages.DEV
   reality-opts: null
-  server: deadseectelegram.slimshopboyss.ir
-  servername: null
-  tls: false
+- name: N/A Config_jo-86
   type: vless
-  udp: true
-  uuid: b675d1f0-2968-4f3d-fd14-7d466841b0d1
-  ws-opts: null
-- name: CLOUDFLARE Config-349
-  network: xhttp
-  port: 8080
-  reality-opts: null
-  server: deadseectelegram.slimshopboyss.ir
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: b675d1f0-2968-4f3d-fd14-7d466841b0d1
-  ws-opts: null
-- name: CLOUDFLARE Config-350
-  network: xhttp
-  port: 443
-  reality-opts: null
   server: 104.21.62.144
-  servername: sauron.melkore.ir
-  tls: true
-  type: vless
-  udp: true
+  port: 443
   uuid: b75b4a49-0506-4159-b2ec-3e2a5e9406de
-  ws-opts: null
-- name: FASTLY Config-351
-  network: ws
-  port: 80
-  reality-opts: null
-  server: usa.fastlynew.hosting-ip.com
-  servername: null
-  tls: false
-  type: vless
   udp: true
-  uuid: b7c88dc6-1513-49c0-be12-1cfe37bcd25b
-  ws-opts:
-    headers:
-      Host: cd123.global.ssl.fastly.net
-    path: /
-- name: DE Config-352
-  network: grpc
-  port: 443
-  reality-opts: null
-  server: 167.71.42.62
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: ba5a240e-ac4a-4f15-ce3d-92c3ff9535e0
-  ws-opts: null
-- name: CLOUDFLARE Config-353
-  network: ws
-  port: 443
-  reality-opts: null
-  server: 172.67.166.211
-  servername: soft98m.dPdNS.OrG
   tls: true
-  type: vless
-  udp: true
-  uuid: c27bdfe9-929c-45cd-a917-aa47dae1cff7
-  ws-opts:
-    headers:
-      Host: soft98m.dpdns.org
-    path: /eyJqdW5rIjoiM0tYeXg5RVVNIiwicHJvdG9jb2wiOiJ2bCIsIm1vZGUiOiJwcm94eWlwIiwicGFuZWxJUHMiOltdfQ==
-- name: CLOUDFLARE Config-354
-  network: ws
-  port: 443
-  reality-opts: null
-  server: 172.67.166.211
-  servername: soft98m.dPdNS.OrG
-  tls: true
-  type: vless
-  udp: true
-  uuid: c27bdfe9-929c-45cd-a917-aa47dae1cff7
-  ws-opts:
-    headers:
-      Host: soft98m.dpdns.org
-    path: /eyJqdW5rIjoiM0tYeXg5RVVNIiwicHJvdG9jb2wiOiJ2bCIsIm1vZGUiOiJwcm94eWlwIiwicGFuZWxJUHMiOltdfQ==
-- name: DE Config-355
-  network: tcp
-  port: 33801
-  reality-opts: null
-  server: m93a.vip784.com
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: c489a036-bb6a-4197-b0ff-2b54c49419a1
-  ws-opts: null
-- name: CLOUDFLARE Config-356
   network: xhttp
-  port: 443
-  reality-opts: null
-  server: 104.21.62.144
   servername: sauron.melkore.ir
-  tls: true
-  type: vless
-  udp: true
-  uuid: c6c34ffc-6e55-4b98-8da9-48565ce3b89e
   ws-opts: null
-- name: CLOUDFLARE Config-357
-  network: ws
-  port: 443
   reality-opts: null
-  server: 104.18.86.131
-  servername: vless5-edu.pages.dev
-  tls: true
+- name: CLOUDFLARE Config_jo-87
   type: vless
-  udp: true
-  uuid: c98a16e4-0dc5-42f0-b3db-30f04525c123
-  ws-opts:
-    headers:
-      Host: ''
-    path: /?ed
-- name: DE Config-358
-  network: tcp
+  server: 172.67.166.211
   port: 443
+  uuid: c27bdfe9-929c-45cd-a917-aa47dae1cff7
+  udp: true
+  tls: true
+  network: ws
+  servername: soft98m.dPdNS.OrG
+  ws-opts:
+    path: /eyJqdW5rIjoiM0tYeXg5RVVNIiwicHJvdG9jb2wiOiJ2bCIsIm1vZGUiOiJwcm94eWlwIiwicGFuZWxJUHMiOltdfQ==
+    headers:
+      Host: soft98m.dpdns.org
+  reality-opts: null
+- name: CLOUDFLARE Config_jo-88
+  type: vless
+  server: 172.67.166.211
+  port: 443
+  uuid: c27bdfe9-929c-45cd-a917-aa47dae1cff7
+  udp: true
+  tls: true
+  network: ws
+  servername: soft98m.dPdNS.OrG
+  ws-opts:
+    path: /eyJqdW5rIjoiM0tYeXg5RVVNIiwicHJvdG9jb2wiOiJ2bCIsIm1vZGUiOiJwcm94eWlwIiwicGFuZWxJUHMiOltdfQ==
+    headers:
+      Host: soft98m.dpdns.org
+  reality-opts: null
+- name: N/A Config_jo-89
+  type: vless
+  server: 104.21.62.144
+  port: 443
+  uuid: c6c34ffc-6e55-4b98-8da9-48565ce3b89e
+  udp: true
+  tls: true
+  network: xhttp
+  servername: sauron.melkore.ir
+  ws-opts: null
+  reality-opts: null
+- name: CLOUDFLARE Config_jo-90
+  type: vless
+  server: 104.18.86.131
+  port: 443
+  uuid: c98a16e4-0dc5-42f0-b3db-30f04525c123
+  udp: true
+  tls: true
+  network: ws
+  servername: vless5-edu.pages.dev
+  ws-opts:
+    path: /?ed
+    headers:
+      Host: vless5-edu.pages.dev
+  reality-opts: null
+- name: GOOGLE Config_jo-91
+  type: vless
+  server: sandking.fonixapp.org
+  port: 443
+  uuid: cbabe86a-40a5-46af-898f-d6eaac66e141
+  udp: true
+  tls: true
+  network: tcp
+  servername: fonts.gstatic.com
+  ws-opts: null
   reality-opts:
     public-key: 7a-5DF4-Xk8h1Ex0zG-0CcSBgdhAnLrofVQ0rRdiSD8
     short-id: 0990c9
-  server: sandking.fonixapp.org
-  servername: fonts.gstatic.com
-  tls: true
+- name: DE Config_jo-92
   type: vless
-  udp: true
-  uuid: cbabe86a-40a5-46af-898f-d6eaac66e141
-  ws-opts: null
-- name: DE Config-359
-  network: tcp
-  port: 2025
-  reality-opts: null
   server: movivoolom.movementvip.ir
-  servername: movivoolom.movementvip.ir
-  tls: true
-  type: vless
-  udp: true
+  port: 2025
   uuid: cd19d8ac-5cf2-4a4a-8e67-2f1ccd704d65
-  ws-opts: null
-- name: FASTLY Config-360
-  network: xhttp
-  port: 80
-  reality-opts: null
-  server: 151.101.25.242
-  servername: null
-  tls: false
-  type: vless
   udp: true
-  uuid: cddc3a1c-25a9-4fb5-950e-d40523ccfa7c
-  ws-opts: null
-- name: FR Config-361
-  network: xhttp
-  port: 1122
-  reality-opts: null
-  server: evay-vpn.octacityroleplay.ir
-  servername: www.zhaket.com
   tls: true
-  type: vless
-  udp: true
-  uuid: cf804de9-d65f-4b49-9990-ea611fdcbc10
-  ws-opts: null
-- name: FR Config-362
-  network: xhttp
-  port: 1122
-  reality-opts: null
-  server: evay-vpn.octacityroleplay.ir
-  servername: www.zhaket.com
-  tls: true
-  type: vless
-  udp: true
-  uuid: cf804de9-d65f-4b49-9990-ea611fdcbc10
-  ws-opts: null
-- name: FR Config-363
-  network: xhttp
-  port: 1122
-  reality-opts: null
-  server: evay-vpn.octacityroleplay.ir
-  servername: www.zhaket.com
-  tls: true
-  type: vless
-  udp: true
-  uuid: cf804de9-d65f-4b49-9990-ea611fdcbc10
-  ws-opts: null
-- name: FR Config-364
-  network: xhttp
-  port: 1122
-  reality-opts: null
-  server: evay-vpn.octacityroleplay.ir
-  servername: www.zhaket.com
-  tls: true
-  type: vless
-  udp: true
-  uuid: cf804de9-d65f-4b49-9990-ea611fdcbc10
-  ws-opts: null
-- name: DE Config-365
-  network: grpc
-  port: 8880
-  reality-opts: null
-  server: sea-daisy.unity4world.ir
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: cfe554a3-4cd5-4fe1-9951-e6b65fc52a74
-  ws-opts: null
-- name: DE Config-366
   network: tcp
-  port: 9804
-  reality-opts: null
-  server: german.ip.ine.aredaii.vtuix.ir
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: d57b2894-0b67-59cb-6046-937885ea9781
+  servername: movivoolom.movementvip.ir
   ws-opts: null
-- name: CZ Config-367
-  network: grpc
-  port: 45152
   reality-opts: null
-  server: 194.182.79.163
-  servername: null
-  tls: false
+- name: IR Config_jo-93
   type: vless
+  server: evay-vpn.octacityroleplay.ir
+  port: 1122
+  uuid: cf804de9-d65f-4b49-9990-ea611fdcbc10
   udp: true
-  uuid: d6aa109c-f49a-4658-8ec7-220addd981cc
-  ws-opts: null
-- name: CLOUDFLARE Config-368
-  network: ws
-  port: 2053
-  reality-opts: null
-  server: root.api-music-fa.com
-  servername: null
   tls: true
-  type: vless
-  udp: true
-  uuid: db162b74-0da8-4c69-8b17-2d89defabc24
-  ws-opts:
-    headers:
-      Host: ''
-    path: /J5aLQOY1R9ONWYCM
-- name: FR Config-369
-  network: grpc
-  port: 8880
-  reality-opts: null
-  server: 217.69.7.35
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: df0680ca-e43c-498d-ed86-8e196eedd012
-  ws-opts: null
-- name: CLOUDFLARE Config-370
   network: xhttp
-  port: 443
-  reality-opts: null
-  server: 104.21.62.144
-  servername: sauron.melkore.ir
-  tls: true
-  type: vless
-  udp: true
-  uuid: e4b67aa2-27d0-429e-9c13-a0e8b576faa9
+  servername: www.zhaket.com
   ws-opts: null
-- name: RU Config-371
-  network: ws
-  port: 443
   reality-opts: null
-  server: 45.87.154.92
-  servername: ads.x5.ru
-  tls: true
+- name: IR Config_jo-94
   type: vless
+  server: evay-vpn.octacityroleplay.ir
+  port: 1122
+  uuid: cf804de9-d65f-4b49-9990-ea611fdcbc10
   udp: true
-  uuid: e8a471a3-4837-41fc-9a96-14dfd205306d
-  ws-opts:
-    headers:
-      Host: ''
-    path: /pypcnmws
-- name: RU Config-372
-  network: ws
-  port: 443
-  reality-opts: null
-  server: 45.87.154.92
-  servername: ads.x5.ru
   tls: true
-  type: vless
-  udp: true
-  uuid: e8a471a3-4837-41fc-9a96-14dfd205306d
-  ws-opts:
-    headers:
-      Host: ''
-    path: /pypcnmws
-- name: MD Config-373
-  network: ws
-  port: 443
+  network: xhttp
+  servername: www.zhaket.com
+  ws-opts: null
   reality-opts: null
+- name: IR Config_jo-95
+  type: vless
+  server: evay-vpn.octacityroleplay.ir
+  port: 1122
+  uuid: cf804de9-d65f-4b49-9990-ea611fdcbc10
+  udp: true
+  tls: true
+  network: xhttp
+  servername: www.zhaket.com
+  ws-opts: null
+  reality-opts: null
+- name: IR Config_jo-96
+  type: vless
+  server: evay-vpn.octacityroleplay.ir
+  port: 1122
+  uuid: cf804de9-d65f-4b49-9990-ea611fdcbc10
+  udp: true
+  tls: true
+  network: xhttp
+  servername: www.zhaket.com
+  ws-opts: null
+  reality-opts: null
+- name: CLOUDFLARE Config_jo-97
+  type: vless
+  server: root.api-music-fa.com
+  port: 2053
+  uuid: db162b74-0da8-4c69-8b17-2d89defabc24
+  udp: true
+  tls: true
+  network: ws
+  servername: null
+  ws-opts:
+    path: /J5aLQOY1R9ONWYCM
+    headers:
+      Host: root.api-music-fa.com
+  reality-opts: null
+- name: N/A Config_jo-98
+  type: vless
+  server: 104.21.62.144
+  port: 443
+  uuid: e4b67aa2-27d0-429e-9c13-a0e8b576faa9
+  udp: true
+  tls: true
+  network: xhttp
+  servername: sauron.melkore.ir
+  ws-opts: null
+  reality-opts: null
+- name: RU Config_jo-99
+  type: vless
+  server: 45.87.154.92
+  port: 443
+  uuid: e8a471a3-4837-41fc-9a96-14dfd205306d
+  udp: true
+  tls: true
+  network: ws
+  servername: ads.x5.ru
+  ws-opts:
+    path: /pypcnmws
+    headers:
+      Host: ads.x5.ru
+  reality-opts: null
+- name: RU Config_jo-100
+  type: vless
+  server: 45.87.154.92
+  port: 443
+  uuid: e8a471a3-4837-41fc-9a96-14dfd205306d
+  udp: true
+  tls: true
+  network: ws
+  servername: ads.x5.ru
+  ws-opts:
+    path: /pypcnmws
+    headers:
+      Host: ads.x5.ru
+  reality-opts: null
+- name: RU Config_jo-101
+  type: vless
   server: 45.67.228.191
-  servername: ads.x5.ru
-  tls: true
-  type: vless
-  udp: true
+  port: 443
   uuid: ea05a148-8d1f-4141-a033-236ab8a03f8f
+  udp: true
+  tls: true
+  network: ws
+  servername: ads.x5.ru
   ws-opts:
-    headers:
-      Host: ''
     path: /qnegucws
-- name: CLOUDFLARE Config-374
-  network: ws
-  port: 443
+    headers:
+      Host: ads.x5.ru
   reality-opts: null
+- name: CLOUDFLARE Config_jo-102
+  type: vless
   server: 108.162.193.217
-  servername: azizoarjmand.info
-  tls: true
-  type: vless
-  udp: true
+  port: 443
   uuid: ee122f13-9b54-49b6-abc5-aa47b464fdb3
+  udp: true
+  tls: true
+  network: ws
+  servername: azizoarjmand.info
   ws-opts:
+    path: /yhowcws
     headers:
       Host: azizoarjmand.info
-    path: /yhowcws
-- name: CLOUDFLARE Config-375
-  network: ws
-  port: 443
   reality-opts: null
+- name: CLOUDFLARE Config_jo-103
+  type: vless
   server: 108.162.193.217
-  servername: azizoarjmand.info
-  tls: true
-  type: vless
-  udp: true
+  port: 443
   uuid: ee122f13-9b54-49b6-abc5-aa47b464fdb3
+  udp: true
+  tls: true
+  network: ws
+  servername: azizoarjmand.info
   ws-opts:
+    path: /yhowcws
     headers:
       Host: azizoarjmand.info
-    path: /yhowcws
-- name: CLOUDFLARE Config-376
-  network: ws
-  port: 443
   reality-opts: null
+- name: CLOUDFLARE Config_jo-104
+  type: vless
   server: 173.245.59.217
-  servername: azizoarjmand.info
-  tls: true
-  type: vless
-  udp: true
+  port: 443
   uuid: ee122f13-9b54-49b6-abc5-aa47b464fdb3
+  udp: true
+  tls: true
+  network: ws
+  servername: azizoarjmand.info
   ws-opts:
+    path: /yhowcws
     headers:
       Host: azizoarjmand.info
-    path: /yhowcws
-- name: CLOUDFLARE Config-377
-  network: ws
-  port: 443
   reality-opts: null
+- name: CLOUDFLARE Config_jo-105
+  type: vless
   server: 173.245.59.217
-  servername: azizoarjmand.info
-  tls: true
-  type: vless
-  udp: true
+  port: 443
   uuid: ee122f13-9b54-49b6-abc5-aa47b464fdb3
+  udp: true
+  tls: true
+  network: ws
+  servername: azizoarjmand.info
   ws-opts:
+    path: /yhowcws
     headers:
       Host: azizoarjmand.info
-    path: /yhowcws
-- name: CLOUDFLARE Config-378
-  network: ws
-  port: 443
   reality-opts: null
+- name: CLOUDFLARE Config_jo-106
+  type: vless
   server: serena.ns.cloudflare.com
-  servername: freudd.info
-  tls: true
-  type: vless
-  udp: true
+  port: 443
   uuid: f028a8c0-6763-4558-aee3-2563db9d7825
+  udp: true
+  tls: true
+  network: ws
+  servername: freudd.info
   ws-opts:
+    path: /xxvclws
     headers:
       Host: freudd.info
-    path: /xxvclws
-- name: RU Config-379
-  network: tcp
+  reality-opts: null
+- name: RU Config_jo-107
+  type: vless
+  server: 45.92.176.55
   port: 6443
+  uuid: f12bdba5-7ff5-4398-b859-08cdd7347fb3
+  udp: true
+  tls: true
+  network: tcp
+  servername: rontgen.fasssst.ru
+  ws-opts: null
   reality-opts:
     public-key: DsiKWpNmI1TkNyvhHmQzRwkvJ0aaZeShzYCZa559Hn0
     short-id: 2bab4d28871d98
-  server: 45.92.176.55
-  servername: rontgen.fasssst.ru
-  tls: true
+- name: RU Config_jo-108
   type: vless
-  udp: true
-  uuid: f12bdba5-7ff5-4398-b859-08cdd7347fb3
-  ws-opts: null
-- name: RU Config-380
-  network: ws
-  port: 443
-  reality-opts: null
   server: 141.98.169.102
-  servername: www.vk.com
-  tls: true
-  type: vless
-  udp: true
+  port: 443
   uuid: f4e6e061-2a5b-41c4-b244-2f9202f05b43
+  udp: true
+  tls: true
+  network: ws
+  servername: www.vk.com
   ws-opts:
-    headers:
-      Host: ''
     path: /tmvocqws
-- name: JP Config-381
-  network: ws
-  port: 443
-  reality-opts: null
-  server: 153.121.45.101
-  servername: gaosir.unfeeling.sbs
-  tls: true
-  type: vless
-  udp: true
-  uuid: f61a4285-7264-4d07-9408-7b9ba1922c26
-  ws-opts:
     headers:
-      Host: gaosir.unfeeling.sbs
+      Host: www.vk.com
+  reality-opts: null
+- name: N/A Config_jo-109
+  type: vless
+  server: 153.121.45.101
+  port: 443
+  uuid: f61a4285-7264-4d07-9408-7b9ba1922c26
+  udp: true
+  tls: true
+  network: ws
+  servername: gaosir.unfeeling.sbs
+  ws-opts:
     path: /Telegram🇨🇳@WangCai2/?ed=2560
-- name: JP Config-382
-  network: ws
-  port: 443
-  reality-opts: null
-  server: 153.121.45.101
-  servername: gaosir.unfeeling.sbs
-  tls: true
-  type: vless
-  udp: true
-  uuid: f61a4285-7264-4d07-9408-7b9ba1922c26
-  ws-opts:
     headers:
       Host: gaosir.unfeeling.sbs
+  reality-opts: null
+- name: N/A Config_jo-110
+  type: vless
+  server: 153.121.45.101
+  port: 443
+  uuid: f61a4285-7264-4d07-9408-7b9ba1922c26
+  udp: true
+  tls: true
+  network: ws
+  servername: gaosir.unfeeling.sbs
+  ws-opts:
     path: /freecodes/?ed=2560
-- name: TR Config-383
-  network: tcp
-  port: 43390
+    headers:
+      Host: gaosir.unfeeling.sbs
   reality-opts: null
+- name: N/A Config_jo-111
+  type: vless
   server: 45.136.5.90
-  servername: dl.frnsoft.com
-  tls: true
-  type: vless
-  udp: true
+  port: 43390
   uuid: f656857f-a7be-4eaa-9027-bf958ba3aa8e
+  udp: true
+  tls: true
+  network: tcp
+  servername: dl.frnsoft.com
   ws-opts: null
-- name: US Config-384
-  network: xhttp
-  port: 2053
   reality-opts: null
+- name: CLOUDFLARE Config_jo-112
+  type: vless
   server: nl.stepson.ir
-  servername: ham.stepson.ir
-  tls: true
-  type: vless
-  udp: true
+  port: 2053
   uuid: f9a439f3-8bce-478d-8c70-d90e533c739a
-  ws-opts: null
-- name: DE Config-385
-  network: grpc
-  port: 35493
-  reality-opts:
-    public-key: qeWt8jJZTwf6vmiTvDfaalPaSZDkX7a3XkKrBxf2YVA
-    short-id: 9c24
-  server: a.confignor.site
-  servername: www.cdn77.com
-  tls: true
-  type: vless
   udp: true
-  uuid: fa144171-e84c-40f6-8a93-6c7834062233
-  ws-opts: null
-- name: DE Config-386
-  network: grpc
-  port: 35493
-  reality-opts:
-    public-key: qeWt8jJZTwf6vmiTvDfaalPaSZDkX7a3XkKrBxf2YVA
-    short-id: 9c24
-  server: a.confignor.site
-  servername: www.cdn77.com
   tls: true
-  type: vless
-  udp: true
-  uuid: fa144171-e84c-40f6-8a93-6c7834062233
+  network: xhttp
+  servername: ham.stepson.ir
   ws-opts: null
-- name: DE Config-387
-  network: tcp
-  port: 443
   reality-opts: null
-  server: 179.61.251.78
-  servername: refersion.com
-  tls: true
+- name: US Config_jo-113
   type: vless
+  server: a.confignor.site
+  port: 35493
+  uuid: fa144171-e84c-40f6-8a93-6c7834062233
   udp: true
-  uuid: fabc8a38-76c5-48fe-ada7-a9e52dd16225
+  tls: true
+  network: grpc
+  servername: www.cdn77.com
   ws-opts: null
-- name: DE Config-388
-  network: tcp
+  reality-opts:
+    public-key: qeWt8jJZTwf6vmiTvDfaalPaSZDkX7a3XkKrBxf2YVA
+    short-id: 9c24
+- name: US Config_jo-114
+  type: vless
+  server: a.confignor.site
+  port: 35493
+  uuid: fa144171-e84c-40f6-8a93-6c7834062233
+  udp: true
+  tls: true
+  network: grpc
+  servername: www.cdn77.com
+  ws-opts: null
+  reality-opts:
+    public-key: qeWt8jJZTwf6vmiTvDfaalPaSZDkX7a3XkKrBxf2YVA
+    short-id: 9c24
+- name: CLOUDFLARE Config_jo-115
+  type: vless
+  server: 179.61.251.78
   port: 443
+  uuid: fabc8a38-76c5-48fe-ada7-a9e52dd16225
+  udp: true
+  tls: true
+  network: tcp
+  servername: refersion.com
+  ws-opts: null
+  reality-opts: null
+- name: CLOUDFLARE Config_jo-116
+  type: vless
+  server: 179.61.251.78
+  port: 443
+  uuid: fabc8a38-76c5-48fe-ada7-a9e52dd16225
+  udp: true
+  tls: true
+  network: tcp
+  servername: refersion.com
+  ws-opts: null
   reality-opts:
     public-key: esHsu3-Fj0aZ0xuNBV6qW1zu1hLbas8YDn7AO0QGsBw
     short-id: 0ff58d687a4c6c
-  server: 179.61.251.78
-  servername: refersion.com
-  tls: true
+- name: RU Config_jo-117
   type: vless
-  udp: true
-  uuid: fabc8a38-76c5-48fe-ada7-a9e52dd16225
-  ws-opts: null
-- name: CLOUDFLARE Config-389
-  network: xhttp
-  port: 80
-  reality-opts: null
-  server: 104.20.23.11
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: fad329ac-313b-471c-8d94-a6e8f598990e
-  ws-opts: null
-- name: CLOUDFLARE Config-390
-  network: xhttp
-  port: 80
-  reality-opts: null
-  server: 104.24.200.89
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: fad329ac-313b-471c-8d94-a6e8f598990e
-  ws-opts: null
-- name: CLOUDFLARE Config-391
-  network: xhttp
-  port: 80
-  reality-opts: null
-  server: 141.101.120.184
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: fad329ac-313b-471c-8d94-a6e8f598990e
-  ws-opts: null
-- name: CLOUDFLARE Config-392
-  network: xhttp
-  port: 80
-  reality-opts: null
-  server: 188.114.97.139
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: fad329ac-313b-471c-8d94-a6e8f598990e
-  ws-opts: null
-- name: CLOUDFLARE Config-393
-  network: xhttp
-  port: 80
-  reality-opts: null
-  server: 198.41.192.125
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: fad329ac-313b-471c-8d94-a6e8f598990e
-  ws-opts: null
-- name: CLOUDFLARE Config-394
-  network: xhttp
-  port: 80
-  reality-opts: null
-  server: 198.41.192.125
-  servername: null
-  tls: false
-  type: vless
-  udp: true
-  uuid: fad329ac-313b-471c-8d94-a6e8f598990e
-  ws-opts: null
-- name: RU Config-395
-  network: tcp
+  server: 178.154.205.131
   port: 443
+  uuid: fd4b0117-d752-46fd-9a94-21a21e360fdb
+  udp: true
+  tls: true
+  network: tcp
+  servername: ads.x5.ru
+  ws-opts: null
   reality-opts:
     public-key: r5WB5FnSCt4eeBC1FJMfkWHbzsMuabo0Rc6wuAhlZUs
     short-id: a8
-  server: 178.154.205.131
-  servername: ads.x5.ru
-  tls: true
-  type: vless
-  udp: true
-  uuid: fd4b0117-d752-46fd-9a94-21a21e360fdb
-  ws-opts: null
-- alterId: 0
-  cipher: auto
-  name: DE Config-396
-  network: tcp
-  port: 7443
+- name: DE Config_jo-118
+  type: vmess
   server: a.confignor.site
-  servername: null
-  tls: false
-  type: vmess
-  udp: true
+  port: 7443
   uuid: aa01c120-607e-4884-800e-602a4afe85f8
-  ws-opts: null
-- alterId: 0
+  alterId: 0
   cipher: auto
-  name: N/A Config-397
-  network: ws
-  port: 443
-  server: 44m4r0.keeoomboom.de
-  servername: 44m4r0.keeoomboom.de
-  tls: true
-  type: vmess
+  tls: false
+  network: tcp
   udp: true
+  ws-opts: null
+  servername: null
+- name: N/A Config_jo-119
+  type: vmess
+  server: 44m4r0.keeoomboom.de
+  port: 443
   uuid: 03fcc618-b93d-6796-6aed-8a38c975d581
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
   ws-opts:
+    path: /video/0dw5f.m3u8
     headers:
       Host: 44m4r0.keeoomboom.de
-    path: /video/0dw5f.m3u8
-- alterId: 0
-  cipher: auto
-  name: N/A Config-398
-  network: ws
-  port: 443
-  server: 7ai01q.zeeoomboom.de
-  servername: 7ai01q.zeeoomboom.de
-  tls: true
+  servername: 44m4r0.keeoomboom.de
+- name: N/A Config_jo-120
   type: vmess
-  udp: true
+  server: 7ai01q.zeeoomboom.de
+  port: 443
   uuid: 03fcc618-b93d-6796-6aed-8a38c975d581
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
   ws-opts:
+    path: /video/kijeo.m3u8
     headers:
       Host: 7ai01q.zeeoomboom.de
-    path: /video/kijeo.m3u8
-- alterId: 0
-  cipher: auto
-  name: N/A Config-399
-  network: ws
-  port: 443
-  server: 81qdzz.keeoomboom.de
-  servername: 81qdzz.keeoomboom.de
-  tls: true
+  servername: 7ai01q.zeeoomboom.de
+- name: N/A Config_jo-121
   type: vmess
-  udp: true
+  server: 81qdzz.keeoomboom.de
+  port: 443
   uuid: 03fcc618-b93d-6796-6aed-8a38c975d581
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
   ws-opts:
+    path: /video/a4pgisg.m3u8
     headers:
       Host: 81qdzz.keeoomboom.de
-    path: /video/a4pgisg.m3u8
-- alterId: 0
-  cipher: auto
-  name: N/A Config-400
-  network: ws
-  port: 443
-  server: 00yin6.keeoomboom.de
-  servername: 00yin6.keeoomboom.de
-  tls: true
+  servername: 81qdzz.keeoomboom.de
+- name: N/A Config_jo-122
   type: vmess
-  udp: true
+  server: 00yin6.keeoomboom.de
+  port: 443
   uuid: 03fcc618-b93d-6796-6aed-8a38c975d581
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
   ws-opts:
+    path: /video/yhaah6j.m3u8
     headers:
       Host: 00yin6.keeoomboom.de
-    path: /video/yhaah6j.m3u8
-- alterId: 0
-  cipher: auto
-  name: N/A Config-401
-  network: ws
-  port: 443
-  server: 0qulty.zeeoomboom.de
-  servername: 0qulty.zeeoomboom.de
-  tls: true
+  servername: 00yin6.keeoomboom.de
+- name: N/A Config_jo-123
   type: vmess
-  udp: true
+  server: 0qulty.zeeoomboom.de
+  port: 443
   uuid: 03fcc618-b93d-6796-6aed-8a38c975d581
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
   ws-opts:
+    path: /video/atyol5rh.m3u8
     headers:
       Host: 0qulty.zeeoomboom.de
-    path: /video/atyol5rh.m3u8
-- alterId: 0
-  cipher: auto
-  name: N/A Config-402
-  network: ws
-  port: 443
-  server: 305ede.keeoomboom.de
-  servername: 305ede.keeoomboom.de
-  tls: true
+  servername: 0qulty.zeeoomboom.de
+- name: N/A Config_jo-124
   type: vmess
-  udp: true
+  server: 305ede.keeoomboom.de
+  port: 443
   uuid: 03fcc618-b93d-6796-6aed-8a38c975d581
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
   ws-opts:
+    path: /video/8nsmoz.m3u8
     headers:
       Host: 305ede.keeoomboom.de
-    path: /video/8nsmoz.m3u8
-- alterId: 0
-  cipher: auto
-  name: N/A Config-403
-  network: ws
-  port: 443
-  server: yhw1y9.teeoomboom.de
-  servername: yhw1y9.teeoomboom.de
-  tls: true
+  servername: 305ede.keeoomboom.de
+- name: N/A Config_jo-125
   type: vmess
-  udp: true
+  server: yhw1y9.teeoomboom.de
+  port: 443
   uuid: 03fcc618-b93d-6796-6aed-8a38c975d581
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
   ws-opts:
+    path: /video/pmncwt0.m3u8
     headers:
       Host: yhw1y9.teeoomboom.de
-    path: /video/pmncwt0.m3u8
-- alterId: 0
-  cipher: auto
-  name: N/A Config-404
-  network: ws
-  port: 443
-  server: yhw1y9.teeoomboom.de
   servername: yhw1y9.teeoomboom.de
-  tls: true
+- name: N/A Config_jo-126
   type: vmess
-  udp: true
+  server: yhw1y9.teeoomboom.de
+  port: 443
   uuid: 03fcc618-b93d-6796-6aed-8a38c975d581
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
   ws-opts:
+    path: /video/pmncwt0.m3u8
     headers:
       Host: yhw1y9.teeoomboom.de
-    path: /video/pmncwt0.m3u8
-- alterId: 0
-  cipher: auto
-  name: N/A Config-405
-  network: ws
-  port: 443
+  servername: yhw1y9.teeoomboom.de
+- name: N/A Config_jo-127
+  type: vmess
   server: a0tiae.zeeoomboom.de
-  servername: a0tiae.zeeoomboom.de
-  tls: true
-  type: vmess
-  udp: true
+  port: 443
   uuid: 03fcc618-b93d-6796-6aed-8a38c975d581
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
   ws-opts:
+    path: /video/0tvz3.m3u8
     headers:
       Host: a0tiae.zeeoomboom.de
-    path: /video/0tvz3.m3u8
-- alterId: 0
-  cipher: auto
-  name: N/A Config-406
-  network: ws
-  port: 443
-  server: aq4714.keeoomboom.de
-  servername: aq4714.keeoomboom.de
-  tls: true
+  servername: a0tiae.zeeoomboom.de
+- name: N/A Config_jo-128
   type: vmess
-  udp: true
+  server: aq4714.keeoomboom.de
+  port: 443
   uuid: 03fcc618-b93d-6796-6aed-8a38c975d581
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
   ws-opts:
+    path: /video/bkhlciz0.m3u8
     headers:
       Host: aq4714.keeoomboom.de
-    path: /video/bkhlciz0.m3u8
-- alterId: 0
-  cipher: auto
-  name: N/A Config-407
-  network: ws
-  port: 443
-  server: es5fyw.teeoomboom.de
-  servername: es5fyw.teeoomboom.de
-  tls: true
+  servername: aq4714.keeoomboom.de
+- name: N/A Config_jo-129
   type: vmess
-  udp: true
+  server: es5fyw.teeoomboom.de
+  port: 443
   uuid: 03fcc618-b93d-6796-6aed-8a38c975d581
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
   ws-opts:
+    path: /video/w444c4eo.m3u8
     headers:
       Host: es5fyw.teeoomboom.de
-    path: /video/w444c4eo.m3u8
-- alterId: 0
-  cipher: auto
-  name: N/A Config-408
-  network: ws
-  port: 443
-  server: fdxad3.teeoomboom.de
-  servername: fdxad3.teeoomboom.de
-  tls: true
+  servername: es5fyw.teeoomboom.de
+- name: N/A Config_jo-130
   type: vmess
-  udp: true
+  server: fdxad3.teeoomboom.de
+  port: 443
   uuid: 03fcc618-b93d-6796-6aed-8a38c975d581
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
   ws-opts:
+    path: /video/23ktkxm.m3u8
     headers:
       Host: fdxad3.teeoomboom.de
-    path: /video/23ktkxm.m3u8
-- alterId: 0
-  cipher: auto
-  name: N/A Config-409
-  network: ws
-  port: 443
-  server: fdxad3.teeoomboom.de
   servername: fdxad3.teeoomboom.de
-  tls: true
+- name: N/A Config_jo-131
   type: vmess
-  udp: true
+  server: fdxad3.teeoomboom.de
+  port: 443
   uuid: 03fcc618-b93d-6796-6aed-8a38c975d581
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
   ws-opts:
+    path: /video/23ktkxm.m3u8
     headers:
       Host: fdxad3.teeoomboom.de
-    path: /video/23ktkxm.m3u8
-- alterId: 0
-  cipher: auto
-  name: N/A Config-410
-  network: ws
-  port: 443
+  servername: fdxad3.teeoomboom.de
+- name: N/A Config_jo-132
+  type: vmess
   server: k01kwy.zeeoomboom.de
-  servername: k01kwy.zeeoomboom.de
-  tls: true
-  type: vmess
-  udp: true
+  port: 443
   uuid: 03fcc618-b93d-6796-6aed-8a38c975d581
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
   ws-opts:
+    path: /video/e99jt8.m3u8
     headers:
       Host: k01kwy.zeeoomboom.de
-    path: /video/e99jt8.m3u8
-- alterId: 0
-  cipher: auto
-  name: N/A Config-411
-  network: ws
-  port: 443
-  server: ng3av9.zeeoomboom.de
-  servername: ng3av9.zeeoomboom.de
-  tls: true
+  servername: k01kwy.zeeoomboom.de
+- name: N/A Config_jo-133
   type: vmess
-  udp: true
+  server: ng3av9.zeeoomboom.de
+  port: 443
   uuid: 03fcc618-b93d-6796-6aed-8a38c975d581
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
   ws-opts:
+    path: /video/2ag6qs.m3u8
     headers:
       Host: ng3av9.zeeoomboom.de
-    path: /video/2ag6qs.m3u8
-- alterId: 0
-  cipher: auto
-  name: N/A Config-412
-  network: xhttp
-  port: 443
-  server: pwqutbld1b9c.realdop.com
-  servername: pwqutbld1b9c.realdop.com
-  tls: true
+  servername: ng3av9.zeeoomboom.de
+- name: N/A Config_jo-134
   type: vmess
-  udp: true
+  server: pwqutbld1b9c.realdop.com
+  port: 443
   uuid: e920aa3b-4062-4ab5-a045-340291859acb
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: xhttp
+  udp: true
   ws-opts: null
+  servername: pwqutbld1b9c.realdop.com
 proxy-groups:
 - name: PROXY
+  type: select
   proxies:
   - ⚡ Auto-Select
   - DIRECT
-  - JP Config-001
-  - DE Config-002
-  - DE Config-003
-  - PL Config-124
-  - LT Config-125
-  - CY Config-126
-  - CH Config-127
-  - SE Config-128
-  - GB Config-129
-  - GB Config-130
-  - GB Config-131
-  - GB Config-132
-  - GB Config-133
-  - GB Config-134
-  - GB Config-135
-  - GB Config-136
-  - GB Config-137
-  - GB Config-138
-  - GB Config-139
-  - GB Config-140
-  - GB Config-141
-  - GB Config-142
-  - GB Config-143
-  - GB Config-144
-  - NL Config-145
-  - LT Config-146
-  - US Config-147
-  - CLOUDFLARE Config-218
-  - IT Config-219
-  - IT Config-220
-  - IT Config-221
-  - CLOUDFLARE Config-222
-  - CLOUDFLARE Config-223
-  - FI Config-224
-  - CY Config-225
-  - DE Config-226
-  - DE Config-227
-  - DE Config-228
-  - DE Config-229
-  - DE Config-230
-  - DE Config-231
-  - FR Config-232
-  - FR Config-233
-  - FR Config-234
-  - DE Config-235
-  - CLOUDFLARE Config-236
-  - US Config-237
-  - FR Config-238
-  - AT Config-239
-  - CLOUDFLARE Config-240
-  - NL Config-241
-  - CLOUDFLARE Config-242
-  - CLOUDFLARE Config-243
-  - CLOUDFLARE Config-244
-  - CLOUDFLARE Config-245
-  - CLOUDFLARE Config-246
-  - CLOUDFLARE Config-247
-  - CLOUDFLARE Config-248
-  - CLOUDFLARE Config-249
-  - CLOUDFLARE Config-250
-  - CLOUDFLARE Config-251
-  - CLOUDFLARE Config-252
-  - CLOUDFLARE Config-253
-  - CLOUDFLARE Config-254
-  - CLOUDFLARE Config-255
-  - DE Config-256
-  - DE Config-257
-  - AT Config-258
-  - DE Config-259
-  - DE Config-260
-  - DE Config-261
-  - FASTLY Config-262
-  - FASTLY Config-263
-  - DE Config-264
-  - DE Config-265
-  - DE Config-266
-  - DE Config-267
-  - CLOUDFLARE Config-268
-  - DE Config-269
-  - FASTLY Config-270
-  - FASTLY Config-271
-  - US Config-272
-  - CLOUDFLARE Config-273
-  - GE Config-274
-  - US Config-275
-  - AM Config-276
-  - AM Config-277
-  - US Config-278
-  - US Config-279
-  - FI Config-280
-  - DE Config-281
-  - DE Config-282
-  - DE Config-283
-  - DE Config-284
-  - DE Config-285
-  - IT Config-286
-  - IT Config-287
-  - TR Config-288
-  - IR Config-289
-  - IR Config-290
-  - IR Config-291
-  - IR Config-292
-  - IR Config-293
-  - IR Config-294
-  - IR Config-295
-  - NL Config-296
-  - NL Config-297
-  - RU Config-298
-  - RU Config-299
-  - US Config-300
-  - TR Config-301
-  - TR Config-302
-  - TR Config-303
-  - NL Config-304
-  - GB Config-305
-  - GB Config-306
-  - N/A Config-307
-  - FASTLY Config-308
-  - DE Config-309
-  - CLOUDFLARE Config-310
-  - CLOUDFLARE Config-311
-  - FI Config-312
-  - FR Config-313
-  - FR Config-314
-  - FASTLY Config-315
-  - FASTLY Config-316
-  - NL Config-317
-  - US Config-318
-  - MD Config-319
-  - TR Config-320
-  - DE Config-321
-  - GB Config-322
-  - CLOUDFLARE Config-323
-  - CLOUDFLARE Config-324
-  - CLOUDFLARE Config-325
-  - CLOUDFLARE Config-326
-  - MD Config-327
-  - CLOUDFLARE Config-328
-  - DE Config-329
-  - AT Config-330
-  - CLOUDFLARE Config-331
-  - FASTLY Config-332
-  - FASTLY Config-333
-  - FASTLY Config-334
-  - FASTLY Config-335
-  - FASTLY Config-336
-  - FASTLY Config-337
-  - NL Config-338
-  - DE Config-339
-  - DE Config-340
-  - DE Config-341
-  - DE Config-342
-  - LV Config-343
-  - US Config-344
-  - US Config-345
-  - RU Config-346
-  - CLOUDFLARE Config-347
-  - CLOUDFLARE Config-348
-  - CLOUDFLARE Config-349
-  - CLOUDFLARE Config-350
-  - FASTLY Config-351
-  - DE Config-352
-  - CLOUDFLARE Config-353
-  - CLOUDFLARE Config-354
-  - DE Config-355
-  - CLOUDFLARE Config-356
-  - CLOUDFLARE Config-357
-  - DE Config-358
-  - DE Config-359
-  - FASTLY Config-360
-  - FR Config-361
-  - FR Config-362
-  - FR Config-363
-  - FR Config-364
-  - DE Config-365
-  - DE Config-366
-  - CZ Config-367
-  - CLOUDFLARE Config-368
-  - FR Config-369
-  - CLOUDFLARE Config-370
-  - RU Config-371
-  - RU Config-372
-  - MD Config-373
-  - CLOUDFLARE Config-374
-  - CLOUDFLARE Config-375
-  - CLOUDFLARE Config-376
-  - CLOUDFLARE Config-377
-  - CLOUDFLARE Config-378
-  - RU Config-379
-  - RU Config-380
-  - JP Config-381
-  - JP Config-382
-  - TR Config-383
-  - US Config-384
-  - DE Config-385
-  - DE Config-386
-  - DE Config-387
-  - DE Config-388
-  - CLOUDFLARE Config-389
-  - CLOUDFLARE Config-390
-  - CLOUDFLARE Config-391
-  - CLOUDFLARE Config-392
-  - CLOUDFLARE Config-393
-  - CLOUDFLARE Config-394
-  - RU Config-395
-  - DE Config-396
-  - N/A Config-397
-  - N/A Config-398
-  - N/A Config-399
-  - N/A Config-400
-  - N/A Config-401
-  - N/A Config-402
-  - N/A Config-403
-  - N/A Config-404
-  - N/A Config-405
-  - N/A Config-406
-  - N/A Config-407
-  - N/A Config-408
-  - N/A Config-409
-  - N/A Config-410
-  - N/A Config-411
-  - N/A Config-412
-  type: select
-- interval: 300
-  name: ⚡ Auto-Select
-  proxies:
-  - JP Config-001
-  - DE Config-002
-  - DE Config-003
-  - PL Config-124
-  - LT Config-125
-  - CY Config-126
-  - CH Config-127
-  - SE Config-128
-  - GB Config-129
-  - GB Config-130
-  - GB Config-131
-  - GB Config-132
-  - GB Config-133
-  - GB Config-134
-  - GB Config-135
-  - GB Config-136
-  - GB Config-137
-  - GB Config-138
-  - GB Config-139
-  - GB Config-140
-  - GB Config-141
-  - GB Config-142
-  - GB Config-143
-  - GB Config-144
-  - NL Config-145
-  - LT Config-146
-  - US Config-147
-  - CLOUDFLARE Config-218
-  - IT Config-219
-  - IT Config-220
-  - IT Config-221
-  - CLOUDFLARE Config-222
-  - CLOUDFLARE Config-223
-  - FI Config-224
-  - CY Config-225
-  - DE Config-226
-  - DE Config-227
-  - DE Config-228
-  - DE Config-229
-  - DE Config-230
-  - DE Config-231
-  - FR Config-232
-  - FR Config-233
-  - FR Config-234
-  - DE Config-235
-  - CLOUDFLARE Config-236
-  - US Config-237
-  - FR Config-238
-  - AT Config-239
-  - CLOUDFLARE Config-240
-  - NL Config-241
-  - CLOUDFLARE Config-242
-  - CLOUDFLARE Config-243
-  - CLOUDFLARE Config-244
-  - CLOUDFLARE Config-245
-  - CLOUDFLARE Config-246
-  - CLOUDFLARE Config-247
-  - CLOUDFLARE Config-248
-  - CLOUDFLARE Config-249
-  - CLOUDFLARE Config-250
-  - CLOUDFLARE Config-251
-  - CLOUDFLARE Config-252
-  - CLOUDFLARE Config-253
-  - CLOUDFLARE Config-254
-  - CLOUDFLARE Config-255
-  - DE Config-256
-  - DE Config-257
-  - AT Config-258
-  - DE Config-259
-  - DE Config-260
-  - DE Config-261
-  - FASTLY Config-262
-  - FASTLY Config-263
-  - DE Config-264
-  - DE Config-265
-  - DE Config-266
-  - DE Config-267
-  - CLOUDFLARE Config-268
-  - DE Config-269
-  - FASTLY Config-270
-  - FASTLY Config-271
-  - US Config-272
-  - CLOUDFLARE Config-273
-  - GE Config-274
-  - US Config-275
-  - AM Config-276
-  - AM Config-277
-  - US Config-278
-  - US Config-279
-  - FI Config-280
-  - DE Config-281
-  - DE Config-282
-  - DE Config-283
-  - DE Config-284
-  - DE Config-285
-  - IT Config-286
-  - IT Config-287
-  - TR Config-288
-  - IR Config-289
-  - IR Config-290
-  - IR Config-291
-  - IR Config-292
-  - IR Config-293
-  - IR Config-294
-  - IR Config-295
-  - NL Config-296
-  - NL Config-297
-  - RU Config-298
-  - RU Config-299
-  - US Config-300
-  - TR Config-301
-  - TR Config-302
-  - TR Config-303
-  - NL Config-304
-  - GB Config-305
-  - GB Config-306
-  - N/A Config-307
-  - FASTLY Config-308
-  - DE Config-309
-  - CLOUDFLARE Config-310
-  - CLOUDFLARE Config-311
-  - FI Config-312
-  - FR Config-313
-  - FR Config-314
-  - FASTLY Config-315
-  - FASTLY Config-316
-  - NL Config-317
-  - US Config-318
-  - MD Config-319
-  - TR Config-320
-  - DE Config-321
-  - GB Config-322
-  - CLOUDFLARE Config-323
-  - CLOUDFLARE Config-324
-  - CLOUDFLARE Config-325
-  - CLOUDFLARE Config-326
-  - MD Config-327
-  - CLOUDFLARE Config-328
-  - DE Config-329
-  - AT Config-330
-  - CLOUDFLARE Config-331
-  - FASTLY Config-332
-  - FASTLY Config-333
-  - FASTLY Config-334
-  - FASTLY Config-335
-  - FASTLY Config-336
-  - FASTLY Config-337
-  - NL Config-338
-  - DE Config-339
-  - DE Config-340
-  - DE Config-341
-  - DE Config-342
-  - LV Config-343
-  - US Config-344
-  - US Config-345
-  - RU Config-346
-  - CLOUDFLARE Config-347
-  - CLOUDFLARE Config-348
-  - CLOUDFLARE Config-349
-  - CLOUDFLARE Config-350
-  - FASTLY Config-351
-  - DE Config-352
-  - CLOUDFLARE Config-353
-  - CLOUDFLARE Config-354
-  - DE Config-355
-  - CLOUDFLARE Config-356
-  - CLOUDFLARE Config-357
-  - DE Config-358
-  - DE Config-359
-  - FASTLY Config-360
-  - FR Config-361
-  - FR Config-362
-  - FR Config-363
-  - FR Config-364
-  - DE Config-365
-  - DE Config-366
-  - CZ Config-367
-  - CLOUDFLARE Config-368
-  - FR Config-369
-  - CLOUDFLARE Config-370
-  - RU Config-371
-  - RU Config-372
-  - MD Config-373
-  - CLOUDFLARE Config-374
-  - CLOUDFLARE Config-375
-  - CLOUDFLARE Config-376
-  - CLOUDFLARE Config-377
-  - CLOUDFLARE Config-378
-  - RU Config-379
-  - RU Config-380
-  - JP Config-381
-  - JP Config-382
-  - TR Config-383
-  - US Config-384
-  - DE Config-385
-  - DE Config-386
-  - DE Config-387
-  - DE Config-388
-  - CLOUDFLARE Config-389
-  - CLOUDFLARE Config-390
-  - CLOUDFLARE Config-391
-  - CLOUDFLARE Config-392
-  - CLOUDFLARE Config-393
-  - CLOUDFLARE Config-394
-  - RU Config-395
-  - DE Config-396
-  - N/A Config-397
-  - N/A Config-398
-  - N/A Config-399
-  - N/A Config-400
-  - N/A Config-401
-  - N/A Config-402
-  - N/A Config-403
-  - N/A Config-404
-  - N/A Config-405
-  - N/A Config-406
-  - N/A Config-407
-  - N/A Config-408
-  - N/A Config-409
-  - N/A Config-410
-  - N/A Config-411
-  - N/A Config-412
+  - JP Config_jo-01
+  - DE Config_jo-02
+  - DE Config_jo-03
+  - PL Config_jo-04
+  - LT Config_jo-05
+  - CH Config_jo-07
+  - SE Config_jo-08
+  - GB Config_jo-09
+  - GB Config_jo-10
+  - GB Config_jo-11
+  - GB Config_jo-12
+  - GB Config_jo-13
+  - GB Config_jo-14
+  - GB Config_jo-15
+  - GB Config_jo-16
+  - GB Config_jo-17
+  - GB Config_jo-18
+  - GB Config_jo-19
+  - GB Config_jo-20
+  - GB Config_jo-21
+  - GB Config_jo-22
+  - GB Config_jo-23
+  - GB Config_jo-24
+  - NL Config_jo-25
+  - LT Config_jo-26
+  - US Config_jo-27
+  - CLOUDFLARE Config_jo-29
+  - RU Config_jo-30
+  - RU Config_jo-31
+  - RU Config_jo-32
+  - CLOUDFLARE Config_jo-33
+  - CLOUDFLARE Config_jo-34
+  - CY Config_jo-35
+  - GOOGLE Config_jo-36
+  - GOOGLE Config_jo-37
+  - US Config_jo-38
+  - CLOUDFLARE Config_jo-39
+  - CLOUDFRONT Config_jo-40
+  - CLOUDFLARE Config_jo-41
+  - CLOUDFLARE Config_jo-42
+  - CLOUDFLARE Config_jo-43
+  - CLOUDFLARE Config_jo-44
+  - CLOUDFLARE Config_jo-45
+  - CLOUDFLARE Config_jo-46
+  - CLOUDFLARE Config_jo-47
+  - CLOUDFLARE Config_jo-48
+  - CLOUDFLARE Config_jo-49
+  - CLOUDFLARE Config_jo-50
+  - CLOUDFLARE Config_jo-51
+  - CLOUDFLARE Config_jo-52
+  - CLOUDFLARE Config_jo-53
+  - CLOUDFLARE Config_jo-54
+  - CLOUDFLARE Config_jo-55
+  - US Config_jo-56
+  - CLOUDFLARE Config_jo-57
+  - FASTLY Config_jo-58
+  - US Config_jo-59
+  - US Config_jo-60
+  - CLOUDFRONT Config_jo-61
+  - FASTLY Config_jo-62
+  - CLOUDFLARE Config_jo-63
+  - CLOUDFLARE Config_jo-64
+  - N/A Config_jo-65
+  - CLOUDFLARE Config_jo-66
+  - CLOUDFRONT Config_jo-67
+  - CLOUDFLARE Config_jo-68
+  - CLOUDFLARE Config_jo-69
+  - US Config_jo-70
+  - CLOUDFLARE Config_jo-71
+  - MD Config_jo-72
+  - FASTLY Config_jo-73
+  - RU Config_jo-74
+  - CLOUDFLARE Config_jo-75
+  - CLOUDFLARE Config_jo-76
+  - CLOUDFLARE Config_jo-77
+  - CLOUDFLARE Config_jo-78
+  - MD Config_jo-79
+  - GOOGLE Config_jo-80
+  - GOOGLE Config_jo-81
+  - GOOGLE Config_jo-82
+  - GOOGLE Config_jo-83
+  - RU Config_jo-84
+  - CLOUDFLARE Config_jo-85
+  - N/A Config_jo-86
+  - CLOUDFLARE Config_jo-87
+  - CLOUDFLARE Config_jo-88
+  - N/A Config_jo-89
+  - CLOUDFLARE Config_jo-90
+  - GOOGLE Config_jo-91
+  - DE Config_jo-92
+  - IR Config_jo-93
+  - IR Config_jo-94
+  - IR Config_jo-95
+  - IR Config_jo-96
+  - CLOUDFLARE Config_jo-97
+  - N/A Config_jo-98
+  - RU Config_jo-99
+  - RU Config_jo-100
+  - RU Config_jo-101
+  - CLOUDFLARE Config_jo-102
+  - CLOUDFLARE Config_jo-103
+  - CLOUDFLARE Config_jo-104
+  - CLOUDFLARE Config_jo-105
+  - CLOUDFLARE Config_jo-106
+  - RU Config_jo-107
+  - RU Config_jo-108
+  - N/A Config_jo-109
+  - N/A Config_jo-110
+  - N/A Config_jo-111
+  - CLOUDFLARE Config_jo-112
+  - US Config_jo-113
+  - US Config_jo-114
+  - CLOUDFLARE Config_jo-115
+  - CLOUDFLARE Config_jo-116
+  - RU Config_jo-117
+  - DE Config_jo-118
+  - N/A Config_jo-119
+  - N/A Config_jo-120
+  - N/A Config_jo-121
+  - N/A Config_jo-122
+  - N/A Config_jo-123
+  - N/A Config_jo-124
+  - N/A Config_jo-125
+  - N/A Config_jo-126
+  - N/A Config_jo-127
+  - N/A Config_jo-128
+  - N/A Config_jo-129
+  - N/A Config_jo-130
+  - N/A Config_jo-131
+  - N/A Config_jo-132
+  - N/A Config_jo-133
+  - N/A Config_jo-134
+- name: ⚡ Auto-Select
   type: url-test
+  proxies:
+  - JP Config_jo-01
+  - DE Config_jo-02
+  - DE Config_jo-03
+  - PL Config_jo-04
+  - LT Config_jo-05
+  - CH Config_jo-07
+  - SE Config_jo-08
+  - GB Config_jo-09
+  - GB Config_jo-10
+  - GB Config_jo-11
+  - GB Config_jo-12
+  - GB Config_jo-13
+  - GB Config_jo-14
+  - GB Config_jo-15
+  - GB Config_jo-16
+  - GB Config_jo-17
+  - GB Config_jo-18
+  - GB Config_jo-19
+  - GB Config_jo-20
+  - GB Config_jo-21
+  - GB Config_jo-22
+  - GB Config_jo-23
+  - GB Config_jo-24
+  - NL Config_jo-25
+  - LT Config_jo-26
+  - US Config_jo-27
+  - CLOUDFLARE Config_jo-29
+  - RU Config_jo-30
+  - RU Config_jo-31
+  - RU Config_jo-32
+  - CLOUDFLARE Config_jo-33
+  - CLOUDFLARE Config_jo-34
+  - CY Config_jo-35
+  - GOOGLE Config_jo-36
+  - GOOGLE Config_jo-37
+  - US Config_jo-38
+  - CLOUDFLARE Config_jo-39
+  - CLOUDFRONT Config_jo-40
+  - CLOUDFLARE Config_jo-41
+  - CLOUDFLARE Config_jo-42
+  - CLOUDFLARE Config_jo-43
+  - CLOUDFLARE Config_jo-44
+  - CLOUDFLARE Config_jo-45
+  - CLOUDFLARE Config_jo-46
+  - CLOUDFLARE Config_jo-47
+  - CLOUDFLARE Config_jo-48
+  - CLOUDFLARE Config_jo-49
+  - CLOUDFLARE Config_jo-50
+  - CLOUDFLARE Config_jo-51
+  - CLOUDFLARE Config_jo-52
+  - CLOUDFLARE Config_jo-53
+  - CLOUDFLARE Config_jo-54
+  - CLOUDFLARE Config_jo-55
+  - US Config_jo-56
+  - CLOUDFLARE Config_jo-57
+  - FASTLY Config_jo-58
+  - US Config_jo-59
+  - US Config_jo-60
+  - CLOUDFRONT Config_jo-61
+  - FASTLY Config_jo-62
+  - CLOUDFLARE Config_jo-63
+  - CLOUDFLARE Config_jo-64
+  - N/A Config_jo-65
+  - CLOUDFLARE Config_jo-66
+  - CLOUDFRONT Config_jo-67
+  - CLOUDFLARE Config_jo-68
+  - CLOUDFLARE Config_jo-69
+  - US Config_jo-70
+  - CLOUDFLARE Config_jo-71
+  - MD Config_jo-72
+  - FASTLY Config_jo-73
+  - RU Config_jo-74
+  - CLOUDFLARE Config_jo-75
+  - CLOUDFLARE Config_jo-76
+  - CLOUDFLARE Config_jo-77
+  - CLOUDFLARE Config_jo-78
+  - MD Config_jo-79
+  - GOOGLE Config_jo-80
+  - GOOGLE Config_jo-81
+  - GOOGLE Config_jo-82
+  - GOOGLE Config_jo-83
+  - RU Config_jo-84
+  - CLOUDFLARE Config_jo-85
+  - N/A Config_jo-86
+  - CLOUDFLARE Config_jo-87
+  - CLOUDFLARE Config_jo-88
+  - N/A Config_jo-89
+  - CLOUDFLARE Config_jo-90
+  - GOOGLE Config_jo-91
+  - DE Config_jo-92
+  - IR Config_jo-93
+  - IR Config_jo-94
+  - IR Config_jo-95
+  - IR Config_jo-96
+  - CLOUDFLARE Config_jo-97
+  - N/A Config_jo-98
+  - RU Config_jo-99
+  - RU Config_jo-100
+  - RU Config_jo-101
+  - CLOUDFLARE Config_jo-102
+  - CLOUDFLARE Config_jo-103
+  - CLOUDFLARE Config_jo-104
+  - CLOUDFLARE Config_jo-105
+  - CLOUDFLARE Config_jo-106
+  - RU Config_jo-107
+  - RU Config_jo-108
+  - N/A Config_jo-109
+  - N/A Config_jo-110
+  - N/A Config_jo-111
+  - CLOUDFLARE Config_jo-112
+  - US Config_jo-113
+  - US Config_jo-114
+  - CLOUDFLARE Config_jo-115
+  - CLOUDFLARE Config_jo-116
+  - RU Config_jo-117
+  - DE Config_jo-118
+  - N/A Config_jo-119
+  - N/A Config_jo-120
+  - N/A Config_jo-121
+  - N/A Config_jo-122
+  - N/A Config_jo-123
+  - N/A Config_jo-124
+  - N/A Config_jo-125
+  - N/A Config_jo-126
+  - N/A Config_jo-127
+  - N/A Config_jo-128
+  - N/A Config_jo-129
+  - N/A Config_jo-130
+  - N/A Config_jo-131
+  - N/A Config_jo-132
+  - N/A Config_jo-133
+  - N/A Config_jo-134
   url: http://www.gstatic.com/generate_204
+  interval: 300
+- name: 🇮🇷 Iran
+  type: select
+  proxies:
+  - DIRECT
+  - PROXY
+- name: 🛑 Block-Ads
+  type: select
+  proxies:
+  - REJECT
+  - DIRECT
+rule-providers:
+  iran_domains:
+    type: http
+    behavior: domain
+    url: https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/iran-domains.txt
+    path: ./rules/iran_domains.txt
+    interval: 86400
+  blocked_domains:
+    type: http
+    behavior: domain
+    url: https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/blocked-domains.txt
+    path: ./rules/blocked_domains.txt
+    interval: 86400
+  ad_domains:
+    type: http
+    behavior: domain
+    url: https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/ad-domains.txt
+    path: ./rules/ad_domains.txt
+    interval: 86400
 rules:
+- RULE-SET,ad_domains,🛑 Block-Ads
+- RULE-SET,blocked_domains,PROXY
+- RULE-SET,iran_domains,🇮🇷 Iran
+- GEOIP,IR,🇮🇷 Iran
 - MATCH,PROXY
-socks-port: 7891
