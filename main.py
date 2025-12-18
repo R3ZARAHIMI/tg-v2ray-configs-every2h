@@ -5,6 +5,7 @@ import json
 import yaml
 import os
 import uuid
+import requests
 from urllib.parse import urlparse, parse_qs, unquote, urlunparse
 from pyrogram import Client, enums
 from pyrogram.errors import FloodWait
@@ -57,6 +58,7 @@ V2RAY_PATTERNS = [
     re.compile(r"(hy2://[^\s'\"<>`]+)"), re.compile(r"(hysteria2://[^\s'\"<>`]+)"),
     re.compile(r"(tuic://[^\s'\"<>`]+)")
 ]
+URL_PATTERN = re.compile(r'(https?://[^\s]+)')
 BASE64_PATTERN = re.compile(r"([A-Za-z0-9+/=]{50,})", re.MULTILINE)
 
 def process_lists():
@@ -75,7 +77,6 @@ class V2RayExtractor:
         self.raw_configs: Set[str] = set()
         self.client = Client("my_account", api_id=API_ID, api_hash=API_HASH, session_string=SESSION_STRING)
 
-    # ---[ Helper Method: IP to Country ]---
     def get_country_iso_code(self, hostname: str) -> str:
         if not hostname: return "N/A"
         if not GEOIP_READER: return "N/A"
@@ -87,7 +88,6 @@ class V2RayExtractor:
             return response.country.iso_code or "N/A"
         except: return "N/A"
 
-    # ---[ Parsing Logic Methods ]---
     def _is_valid_shadowsocks(self, ss_url: str) -> bool:
         try:
             parsed = urlparse(ss_url)
@@ -104,7 +104,7 @@ class V2RayExtractor:
 
     def _validate_config_type(self, config_url: str) -> bool:
         try:
-            if config_url.startswith('vless://'): return True # Basic check
+            if config_url.startswith('vless://'): return True
             elif config_url.startswith('vmess://'):
                 decoded_str = base64.b64decode(config_url[8:] + '=' * 4).decode('utf-8')
                 config = json.loads(decoded_str)
@@ -177,47 +177,64 @@ class V2RayExtractor:
             found.update(pattern.findall(text))
         return {corrected for url in found if (corrected := self._correct_config_type(url.strip())) and self._validate_config_type(corrected)}
 
-    async def find_raw_configs_from_chat(self, chat_id: int, limit: int, retries: int = 3):
-        chat_found_count = 0  # Counter for THIS chat
+    def fetch_subscription_content(self, url: str) -> str:
+        # === [RE-ADDED FOR GO/SUB LINKS] ===
         try:
-            # Try to get chat info for logging
-            chat_title = str(chat_id)
+            if any(x in url for x in ['google.com', 't.me', 'instagram.com', 'youtube.com']): return ""
+            print(f"      🌍 Fetching sub link: {url[:50]}...")
+            resp = requests.get(url, timeout=5)
+            if resp.status_code == 200:
+                content = resp.text
+                try: content = base64.b64decode(content + '=' * (-len(content) % 4)).decode('utf-8', errors='ignore')
+                except: pass
+                return content
+        except: pass
+        return ""
+
+    async def find_raw_configs_from_chat(self, chat_id: int, limit: int, retries: int = 3):
+        chat_title = str(chat_id)
+        chat_found_count = 0
+        
+        try:
             try:
                 chat_obj = await self.client.get_chat(chat_id)
                 chat_title = chat_obj.title or chat_obj.username or str(chat_id)
             except: pass
-
+            
             print(f"🔍 Searching in: {chat_title} (ID: {chat_id})")
-            
-            initial_global_count = len(self.raw_configs)
-            
+            initial_count_for_this_chat = len(self.raw_configs)
+
             async for message in self.client.get_chat_history(chat_id, limit=limit):
                 text_to_check = message.text or message.caption or ""
                 texts_to_scan = [text_to_check]
                 
-                # --- [FIX: Repair Broken Links in Code Blocks] ---
+                # 1. URL Extraction (Re-added)
+                found_urls = URL_PATTERN.findall(text_to_check)
+                if message.entities:
+                    for entity in message.entities:
+                         if entity.type == enums.MessageEntityType.TEXT_LINK and entity.url: found_urls.append(entity.url)
+                for url in found_urls:
+                    if sub := self.fetch_subscription_content(url): texts_to_scan.append(sub)
+
+                # 2. Entity Parsing (Code/Pre)
                 if message.entities:
                     for entity in message.entities:
                         if entity.type in [enums.MessageEntityType.CODE, enums.MessageEntityType.PRE, getattr(enums.MessageEntityType, 'BLOCKQUOTE', 'blockquote')]:
                             raw_segment = text_to_check[entity.offset : entity.offset + entity.length]
-                            # Remove newlines and spaces to stitch broken configs
+                            # Clean newlines to fix broken configs
                             cleaned_segment = raw_segment.replace('\n', '').replace(' ', '')
                             texts_to_scan.append(cleaned_segment)
-                # -----------------------------------------------
 
-                # Base64 scan
+                # 3. Base64
                 for b64_str in BASE64_PATTERN.findall(text_to_check):
-                    try:
-                        decoded = base64.b64decode(b64_str + '=' * 4).decode('utf-8', errors='ignore')
-                        texts_to_scan.append(decoded)
+                    try: texts_to_scan.append(base64.b64decode(b64_str + '=' * 4).decode('utf-8', errors='ignore'))
                     except: continue
                 
-                # Extract from all candidates
+                # 4. Extract
                 for text in texts_to_scan:
                     if text: self.raw_configs.update(self.extract_configs_from_text(text))
             
-            # Summary for this chat
-            chat_found_count = len(self.raw_configs) - initial_global_count
+            chat_found_count = len(self.raw_configs) - initial_count_for_this_chat
             print(f"   📊 Found {chat_found_count} new configs in {chat_title}")
 
         except FloodWait as e:
@@ -229,23 +246,19 @@ class V2RayExtractor:
             print(f"❌ Error scanning {chat_id}: {e}")
 
     def save_files(self):
-        print(f"\n⚙️ Total extracted: {len(self.raw_configs)}")
+        print(f"\n⚙️ Total unique configs extracted: {len(self.raw_configs)}")
         if not self.raw_configs: return
         
         with open(OUTPUT_ORIGINAL_CONFIGS, 'w') as f: f.write("\n".join(sorted(self.raw_configs)))
         
         valid_proxies = []
-        for i, url in enumerate(self.raw_configs, 1):
+        for i, url in enumerate(sorted(self.raw_configs), 1):
             if p := self.parse_config_for_clash(url):
-                # Simple filter: Ignore speedtest or non-TLS vless
                 if 'speedtest' in (p.get('server') or ''): continue
-                
                 cc = self.get_country_iso_code(p.get('server'))
-                flag = COUNTRY_FLAGS.get(cc, '🏳️')
                 p['name'] = f"{cc} Config-{i:03d}"
                 valid_proxies.append(p)
 
-        # Output Generation (Clash, Singbox, Txt)
         if valid_proxies:
             # Clash
             clash_conf = self.build_pro_config(valid_proxies, [x['name'] for x in valid_proxies])
@@ -253,31 +266,25 @@ class V2RayExtractor:
             
             # Singbox
             sb_out = [self.convert_to_singbox_outbound(p) for p in valid_proxies]
-            sb_conf = self.build_sing_box_config(valid_proxies) # Note: logic inside needs list of dicts, not SB outbounds directly for the param type
-            # Re-using your logic which calls convert inside:
-            sb_conf['outbounds'] = [x for x in sb_conf['outbounds'] if x['tag'] != 'auto'] + [self.convert_to_singbox_outbound(p) for p in valid_proxies if self.convert_to_singbox_outbound(p)] 
-            # Fix pure list injection, re-using struct:
             final_sb = self.build_sing_box_config(valid_proxies)
+            final_sb['outbounds'] = [x for x in final_sb['outbounds'] if x['tag'] != 'auto'] + [o for o in sb_out if o]
             with open(OUTPUT_JSON_CONFIG_JO, 'w', encoding='utf-8') as f: json.dump(final_sb, f, indent=2)
 
             # TXT
-            with open(OUTPUT_TXT, 'w') as f: f.write("\n".join([x['name'] for x in valid_proxies])) # Just names or Original URLs? Usually URLs.
-            # Let's save Original URLs for TXT as requested in prev versions
             with open(OUTPUT_TXT, 'w') as f: f.write("\n".join(sorted(self.raw_configs)))
 
     def build_pro_config(self, proxies, names):
-        return {'proxies': proxies, 'proxy-groups': [{'name': 'PROXY', 'type': 'select', 'proxies': names}]}
+        return {'port': 7890, 'socks-port': 7891, 'allow-lan': True, 'mode': 'rule', 'log-level': 'info', 'external-controller': '127.0.0.1:9090', 'proxies': proxies, 'proxy-groups': [{'name': 'PROXY', 'type': 'select', 'proxies': ['⚡ Auto-Select', 'DIRECT', *names]}, {'name': '⚡ Auto-Select', 'type': 'url-test', 'proxies': names, 'url': 'http://www.gstatic.com/generate_204', 'interval': 300}], 'rules': ['MATCH,PROXY']}
 
     def build_sing_box_config(self, proxies):
-        outs = [self.convert_to_singbox_outbound(p) for p in proxies if self.convert_to_singbox_outbound(p)]
-        return {"outbounds": [{"type":"selector","tag":"PROXY","outbounds":[x['tag'] for x in outs]}]+outs}
+        return {"log": {"level": "warn", "timestamp": True}, "dns": {"servers": [{"tag": "dns_proxy", "address": "https://dns.google/dns-query", "detour": "PROXY"}, {"tag": "dns_direct", "address": "1.1.1.1"}], "rules": [{"outbound": "PROXY", "server": "dns_proxy"}], "final": "dns_direct"}, "inbounds": [{"type": "mixed", "listen": "0.0.0.0", "listen_port": 2080, "sniff": True}], "outbounds": [{"type": "direct", "tag": "direct"}, {"type": "block", "tag": "block"}, {"type": "dns", "tag": "dns-out"}, {"type":"selector","tag":"PROXY","outbounds":["auto"],"default":"auto"},{"type":"urltest","tag":"auto","outbounds":[],"url":"http://www.gstatic.com/generate_204","interval":"5m"}], "route": {"rules": [{"protocol": "dns", "outbound": "dns-out"}], "final": "PROXY"}}
 
 async def main():
-    print("🚀 Starting Config Extractor (No-Requests Version)...")
+    print("🚀 Starting Config Extractor (THE FIXER)...")
     load_ip_data()
     extractor = V2RayExtractor()
     async with extractor.client:
-        print("🔄 Refreshing dialogs to fix group IDs...")
+        print("🔄 Refreshing dialogs map...")
         async for d in extractor.client.get_dialogs(limit=50): pass
         
         for c in CHANNELS: await extractor.find_raw_configs_from_chat(c, CHANNEL_SEARCH_LIMIT)
