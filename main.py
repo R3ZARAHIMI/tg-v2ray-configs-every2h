@@ -5,7 +5,6 @@ import json
 import yaml
 import os
 import uuid
-import requests
 from urllib.parse import urlparse, parse_qs, unquote, urlunparse
 from pyrogram import Client, enums
 from pyrogram.errors import FloodWait
@@ -58,8 +57,6 @@ V2RAY_PATTERNS = [
     re.compile(r"(hy2://[^\s'\"<>`]+)"), re.compile(r"(hysteria2://[^\s'\"<>`]+)"),
     re.compile(r"(tuic://[^\s'\"<>`]+)")
 ]
-# Regex to find HTTP/HTTPS links
-URL_PATTERN = re.compile(r'(https?://[^\s]+)')
 BASE64_PATTERN = re.compile(r"([A-Za-z0-9+/=]{50,})", re.MULTILINE)
 
 def process_lists():
@@ -261,28 +258,6 @@ class V2RayExtractor:
             found_configs.update(pattern.findall(text))
         return {corrected for url in found_configs if (corrected := self._correct_config_type(url.strip())) and self._validate_config_type(corrected)}
 
-    # ---[ New Logic: Fetch HTTP Sub Links ]---
-    def fetch_subscription_content(self, url: str) -> str:
-        try:
-            # Ignore common non-sub links to save time
-            if any(x in url for x in ['google.com', 't.me', 'instagram.com', 'youtube.com']):
-                return ""
-                
-            print(f"      🌍 Fetching sub link: {url[:50]}...")
-            resp = requests.get(url, timeout=5)
-            if resp.status_code == 200:
-                # Try to decode if base64
-                content = resp.text
-                try:
-                    content = base64.b64decode(content + '=' * (-len(content) % 4)).decode('utf-8', errors='ignore')
-                except Exception:
-                    pass # It was plain text
-                return content
-        except Exception as e:
-            # print(f"      ⚠️ Failed to fetch {url}: {e}")
-            pass
-        return ""
-
     async def find_raw_configs_from_chat(self, chat_id: int, limit: int, retries: int = 3):
         try:
             print(f"🔍 Searching in chat {chat_id} (limit: {limit} messages)...")
@@ -290,20 +265,7 @@ class V2RayExtractor:
                 text_to_check = message.text or message.caption or ""
                 texts_to_scan = [text_to_check]
                 
-                # 1. URL Extraction (For Subscription Links)
-                found_urls = URL_PATTERN.findall(text_to_check)
-                if message.entities:
-                    for entity in message.entities:
-                         if entity.type == enums.MessageEntityType.TEXT_LINK and entity.url:
-                             found_urls.append(entity.url)
-                
-                # Fetch content of found URLs
-                for url in found_urls:
-                    fetched_content = self.fetch_subscription_content(url)
-                    if fetched_content:
-                        texts_to_scan.append(fetched_content)
-
-                # 2. Entity Parsing (Code/Pre/Blockquote - Cleaning newlines)
+                # --- FIX: Handle configs broken in code/quote blocks ---
                 if message.entities:
                     for entity in message.entities:
                         target_types = [enums.MessageEntityType.CODE, enums.MessageEntityType.PRE]
@@ -316,15 +278,15 @@ class V2RayExtractor:
                             cleaned_block = raw_block.replace('\n', '').replace(' ', '')
                             texts_to_scan.append(cleaned_block)
                             texts_to_scan.append(raw_block)
+                # -----------------------------------------------------
 
-                # 3. Base64
                 for b64_str in BASE64_PATTERN.findall(text_to_check):
                     try:
                         decoded = base64.b64decode(b64_str + '=' * (-len(b64_str) % 4)).decode('utf-8', errors='ignore')
                         texts_to_scan.append(decoded)
                     except Exception: continue
                 
-                # 4. Extract
+                # Extract
                 initial_count = len(self.raw_configs)
                 for text in texts_to_scan: 
                     if not text: continue
