@@ -4,7 +4,6 @@ import base64
 import json
 import yaml
 import os
-import uuid
 from urllib.parse import urlparse, parse_qs, unquote, urlunparse
 from pyrogram import Client, enums
 from pyrogram.errors import FloodWait
@@ -90,6 +89,7 @@ class V2RayExtractor:
         # Custom validation to handle base64 with slashes
         try:
             if '@' in ss_url:
+                # Basic check for structure ss://base64@server:port
                 parts = ss_url.split('@')
                 if len(parts) >= 2:
                     return True
@@ -161,6 +161,7 @@ class V2RayExtractor:
             
             # Parse server:port
             if ':' in server_part:
+                # Handle IPv6 brackets if present, though simple split works for IPv4
                 server_host, server_port_str = server_part.rsplit(':', 1)
                 port = int(server_port_str)
             else:
@@ -172,7 +173,7 @@ class V2RayExtractor:
             
             try:
                 # Try standard base64 first
-                userinfo_bytes = base64.b64decode(userinfo_b64_padded, validate=False)
+                userinfo_bytes = base64.b64decode(userinfo_b64_padded, validate=False) # validate=False allows non-alphabet chars
                 userinfo_str = userinfo_bytes.decode('utf-8')
             except:
                 # Fallback to urlsafe if needed
@@ -192,6 +193,7 @@ class V2RayExtractor:
                 }
             return None
         except Exception as e:
+            # print(f"SS Parse Error: {e} for {ss_url}")
             return None
 
     def parse_hysteria2(self, hy2_url: str) -> Optional[Dict[str, Any]]:
