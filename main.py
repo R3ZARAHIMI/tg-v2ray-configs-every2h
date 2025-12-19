@@ -28,8 +28,11 @@ OUTPUT_YAML_PRO = "Config-jo.yaml"
 OUTPUT_TXT = "Config_jo.txt"
 OUTPUT_JSON_CONFIG_JO = "Config_jo.json"
 OUTPUT_ORIGINAL_CONFIGS = "Original-Configs.txt"
+
+# فایل‌های سیستم هفتگی هوشمند
 WEEKLY_FILE = "conf-week.txt"
-RESET_LOG_FILE = "reset_log.txt"
+HISTORY_FILE = "conf-week-history.json" # دیتابیس تاریخ ورود کانفیگ‌ها
+
 GEOIP_DATABASE_PATH = 'dbip-country-lite.mmdb'
 
 V2RAY_PATTERNS = [
@@ -145,17 +148,14 @@ class V2RayExtractor:
             if '#' in content:
                 content, name_encoded = content.split('#', 1)
                 name = unquote(name_encoded)
-            
             if '@' not in content:
                 return None
             userinfo_b64, server_part = content.rsplit('@', 1)
-            
             if ':' in server_part:
                 server_host, server_port_str = server_part.rsplit(':', 1)
                 port = int(server_port_str)
             else:
                 return None
-
             userinfo_b64_padded = userinfo_b64 + '=' * (-len(userinfo_b64) % 4)
             try:
                 userinfo_bytes = base64.b64decode(userinfo_b64_padded, validate=False)
@@ -163,7 +163,6 @@ class V2RayExtractor:
             except:
                 userinfo_bytes = base64.urlsafe_b64decode(userinfo_b64_padded)
                 userinfo_str = userinfo_bytes.decode('utf-8')
-
             if ':' in userinfo_str:
                 cipher, password = userinfo_str.split(':', 1)
                 return {
@@ -214,26 +213,21 @@ class V2RayExtractor:
             async for message in self.client.get_chat_history(chat_id, limit=limit):
                 text_to_check = message.text or message.caption or ""
                 texts_to_scan = [text_to_check]
-                
                 if message.entities:
                     for entity in message.entities:
                         if entity.type in [enums.MessageEntityType.CODE, enums.MessageEntityType.PRE, getattr(enums.MessageEntityType, 'BLOCKQUOTE', 'blockquote')]:
                             raw_segment = text_to_check[entity.offset : entity.offset + entity.length]
                             cleaned_segment = raw_segment.replace('\n', '').replace(' ', '')
                             texts_to_scan.append(cleaned_segment)
-
                 for b64_str in BASE64_PATTERN.findall(text_to_check):
                     try:
                         decoded = base64.b64decode(b64_str + '=' * 4).decode('utf-8', errors='ignore')
                         texts_to_scan.append(decoded)
                     except: continue
-                
                 for text in texts_to_scan:
                     if text: local_configs.update(self.extract_configs_from_text(text))
-            
             print(f"   ✅ Fetched {len(local_configs)} configs from {chat_id}")
             self.raw_configs.update(local_configs)
-
         except FloodWait as e:
             if retries > 0:
                 print(f"⏳ FloodWait {e.value}s in {chat_id}. Sleeping...")
@@ -243,153 +237,116 @@ class V2RayExtractor:
             print(f"❌ Error scanning {chat_id}: {e}")
 
     # =================================================================================
-    # WEEKLY FILE MANAGEMENT (SMART DEDUPLICATION)
+    # SMART WEEKLY ROLLING WINDOW (The Fix!)
     # =================================================================================
     def handle_weekly_file(self, new_configs: List[str]):
         """
-        Manages the weekly accumulation file with SMART deduplication.
-        It ignores the '#Name' part when checking for duplicates.
+        Manages weekly file using a 'Rolling Window' approach.
+        Stores (config_base -> entry_date) in a JSON file.
+        Removes configs older than 7 days from their INDIVIDUAL entry date.
         """
-        should_reset = False
         now = datetime.datetime.now()
+        cutoff = now - datetime.timedelta(days=7)
         
-        # 1. Reset Check (7 Days)
-        if os.path.exists(RESET_LOG_FILE):
+        # 1. Load History
+        history = {}
+        if os.path.exists(HISTORY_FILE):
             try:
-                with open(RESET_LOG_FILE, 'r') as f:
-                    last_reset_str = f.read().strip()
-                    if last_reset_str:
-                        last_reset = datetime.datetime.fromisoformat(last_reset_str)
-                        if (now - last_reset).days >= 7:
-                            should_reset = True
-                    else: should_reset = False
-            except: should_reset = True
-        else:
-            with open(RESET_LOG_FILE, 'w') as f: f.write(now.isoformat())
+                with open(HISTORY_FILE, 'r') as f:
+                    history = json.load(f)
+            except: history = {}
+
+        # 2. Prune Old Configs (Older than 7 days) & Build New History
+        new_history = {}
+        kept_count = 0
         
-        if should_reset:
-            if os.path.exists(WEEKLY_FILE):
-                os.remove(WEEKLY_FILE)
-                print("🗑️ Weekly cleaning executed: conf-week.txt deleted.")
-            with open(RESET_LOG_FILE, 'w') as f: f.write(now.isoformat())
+        for base_cfg, meta in history.items():
+            try:
+                added_date = datetime.datetime.fromisoformat(meta['date'])
+                if added_date > cutoff:
+                    new_history[base_cfg] = meta
+                    kept_count += 1
+            except: pass # Corrupt date, drop it
 
-        # 2. Smart Deduplication Logic
-        # We store 'base_config' (config without #name) to detect duplicates
-        final_list = []
-        seen_bases = set()
-
-        # A) Load existing configs from file
-        if os.path.exists(WEEKLY_FILE):
-            with open(WEEKLY_FILE, 'r', encoding='utf-8') as f:
-                for line in f:
-                    line = line.strip()
-                    if not line: continue
-                    # Extract base (everything before #)
-                    base = line.split('#')[0]
-                    if base not in seen_bases:
-                        seen_bases.add(base)
-                        final_list.append(line) # Keep the OLD entry (old name)
-
-        # B) Add NEW configs only if their base is not seen
+        # 3. Add New Configs (If not already present)
+        # Use 'base config' (without #name) as key to avoid duplicates with different names
         added_count = 0
         for cfg in new_configs:
             base = cfg.split('#')[0]
-            if base not in seen_bases:
-                seen_bases.add(base)
-                final_list.append(cfg)
+            if base not in new_history:
+                new_history[base] = {
+                    "link": cfg,
+                    "date": now.isoformat()
+                }
                 added_count += 1
         
-        # 3. Save back to file
+        # 4. Save Updated History
+        with open(HISTORY_FILE, 'w') as f:
+            json.dump(new_history, f, indent=2)
+            
+        # 5. Generate Weekly TXT File
+        final_links = [meta['link'] for meta in new_history.values()]
         with open(WEEKLY_FILE, 'w', encoding='utf-8') as f:
-            f.write("\n".join(final_list)) # We don't sort here to keep relative order if preferred, or use sorted()
+            f.write("\n".join(sorted(final_links)))
         
-        print(f"📅 Weekly file updated. Added {added_count} unique configs. Total: {len(final_list)}")
+        print(f"📅 Rolling Window Update: Kept {kept_count} old valid configs, Added {added_count} new. Total: {len(final_links)}")
 
     def save_files(self):
         print(f"\n⚙️ ∑ Total Unique Configs Found: {len(self.raw_configs)}")
-        
         if not self.raw_configs:
-            print("⚠️ No configs found. Output files will be empty.")
-            for f in [OUTPUT_YAML_PRO, OUTPUT_TXT, OUTPUT_JSON_CONFIG_JO, OUTPUT_ORIGINAL_CONFIGS]: 
-                open(f, "w").close()
+            print("⚠️ No configs found.")
             return
-        else:
-            try:
-                with open(OUTPUT_ORIGINAL_CONFIGS, 'w', encoding='utf-8') as f:
-                    f.write("\n".join(sorted(list(self.raw_configs))))
-            except Exception as e: print(f"❌ Error saving original configs file: {e}")
-
-        # Filter
+        
+        # Filter Valid
         valid_configs = set()
         for url in self.raw_configs:
             try:
                 if not url.startswith('ss://'):
-                    hostname = urlparse(url).hostname
-                    if not hostname: continue 
+                    if not urlparse(url).hostname: continue 
                 if url.startswith('vless://'):
-                    query = parse_qs(urlparse(url).query)
-                    security = query.get('security', [''])[0]
-                    if not security or security == 'none': continue 
+                    if parse_qs(urlparse(url).query).get('security', [''])[0] == 'none': continue 
                 valid_configs.add(url)
-            except Exception: continue
+            except: continue
 
-        print(f"⚙️ Processing {len(valid_configs)} valid configs...")
-        
         proxies_list_clash, renamed_txt_configs = [], []
         
         for i, url in enumerate(sorted(list(valid_configs)), 1):
             if not (proxy := self.parse_config_for_clash(url)): continue
-
             host_to_check = proxy.get('servername') or proxy.get('sni') or proxy.get('server', '')
             country_code = self.get_country_iso_code(host_to_check)
             country_flag = COUNTRY_FLAGS.get(country_code, '🏳️')
-
             name_compatible = f"{country_code} Config_jo-{i:02d}"
             proxy['name'] = name_compatible
             proxies_list_clash.append(proxy)
             
             name_with_flag = f"{country_flag} Config_jo-{i:02d}"
-            
             if proxy['type'] == 'ss':
-                ss_proxy_for_link = proxy.copy()
-                ss_proxy_for_link['name'] = name_with_flag
-                clean_link = self.generate_sip002_link(ss_proxy_for_link)
-                if clean_link: renamed_txt_configs.append(clean_link)
-                else: renamed_txt_configs.append(f"{url.split('#')[0]}#{name_with_flag}")
+                ss_p = proxy.copy(); ss_p['name'] = name_with_flag
+                clean = self.generate_sip002_link(ss_p)
+                renamed_txt_configs.append(clean if clean else f"{url.split('#')[0]}#{name_with_flag}")
             else:
                 try:
-                    parsed_url = list(urlparse(url)); parsed_url[5] = name_with_flag
-                    renamed_txt_configs.append(urlunparse(parsed_url))
-                except Exception: 
-                    renamed_txt_configs.append(f"{url.split('#')[0]}#{name_with_flag}")
+                    parsed = list(urlparse(url)); parsed[5] = name_with_flag
+                    renamed_txt_configs.append(urlunparse(parsed))
+                except: renamed_txt_configs.append(f"{url.split('#')[0]}#{name_with_flag}")
 
-        if not proxies_list_clash:
-            print("⚠️ No valid configs to build output files.")
-            for f in [OUTPUT_YAML_PRO, OUTPUT_TXT, OUTPUT_JSON_CONFIG_JO]: open(f, "w").close()
-            return
+        # Save Normal Files
+        try:
+            with open(OUTPUT_ORIGINAL_CONFIGS, 'w', encoding='utf-8') as f: f.write("\n".join(sorted(list(self.raw_configs))))
+            with open(OUTPUT_TXT, 'w', encoding='utf-8') as f: f.write("\n".join(sorted(renamed_txt_configs)))
             
-        print(f"👍 {len(proxies_list_clash)} configs prepared.")
-        all_proxy_names = [p['name'] for p in proxies_list_clash]
-
-        try:
             os.makedirs('rules', exist_ok=True)
-            pro_config = self.build_pro_config(proxies_list_clash, all_proxy_names)
-            with open(OUTPUT_YAML_PRO, 'w', encoding='utf-8') as f:
-                yaml.dump(pro_config, f, allow_unicode=True, sort_keys=False, indent=2, width=120)
-            print(f"✅ Pro file {OUTPUT_YAML_PRO} created.")
-        except Exception as e: print(f"❌ Error creating pro file: {e}")
+            if proxies_list_clash:
+                all_names = [p['name'] for p in proxies_list_clash]
+                with open(OUTPUT_YAML_PRO, 'w', encoding='utf-8') as f:
+                    yaml.dump(self.build_pro_config(proxies_list_clash, all_names), f, allow_unicode=True, sort_keys=False, indent=2, width=120)
+                with open(OUTPUT_JSON_CONFIG_JO, 'w', encoding='utf-8') as f:
+                    json.dump(self.build_sing_box_config(proxies_list_clash), f, ensure_ascii=False, indent=4)
+        except Exception as e: print(f"❌ Error saving files: {e}")
 
-        try:
-            singbox_config = self.build_sing_box_config(proxies_list_clash)
-            with open(OUTPUT_JSON_CONFIG_JO, 'w', encoding='utf-8') as f: json.dump(singbox_config, f, ensure_ascii=False, indent=4)
-            print(f"✅ Sing-box file {OUTPUT_JSON_CONFIG_JO} created.")
-        except Exception as e: print(f"❌ Error creating Sing-box file: {e}")
-        
-        with open(OUTPUT_TXT, 'w', encoding='utf-8') as f: f.write("\n".join(sorted(renamed_txt_configs)))
-        print(f"✅ Text file {OUTPUT_TXT} saved.")
-
-        # CALL SMART WEEKLY UPDATE
+        # CALL ROLLING WINDOW LOGIC
         self.handle_weekly_file(renamed_txt_configs)
+        print("\n✨ All operations completed successfully!")
 
     def build_pro_config(self, proxies, proxy_names):
         return {
@@ -418,7 +375,6 @@ async def main():
         if tasks: await asyncio.gather(*tasks)
         else: print("❌ No channels or groups defined for searching.")
     extractor.save_files()
-    print("\n✨ All operations completed successfully!")
 
 if __name__ == "__main__":
     if not all([API_ID, API_HASH, SESSION_STRING]):
