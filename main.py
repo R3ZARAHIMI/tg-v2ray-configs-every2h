@@ -87,13 +87,14 @@ class V2RayExtractor:
         except: return "N/A"
 
     def _is_valid_shadowsocks(self, ss_url: str) -> bool:
+        # Custom validation to handle base64 with slashes
         try:
-            parsed = urlparse(ss_url)
-            if not parsed.hostname: return False
-            try:
-                base64.b64decode(parsed.netloc.split('@')[0] + '=' * 4)
-                return True
-            except: return ':' in parsed.netloc.split('@')[0]
+            if '@' in ss_url:
+                # Basic check for structure ss://base64@server:port
+                parts = ss_url.split('@')
+                if len(parts) >= 2:
+                    return True
+            return False
         except: return False
 
     def _correct_config_type(self, config_url: str) -> str:
@@ -142,13 +143,60 @@ class V2RayExtractor:
         return {'name': unquote(p.fragment or ''), 'type': 'trojan', 'server': p.hostname, 'port': p.port or 443, 'password': p.username, 'udp': True, 'sni': q.get('sni', [p.hostname])[0]}
 
     def parse_shadowsocks(self, ss_url: str) -> Optional[Dict[str, Any]]:
-        p = urlparse(ss_url)
-        if '@' in p.netloc:
-            # Decode standard Base64 (RFC2045) which might include + and /
-            u = base64.b64decode(p.netloc.split('@')[0] + '='*4).decode('utf-8')
-            c, pw = u.split(':')
-            return {'name': unquote(p.fragment or ''), 'type': 'ss', 'server': p.hostname, 'port': int(p.port), 'cipher': c, 'password': pw, 'udp': True}
-        return None
+        # Manual parsing instead of urlparse to handle slashes in base64
+        try:
+            # Remove ss://
+            content = ss_url[5:]
+            
+            # Handle fragment/name
+            name = ''
+            if '#' in content:
+                content, name_encoded = content.split('#', 1)
+                name = unquote(name_encoded)
+            
+            # Split by the LAST '@' to separate userinfo from server
+            # Because userinfo (base64) might contain slashes or other chars, but server address usually doesn't have @
+            if '@' not in content:
+                return None
+                
+            userinfo_b64, server_part = content.rsplit('@', 1)
+            
+            # Parse server:port
+            if ':' in server_part:
+                # Handle IPv6 brackets if present, though simple split works for IPv4
+                server_host, server_port_str = server_part.rsplit(':', 1)
+                port = int(server_port_str)
+            else:
+                return None
+
+            # Decode userinfo
+            # Pad with '=' just in case
+            userinfo_b64_padded = userinfo_b64 + '=' * (-len(userinfo_b64) % 4)
+            
+            try:
+                # Try standard base64 first
+                userinfo_bytes = base64.b64decode(userinfo_b64_padded, validate=False) # validate=False allows non-alphabet chars if any
+                userinfo_str = userinfo_bytes.decode('utf-8')
+            except:
+                # Fallback to urlsafe if needed
+                userinfo_bytes = base64.urlsafe_b64decode(userinfo_b64_padded)
+                userinfo_str = userinfo_bytes.decode('utf-8')
+
+            if ':' in userinfo_str:
+                cipher, password = userinfo_str.split(':', 1)
+                return {
+                    'name': name,
+                    'type': 'ss',
+                    'server': server_host,
+                    'port': port,
+                    'cipher': cipher,
+                    'password': password,
+                    'udp': True
+                }
+            return None
+        except Exception as e:
+            # print(f"SS Parse Error: {e} for {ss_url}")
+            return None
 
     def parse_hysteria2(self, hy2_url: str) -> Optional[Dict[str, Any]]:
         p, q = urlparse(hy2_url), parse_qs(urlparse(hy2_url).query)
@@ -161,20 +209,14 @@ class V2RayExtractor:
     def generate_sip002_link(self, proxy: Dict[str, Any]) -> str:
         """
         Generates a robust SIP002 shadowsocks link using URL-Safe Base64.
-        This handles cases where the standard base64 string contains '/' or '+',
-        which breaks some clients (like v2rayNG) when used in ss:// format.
         """
         try:
-            # SIP002 format: ss://base64url(method:password)@server:port#name
             userinfo = f"{proxy['cipher']}:{proxy['password']}"
             # Encode using URL-Safe Base64 (RFC 4648) -> replaces '+' with '-' and '/' with '_'
             userinfo_b64 = base64.urlsafe_b64encode(userinfo.encode('utf-8')).decode('utf-8').rstrip('=')
-            
-            # The name might be different for Clash/TXT, so we expect it to be passed correctly in proxy['name']
             name = proxy.get('name', 'Shadowsocks')
             return f"ss://{userinfo_b64}@{proxy['server']}:{proxy['port']}#{name}"
         except Exception as e:
-            print(f"⚠️ Error regenerating SIP002 link: {e}")
             return None
 
     def convert_to_singbox_outbound(self, proxy: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -196,7 +238,6 @@ class V2RayExtractor:
         return {corrected for url in found if (corrected := self._correct_config_type(url.strip())) and self._validate_config_type(corrected)}
 
     async def find_raw_configs_from_chat(self, chat_id: int, limit: int, retries: int = 3):
-        # 1. Setup Local Set for THIS specific chat
         local_configs = set()
         chat_title = str(chat_id)
         
@@ -212,7 +253,6 @@ class V2RayExtractor:
                 text_to_check = message.text or message.caption or ""
                 texts_to_scan = [text_to_check]
                 
-                # FIX: Broken Lines in Code Blocks
                 if message.entities:
                     for entity in message.entities:
                         if entity.type in [enums.MessageEntityType.CODE, enums.MessageEntityType.PRE, getattr(enums.MessageEntityType, 'BLOCKQUOTE', 'blockquote')]:
@@ -220,21 +260,16 @@ class V2RayExtractor:
                             cleaned_segment = raw_segment.replace('\n', '').replace(' ', '')
                             texts_to_scan.append(cleaned_segment)
 
-                # Base64 scan
                 for b64_str in BASE64_PATTERN.findall(text_to_check):
                     try:
                         decoded = base64.b64decode(b64_str + '=' * 4).decode('utf-8', errors='ignore')
                         texts_to_scan.append(decoded)
                     except: continue
                 
-                # Extract
                 for text in texts_to_scan:
                     if text: local_configs.update(self.extract_configs_from_text(text))
             
-            # 2. Print EXACT count found in THIS chat
             print(f"   ✅ Finished {chat_title}: Found {len(local_configs)} new configs.")
-            
-            # 3. Add to Global Set
             self.raw_configs.update(local_configs)
 
         except FloodWait as e:
@@ -257,7 +292,6 @@ class V2RayExtractor:
             try:
                 with open(OUTPUT_ORIGINAL_CONFIGS, 'w', encoding='utf-8') as f:
                     f.write("\n".join(sorted(list(self.raw_configs))))
-                print(f"✅ Original configs file {OUTPUT_ORIGINAL_CONFIGS} saved with {len(self.raw_configs)} raw configs.")
             except Exception as e:
                 print(f"❌ Error saving original configs file: {e}")
 
@@ -266,7 +300,9 @@ class V2RayExtractor:
         for url in self.raw_configs:
             try:
                 hostname = urlparse(url).hostname
-                if hostname and 'speedtest' in hostname.lower(): continue
+                # For SS manual parse, hostname might be None if urlparse fails, so we skip this check for SS or handle vaguely
+                if not hostname and not url.startswith('ss://'): continue 
+                
                 if url.startswith('vless://'):
                     query = parse_qs(urlparse(url).query)
                     security = query.get('security', [''])[0]
@@ -290,28 +326,22 @@ class V2RayExtractor:
             country_code = self.get_country_iso_code(host_to_check)
             country_flag = COUNTRY_FLAGS.get(country_code, '🏳️')
 
-            # 1. Prepare for Clash/Sing-box (Standard Names)
             name_compatible = f"{country_code} Config_jo-{i:02d}"
             proxy['name'] = name_compatible
             proxies_list_clash.append(proxy)
             
-            # 2. Prepare for Text File (Names with Flags)
             name_with_flag = f"{country_flag} Config_jo-{i:02d}"
             
             if proxy['type'] == 'ss':
-                # FIX: Regenerate SIP002 link with URL-Safe Base64 to fix broken clients
-                # We copy the proxy dict to avoid changing the name in the original list
+                # FIX: Regenerate SIP002 link with URL-Safe Base64
                 ss_proxy_for_link = proxy.copy()
                 ss_proxy_for_link['name'] = name_with_flag
                 clean_link = self.generate_sip002_link(ss_proxy_for_link)
-                
                 if clean_link:
                     renamed_txt_configs.append(clean_link)
                 else:
-                    # Fallback to simple replace if generation fails
                     renamed_txt_configs.append(f"{url.split('#')[0]}#{name_with_flag}")
             else:
-                # Normal processing for other protocols
                 try:
                     parsed_url = list(urlparse(url)); parsed_url[5] = name_with_flag
                     renamed_txt_configs.append(urlunparse(parsed_url))
@@ -366,7 +396,6 @@ async def main():
     load_ip_data()
     extractor = V2RayExtractor()
     async with extractor.client:
-        # Added dialog refresh to fix group ID issues
         print("🔄 Refreshing dialogs...")
         async for d in extractor.client.get_dialogs(): pass
         
