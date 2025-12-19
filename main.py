@@ -4,35 +4,13 @@ import base64
 import json
 import yaml
 import os
-# در نسخه جدید، urlparse برای شادوساکس استفاده نمی‌شود تا باگ اسلش رفع شود
+import datetime
 from urllib.parse import urlparse, parse_qs, unquote, urlunparse
 from pyrogram import Client, enums
 from pyrogram.errors import FloodWait
 from typing import Optional, Dict, Any, Set, List
 import socket
 import geoip2.database
-
-# =================================================================================
-# IP Geolocation Section
-# =================================================================================
-
-GEOIP_DATABASE_PATH = 'dbip-country-lite.mmdb'
-GEOIP_READER = None
-
-def load_ip_data():
-    global GEOIP_READER
-    print("Attempting to load GeoIP database...")
-    try:
-        GEOIP_READER = geoip2.database.Reader(GEOIP_DATABASE_PATH)
-        print(f"✅ Successfully loaded GeoIP database.")
-    except FileNotFoundError:
-        print(f"❌ CRITICAL: GeoIP database not found at '{GEOIP_DATABASE_PATH}'. Flags will be disabled.")
-    except Exception as e:
-        print(f"❌ CRITICAL: Failed to load GeoIP database: {e}")
-
-COUNTRY_FLAGS = {
-    'AD': '🇦🇩', 'AE': '🇦🇪', 'AF': '🇦🇫', 'AG': '🇦🇬', 'AI': '🇦🇮', 'AL': '🇦🇱', 'AM': '🇦🇲', 'AO': '🇦🇴', 'AQ': '🇦🇶', 'AR': '🇦🇷', 'AS': '🇦🇸', 'AT': '🇦🇹', 'AU': '🇦🇺', 'AW': '🇦🇼', 'AX': '🇦🇽', 'AZ': '🇦🇿', 'BA': '🇧🇦', 'BB': '🇧🇧', 'BD': '🇧🇩', 'BE': '🇧🇪', 'BF': '🇧🇫', 'BG': '🇧🇬', 'BH': '🇧🇭', 'BI': '🇧🇮', 'BJ': '🇧🇯', 'BL': '🇧🇱', 'BM': '🇧🇲', 'BN': '🇧🇳', 'BO': '🇧🇴', 'BR': '🇧🇷', 'BS': '🇧🇸', 'BT': '🇧🇹', 'BW': '🇧🇼', 'BY': '🇧🇾', 'BZ': '🇧🇿', 'CA': '🇨🇦', 'CC': '🇨🇨', 'CD': '🇨🇩', 'CF': '🇨🇫', 'CG': '🇨🇬', 'CH': '🇨🇭', 'CI': '🇨🇮', 'CK': '🇨🇰', 'CL': '🇨🇱', 'CM': '🇨🇲', 'CN': '🇨🇳', 'CO': '🇨🇴', 'CR': '🇨🇷', 'CU': '🇨🇺', 'CV': '🇨🇻', 'CW': '🇨🇼', 'CX': '🇨🇽', 'CY': '🇨🇾', 'CZ': '🇨🇿', 'DE': '🇩🇪', 'DJ': '🇩🇯', 'DK': '🇩🇰', 'DM': '🇩🇲', 'DO': '🇩🇴', 'DZ': '🇩🇿', 'EC': '🇪🇨', 'EE': '🇪🇪', 'EG': '🇪🇬', 'EH': '🇪🇭', 'ER': '🇪🇷', 'ES': '🇪🇸', 'ET': '🇪🇹', 'FI': '🇫🇮', 'FJ': '🇫🇯', 'FK': '🇫🇰', 'FM': '🇫🇲', 'FO': '🇫🇴', 'FR': '🇫🇷', 'GA': '🇬🇦', 'GB': '🇬🇬', 'GD': '🇬🇩', 'GE': '🇬🇪', 'GF': '🇬🇫', 'GG': '🇬🇬', 'GH': '🇬🇭', 'GI': '🇬🇮', 'GL': '🇬🇱', 'GM': '🇬🇲', 'GN': '🇬🇳', 'GP': '🇬🇵', 'GQ': '🇬🇶', 'GR': '🇬🇷', 'GT': '🇬🇹', 'GU': '🇬🇺', 'GW': '🇬🇼', 'GY': '🇬🇾', 'HK': '🇭🇰', 'HN': '🇭🇳', 'HR': '🇭🇷', 'HT': '🇭🇹', 'HU': '🇭🇺', 'ID': '🇮🇩', 'IE': '🇮🇪', 'IL': '🇮🇱', 'IM': '🇮🇲', 'IN': '🇮🇳', 'IO': '🇮🇴', 'IQ': '🇮🇶', 'IR': '🇮🇷', 'IS': '🇮🇸', 'IT': '🇮🇹', 'JE': '🇯🇪', 'JM': '🇯🇲', 'JO': '🇯🇴', 'JP': '🇯🇵', 'KE': '🇰🇪', 'KG': '🇰🇬', 'KH': '🇰🇭', 'KI': '🇰🇮', 'KM': '🇰🇲', 'KN': '🇰🇳', 'KP': '🇰🇵', 'KR': '🇰🇷', 'KW': '🇰🇼', 'KY': '🇰🇾', 'KZ': '🇰🇿', 'LA': '🇱🇦', 'LB': '🇱🇧', 'LC': '🇱🇨', 'LI': '🇱🇮', 'LK': '🇱🇰', 'LR': '🇱🇷', 'LS': '🇱🇸', 'LT': '🇱🇹', 'LU': '🇱🇺', 'LV': '🇱🇻', 'LY': '🇱🇾', 'MA': '🇲🇦', 'MC': '🇲🇨', 'MD': '🇲🇩', 'ME': '🇲🇪', 'MF': '🇲🇫', 'MG': '🇲🇬', 'MH': '🇲🇭', 'MK': '🇲🇰', 'ML': '🇲🇱', 'MM': '🇲🇲', 'MN': '🇲🇳', 'MO': '🇲🇴', 'MP': '🇲🇵', 'MQ': '🇲🇶', 'MR': '🇲🇷', 'MS': '🇲🇸', 'MT': '🇲🇹', 'MU': '🇲🇺', 'MV': '🇲🇻', 'MW': '🇲🇼', 'MX': '🇲🇽', 'MY': '🇲🇾', 'MZ': '🇲🇿', 'NA': '🇳🇦', 'NC': '🇳🇨', 'NE': '🇳🇪', 'NF': '🇳🇫', 'NG': '🇳🇬', 'NI': '🇳🇮', 'NL': '🇳🇱', 'NO': '🇳🇴', 'NP': '🇳🇵', 'NR': '🇳🇷', 'NU': '🇳🇺', 'NZ': '🇳🇿', 'OM': '🇴🇲', 'PA': '🇵🇦', 'PE': '🇵🇪', 'PF': '🇵🇫', 'PG': '🇵🇬', 'PH': '🇵🇭', 'PK': '🇵🇰', 'PL': '🇵🇱', 'PM': '🇵🇲', 'PN': '🇵🇳', 'PR': '🇵🇷', 'PS': '🇵🇸', 'PT': '🇵🇹', 'PW': '🇵🇼', 'PY': '🇵🇾', 'QA': '🇶🇦', 'RE': '🇷🇪', 'RO': '🇷🇴', 'RS': '🇷🇸', 'RU': '🇷🇺', 'RW': '🇷🇼', 'SA': '🇸🇦', 'SB': '🇸🇧', 'SC': '🇸🇨', 'SD': '🇸🇩', 'SE': '🇸🇪', 'SG': '🇸🇬', 'SH': '🇸🇭', 'SI': '🇸🇮', 'SK': '🇸🇰', 'SL': '🇸🇱', 'SM': '🇸🇲', 'SN': '🇸🇳', 'SO': '🇸🇴', 'SR': '🇸🇷', 'SS': '🇸🇸', 'ST': '🇸🇹', 'SV': '🇸🇻', 'SX': '🇸🇽', 'SY': '🇸🇾', 'SZ': '🇸🇿', 'TC': '🇹🇨', 'TD': '🇹🇩', 'TG': '🇹🇬', 'TH': '🇹🇭', 'TJ': '🇹🇯', 'TK': '🇹🇰', 'TL': '🇹🇱', 'TM': '🇹🇲', 'TN': '🇹🇳', 'TO': '🇹🇴', 'TR': '🇹🇷', 'TT': '🇹🇹', 'TV': '🇹🇻', 'TW': '🇹🇼', 'TZ': '🇹🇿', 'UA': '🇺🇦', 'UG': '🇺🇬', 'US': '🇺🇸', 'UY': '🇺🇾', 'UZ': '🇺🇿', 'VA': '🇻🇦', 'VC': '🇻🇨', 'VE': '🇻🇪', 'VG': '🇻🇬', 'VI': '🇻🇮', 'VN': '🇻🇳', 'VU': '🇻🇺', 'WF': '🇼🇫', 'WS': '🇼🇸', 'YE': '🇾🇪', 'YT': '🇾🇹', 'ZA': '🇿🇦', 'ZM': '🇿🇲', 'ZW': '🇿🇼'
-}
 
 # =================================================================================
 # Settings and Constants
@@ -50,6 +28,9 @@ OUTPUT_YAML_PRO = "Config-jo.yaml"
 OUTPUT_TXT = "Config_jo.txt"
 OUTPUT_JSON_CONFIG_JO = "Config_jo.json"
 OUTPUT_ORIGINAL_CONFIGS = "Original-Configs.txt"
+WEEKLY_FILE = "conf-week.txt"
+RESET_LOG_FILE = "reset_log.txt"
+GEOIP_DATABASE_PATH = 'dbip-country-lite.mmdb'
 
 V2RAY_PATTERNS = [
     re.compile(r'(vless:\/\/[^\s\'\"<>`]+)'), re.compile(r'(vmess:\/\/[^\s\'\"<>`]+)'),
@@ -58,6 +39,23 @@ V2RAY_PATTERNS = [
     re.compile(r"(tuic://[^\s'\"<>`]+)")
 ]
 BASE64_PATTERN = re.compile(r"([A-Za-z0-9+/=]{50,})", re.MULTILINE)
+
+COUNTRY_FLAGS = {
+    'AD': '🇦🇩', 'AE': '🇦🇪', 'AF': '🇦🇫', 'AG': '🇦🇬', 'AI': '🇦🇮', 'AL': '🇦🇱', 'AM': '🇦🇲', 'AO': '🇦🇴', 'AQ': '🇦🇶', 'AR': '🇦🇷', 'AS': '🇦🇸', 'AT': '🇦🇹', 'AU': '🇦🇺', 'AW': '🇦🇼', 'AX': '🇦🇽', 'AZ': '🇦🇿', 'BA': '🇧🇦', 'BB': '🇧🇧', 'BD': '🇧🇩', 'BE': '🇧🇪', 'BF': '🇧🇫', 'BG': '🇧🇬', 'BH': '🇧🇭', 'BI': '🇧🇮', 'BJ': '🇧🇯', 'BL': '🇧🇱', 'BM': '🇧🇲', 'BN': '🇧🇳', 'BO': '🇧🇴', 'BR': '🇧🇷', 'BS': '🇧🇸', 'BT': '🇧🇹', 'BW': '🇧🇼', 'BY': '🇧🇾', 'BZ': '🇧🇿', 'CA': '🇨🇦', 'CC': '🇨🇨', 'CD': '🇨🇩', 'CF': '🇨🇫', 'CG': '🇨🇬', 'CH': '🇨🇭', 'CI': '🇨🇮', 'CK': '🇨🇰', 'CL': '🇨🇱', 'CM': '🇨🇲', 'CN': '🇨🇳', 'CO': '🇨🇴', 'CR': '🇨🇷', 'CU': '🇨🇺', 'CV': '🇨🇻', 'CW': '🇨🇼', 'CX': '🇨🇽', 'CY': '🇨🇾', 'CZ': '🇨🇿', 'DE': '🇩🇪', 'DJ': '🇩🇯', 'DK': '🇩🇰', 'DM': '🇩🇲', 'DO': '🇩🇴', 'DZ': '🇩🇿', 'EC': '🇪🇨', 'EE': '🇪🇪', 'EG': '🇪🇬', 'EH': '🇪🇭', 'ER': '🇪🇷', 'ES': '🇪🇸', 'ET': '🇪🇹', 'FI': '🇫🇮', 'FJ': '🇫🇯', 'FK': '🇫🇰', 'FM': '🇫🇲', 'FO': '🇫🇴', 'FR': '🇫🇷', 'GA': '🇬🇦', 'GB': '🇬🇬', 'GD': '🇬🇩', 'GE': '🇬🇪', 'GF': '🇬🇫', 'GG': '🇬🇬', 'GH': '🇬🇭', 'GI': '🇬🇮', 'GL': '🇬🇱', 'GM': '🇬🇲', 'GN': '🇬🇳', 'GP': '🇬🇵', 'GQ': '🇬🇶', 'GR': '🇬🇷', 'GT': '🇬🇹', 'GU': '🇬🇺', 'GW': '🇬🇼', 'GY': '🇬🇾', 'HK': '🇭🇰', 'HN': '🇭🇳', 'HR': '🇭🇷', 'HT': '🇭🇹', 'HU': '🇭🇺', 'ID': '🇮🇩', 'IE': '🇮🇪', 'IL': '🇮🇱', 'IM': '🇮🇲', 'IN': '🇮🇳', 'IO': '🇮🇴', 'IQ': '🇮🇶', 'IR': '🇮🇷', 'IS': '🇮🇸', 'IT': '🇮🇹', 'JE': '🇯🇪', 'JM': '🇯🇲', 'JO': '🇯🇴', 'JP': '🇯🇵', 'KE': '🇰🇪', 'KG': '🇰🇬', 'KH': '🇰🇭', 'KI': '🇰🇮', 'KM': '🇰🇲', 'KN': '🇰🇳', 'KP': '🇰🇵', 'KR': '🇰🇷', 'KW': '🇰🇼', 'KY': '🇰🇾', 'KZ': '🇰🇿', 'LA': '🇱🇦', 'LB': '🇱🇧', 'LC': '🇱🇨', 'LI': '🇱🇮', 'LK': '🇱🇰', 'LR': '🇱🇷', 'LS': '🇱🇸', 'LT': '🇱🇹', 'LU': '🇱🇺', 'LV': '🇱🇻', 'LY': '🇱🇾', 'MA': '🇲🇦', 'MC': '🇲🇨', 'MD': '🇲🇩', 'ME': '🇲🇪', 'MF': '🇲🇫', 'MG': '🇲🇬', 'MH': '🇲🇭', 'MK': '🇲🇰', 'ML': '🇲🇱', 'MM': '🇲🇲', 'MN': '🇲🇳', 'MO': '🇲🇴', 'MP': '🇲🇵', 'MQ': '🇲🇶', 'MR': '🇲🇷', 'MS': '🇲🇸', 'MT': '🇲🇹', 'MU': '🇲🇺', 'MV': '🇲🇻', 'MW': '🇲🇼', 'MX': '🇲🇽', 'MY': '🇲🇾', 'MZ': '🇲🇿', 'NA': '🇳🇦', 'NC': '🇳🇨', 'NE': '🇳🇪', 'NF': '🇳🇫', 'NG': '🇳🇬', 'NI': '🇳🇮', 'NL': '🇳🇱', 'NO': '🇳🇴', 'NP': '🇳🇵', 'NR': '🇳🇷', 'NU': '🇳🇺', 'NZ': '🇳🇿', 'OM': '🇴🇲', 'PA': '🇵🇦', 'PE': '🇵🇪', 'PF': '🇵🇫', 'PG': '🇵🇬', 'PH': '🇵🇭', 'PK': '🇵🇰', 'PL': '🇵🇱', 'PM': '🇵🇲', 'PN': '🇵🇳', 'PR': '🇵🇷', 'PS': '🇵🇸', 'PT': '🇵🇹', 'PW': '🇵🇼', 'PY': '🇵🇾', 'QA': '🇶🇦', 'RE': '🇷🇪', 'RO': '🇷🇴', 'RS': '🇷🇸', 'RU': '🇷🇺', 'RW': '🇷🇼', 'SA': '🇸🇦', 'SB': '🇸🇧', 'SC': '🇸🇨', 'SD': '🇸🇩', 'SE': '🇸🇪', 'SG': '🇸🇬', 'SH': '🇸🇭', 'SI': '🇸🇮', 'SK': '🇸🇰', 'SL': '🇸🇱', 'SM': '🇸🇲', 'SN': '🇸🇳', 'SO': '🇸🇴', 'SR': '🇸🇷', 'SS': '🇸🇸', 'ST': '🇸🇹', 'SV': '🇸🇻', 'SX': '🇸🇽', 'SY': '🇸🇾', 'SZ': '🇸🇿', 'TC': '🇹🇨', 'TD': '🇹🇩', 'TG': '🇹🇬', 'TH': '🇹🇭', 'TJ': '🇹🇯', 'TK': '🇹🇰', 'TL': '🇹🇱', 'TM': '🇹🇲', 'TN': '🇹🇳', 'TO': '🇹🇴', 'TR': '🇹🇷', 'TT': '🇹🇹', 'TV': '🇹🇻', 'TW': '🇹🇼', 'TZ': '🇹🇿', 'UA': '🇺🇦', 'UG': '🇺🇬', 'US': '🇺🇸', 'UY': '🇺🇾', 'UZ': '🇺🇿', 'VA': '🇻🇦', 'VC': '🇻🇨', 'VE': '🇻🇪', 'VG': '🇻🇬', 'VI': '🇻🇮', 'VN': '🇻🇳', 'VU': '🇻🇺', 'WF': '🇼🇫', 'WS': '🇼🇸', 'YE': '🇾🇪', 'YT': '🇾🇹', 'ZA': '🇿🇦', 'ZM': '🇿🇲', 'ZW': '🇿🇼'
+}
+
+GEOIP_READER = None
+
+def load_ip_data():
+    global GEOIP_READER
+    print("Attempting to load GeoIP database...")
+    try:
+        GEOIP_READER = geoip2.database.Reader(GEOIP_DATABASE_PATH)
+        print(f"✅ Successfully loaded GeoIP database.")
+    except FileNotFoundError:
+        print(f"❌ CRITICAL: GeoIP database not found at '{GEOIP_DATABASE_PATH}'. Flags will be disabled.")
+    except Exception as e:
+        print(f"❌ CRITICAL: Failed to load GeoIP database: {e}")
 
 def process_lists():
     channels = [ch.strip() for ch in CHANNELS_STR.split(',')] if CHANNELS_STR else []
@@ -87,10 +85,8 @@ class V2RayExtractor:
         except: return "N/A"
 
     def _is_valid_shadowsocks(self, ss_url: str) -> bool:
-        # Custom validation to handle base64 with slashes
         try:
             if '@' in ss_url:
-                # Basic check for structure ss://base64@server:port
                 parts = ss_url.split('@')
                 if len(parts) >= 2:
                     return True
@@ -143,58 +139,38 @@ class V2RayExtractor:
         return {'name': unquote(p.fragment or ''), 'type': 'trojan', 'server': p.hostname, 'port': p.port or 443, 'password': p.username, 'udp': True, 'sni': q.get('sni', [p.hostname])[0]}
 
     def parse_shadowsocks(self, ss_url: str) -> Optional[Dict[str, Any]]:
-        # Manual parsing instead of urlparse to handle slashes in base64
         try:
-            # Remove ss://
             content = ss_url[5:]
-            
-            # Handle fragment/name
             name = ''
             if '#' in content:
                 content, name_encoded = content.split('#', 1)
                 name = unquote(name_encoded)
             
-            # Split by the LAST '@' to separate userinfo from server
             if '@' not in content:
                 return None
-                
             userinfo_b64, server_part = content.rsplit('@', 1)
             
-            # Parse server:port
             if ':' in server_part:
-                # Handle IPv6 brackets if present, though simple split works for IPv4
                 server_host, server_port_str = server_part.rsplit(':', 1)
                 port = int(server_port_str)
             else:
                 return None
 
-            # Decode userinfo
-            # Pad with '=' just in case
             userinfo_b64_padded = userinfo_b64 + '=' * (-len(userinfo_b64) % 4)
-            
             try:
-                # Try standard base64 first
-                userinfo_bytes = base64.b64decode(userinfo_b64_padded, validate=False) # validate=False allows non-alphabet chars
+                userinfo_bytes = base64.b64decode(userinfo_b64_padded, validate=False)
                 userinfo_str = userinfo_bytes.decode('utf-8')
             except:
-                # Fallback to urlsafe if needed
                 userinfo_bytes = base64.urlsafe_b64decode(userinfo_b64_padded)
                 userinfo_str = userinfo_bytes.decode('utf-8')
 
             if ':' in userinfo_str:
                 cipher, password = userinfo_str.split(':', 1)
                 return {
-                    'name': name,
-                    'type': 'ss',
-                    'server': server_host,
-                    'port': port,
-                    'cipher': cipher,
-                    'password': password,
-                    'udp': True
+                    'name': name, 'type': 'ss', 'server': server_host, 'port': port, 'cipher': cipher, 'password': password, 'udp': True
                 }
             return None
         except Exception as e:
-            # print(f"SS Parse Error: {e} for {ss_url}")
             return None
 
     def parse_hysteria2(self, hy2_url: str) -> Optional[Dict[str, Any]]:
@@ -206,12 +182,8 @@ class V2RayExtractor:
         return {'name': unquote(p.fragment or ''), 'type': 'tuic', 'server': p.hostname, 'port': p.port or 443, 'uuid': p.username, 'password': q.get('password', [''])[0], 'udp': True, 'sni': q.get('sni', [p.hostname])[0], 'skip-cert-verify': q.get('allow_insecure', ['0'])[0]=='1'}
 
     def generate_sip002_link(self, proxy: Dict[str, Any]) -> str:
-        """
-        Generates a robust SIP002 shadowsocks link using URL-Safe Base64.
-        """
         try:
             userinfo = f"{proxy['cipher']}:{proxy['password']}"
-            # Encode using URL-Safe Base64 (RFC 4648) -> replaces '+' with '-' and '/' with '_'
             userinfo_b64 = base64.urlsafe_b64encode(userinfo.encode('utf-8')).decode('utf-8').rstrip('=')
             name = proxy.get('name', 'Shadowsocks')
             return f"ss://{userinfo_b64}@{proxy['server']}:{proxy['port']}#{name}"
@@ -238,16 +210,7 @@ class V2RayExtractor:
 
     async def find_raw_configs_from_chat(self, chat_id: int, limit: int, retries: int = 3):
         local_configs = set()
-        chat_title = str(chat_id)
-        
         try:
-            try:
-                chat_obj = await self.client.get_chat(chat_id)
-                chat_title = chat_obj.title or chat_obj.username or str(chat_id)
-            except: pass
-
-            print(f"🔍 Searching in: {chat_title} (ID: {chat_id})")
-            
             async for message in self.client.get_chat_history(chat_id, limit=limit):
                 text_to_check = message.text or message.caption or ""
                 texts_to_scan = [text_to_check]
@@ -268,7 +231,7 @@ class V2RayExtractor:
                 for text in texts_to_scan:
                     if text: local_configs.update(self.extract_configs_from_text(text))
             
-            print(f"   ✅ Finished {chat_title}: Found {len(local_configs)} new configs.")
+            print(f"   ✅ Fetched {len(local_configs)} configs from {chat_id}")
             self.raw_configs.update(local_configs)
 
         except FloodWait as e:
@@ -278,6 +241,69 @@ class V2RayExtractor:
                 await self.find_raw_configs_from_chat(chat_id, limit, retries - 1)
         except Exception as e:
             print(f"❌ Error scanning {chat_id}: {e}")
+
+    # =================================================================================
+    # WEEKLY FILE MANAGEMENT (SMART DEDUPLICATION)
+    # =================================================================================
+    def handle_weekly_file(self, new_configs: List[str]):
+        """
+        Manages the weekly accumulation file with SMART deduplication.
+        It ignores the '#Name' part when checking for duplicates.
+        """
+        should_reset = False
+        now = datetime.datetime.now()
+        
+        # 1. Reset Check (7 Days)
+        if os.path.exists(RESET_LOG_FILE):
+            try:
+                with open(RESET_LOG_FILE, 'r') as f:
+                    last_reset_str = f.read().strip()
+                    if last_reset_str:
+                        last_reset = datetime.datetime.fromisoformat(last_reset_str)
+                        if (now - last_reset).days >= 7:
+                            should_reset = True
+                    else: should_reset = False
+            except: should_reset = True
+        else:
+            with open(RESET_LOG_FILE, 'w') as f: f.write(now.isoformat())
+        
+        if should_reset:
+            if os.path.exists(WEEKLY_FILE):
+                os.remove(WEEKLY_FILE)
+                print("🗑️ Weekly cleaning executed: conf-week.txt deleted.")
+            with open(RESET_LOG_FILE, 'w') as f: f.write(now.isoformat())
+
+        # 2. Smart Deduplication Logic
+        # We store 'base_config' (config without #name) to detect duplicates
+        final_list = []
+        seen_bases = set()
+
+        # A) Load existing configs from file
+        if os.path.exists(WEEKLY_FILE):
+            with open(WEEKLY_FILE, 'r', encoding='utf-8') as f:
+                for line in f:
+                    line = line.strip()
+                    if not line: continue
+                    # Extract base (everything before #)
+                    base = line.split('#')[0]
+                    if base not in seen_bases:
+                        seen_bases.add(base)
+                        final_list.append(line) # Keep the OLD entry (old name)
+
+        # B) Add NEW configs only if their base is not seen
+        added_count = 0
+        for cfg in new_configs:
+            base = cfg.split('#')[0]
+            if base not in seen_bases:
+                seen_bases.add(base)
+                final_list.append(cfg)
+                added_count += 1
+        
+        # 3. Save back to file
+        with open(WEEKLY_FILE, 'w', encoding='utf-8') as f:
+            f.write("\n".join(final_list)) # We don't sort here to keep relative order if preferred, or use sorted()
+        
+        print(f"📅 Weekly file updated. Added {added_count} unique configs. Total: {len(final_list)}")
 
     def save_files(self):
         print(f"\n⚙️ ∑ Total Unique Configs Found: {len(self.raw_configs)}")
@@ -291,35 +317,28 @@ class V2RayExtractor:
             try:
                 with open(OUTPUT_ORIGINAL_CONFIGS, 'w', encoding='utf-8') as f:
                     f.write("\n".join(sorted(list(self.raw_configs))))
-            except Exception as e:
-                print(f"❌ Error saving original configs file: {e}")
+            except Exception as e: print(f"❌ Error saving original configs file: {e}")
 
         # Filter
         valid_configs = set()
         for url in self.raw_configs:
             try:
-                hostname = urlparse(url).hostname
-                # For SS manual parse, hostname might be None if urlparse fails, so we skip this check for SS or handle vaguely
-                if not hostname and not url.startswith('ss://'): continue 
-                
+                if not url.startswith('ss://'):
+                    hostname = urlparse(url).hostname
+                    if not hostname: continue 
                 if url.startswith('vless://'):
                     query = parse_qs(urlparse(url).query)
                     security = query.get('security', [''])[0]
-                    if not security or security == 'none':
-                        continue 
+                    if not security or security == 'none': continue 
                 valid_configs.add(url)
-            except Exception:
-                continue
+            except Exception: continue
 
-        print(f"⚙️ Processing {len(valid_configs)} valid configs (after filtering) from {len(self.raw_configs)} raw configs...")
+        print(f"⚙️ Processing {len(valid_configs)} valid configs...")
         
         proxies_list_clash, renamed_txt_configs = [], []
-        parse_errors = 0
         
         for i, url in enumerate(sorted(list(valid_configs)), 1):
-            if not (proxy := self.parse_config_for_clash(url)):
-                parse_errors += 1
-                continue
+            if not (proxy := self.parse_config_for_clash(url)): continue
 
             host_to_check = proxy.get('servername') or proxy.get('sni') or proxy.get('server', '')
             country_code = self.get_country_iso_code(host_to_check)
@@ -332,14 +351,11 @@ class V2RayExtractor:
             name_with_flag = f"{country_flag} Config_jo-{i:02d}"
             
             if proxy['type'] == 'ss':
-                # FIX: Regenerate SIP002 link with URL-Safe Base64
                 ss_proxy_for_link = proxy.copy()
                 ss_proxy_for_link['name'] = name_with_flag
                 clean_link = self.generate_sip002_link(ss_proxy_for_link)
-                if clean_link:
-                    renamed_txt_configs.append(clean_link)
-                else:
-                    renamed_txt_configs.append(f"{url.split('#')[0]}#{name_with_flag}")
+                if clean_link: renamed_txt_configs.append(clean_link)
+                else: renamed_txt_configs.append(f"{url.split('#')[0]}#{name_with_flag}")
             else:
                 try:
                     parsed_url = list(urlparse(url)); parsed_url[5] = name_with_flag
@@ -347,15 +363,12 @@ class V2RayExtractor:
                 except Exception: 
                     renamed_txt_configs.append(f"{url.split('#')[0]}#{name_with_flag}")
 
-        if parse_errors > 0: print(f"⚠️ {parse_errors} configs were ignored due to parsing errors.")
-        
         if not proxies_list_clash:
             print("⚠️ No valid configs to build output files.")
-            for f in [OUTPUT_YAML_PRO, OUTPUT_TXT, OUTPUT_JSON_CONFIG_JO]: 
-                open(f, "w").close()
+            for f in [OUTPUT_YAML_PRO, OUTPUT_TXT, OUTPUT_JSON_CONFIG_JO]: open(f, "w").close()
             return
             
-        print(f"👍 {len(proxies_list_clash)} configs prepared for output files.")
+        print(f"👍 {len(proxies_list_clash)} configs prepared.")
         all_proxy_names = [p['name'] for p in proxies_list_clash]
 
         try:
@@ -374,6 +387,9 @@ class V2RayExtractor:
         
         with open(OUTPUT_TXT, 'w', encoding='utf-8') as f: f.write("\n".join(sorted(renamed_txt_configs)))
         print(f"✅ Text file {OUTPUT_TXT} saved.")
+
+        # CALL SMART WEEKLY UPDATE
+        self.handle_weekly_file(renamed_txt_configs)
 
     def build_pro_config(self, proxies, proxy_names):
         return {
@@ -395,16 +411,12 @@ async def main():
     load_ip_data()
     extractor = V2RayExtractor()
     async with extractor.client:
-        # Added dialog refresh to fix group ID issues
         print("🔄 Refreshing dialogs...")
         async for d in extractor.client.get_dialogs(): pass
-        
         tasks = [extractor.find_raw_configs_from_chat(channel, CHANNEL_SEARCH_LIMIT) for channel in CHANNELS]
         tasks.extend(extractor.find_raw_configs_from_chat(group, GROUP_SEARCH_LIMIT) for group in GROUPS)
-        if tasks:
-            await asyncio.gather(*tasks)
-        else:
-            print("❌ No channels or groups defined for searching.")
+        if tasks: await asyncio.gather(*tasks)
+        else: print("❌ No channels or groups defined for searching.")
     extractor.save_files()
     print("\n✨ All operations completed successfully!")
 
