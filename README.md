@@ -25,24 +25,36 @@ https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/Confi
 https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-week.txt
 ```
 
-### 🌍 سابسکرایب بر اساس کشور
+---
 
-| پرچم | کشور |
-|---|---|
-| 🇺🇸 | آمریکا |
-| 🇩🇪 | آلمان |
-| 🇳🇱 | هلند |
-| 🇬🇧 | انگلیس |
-| 🇫🇷 | فرانسه |
+## 🌍 سابسکرایب بر اساس کشور (Copy-ready)
 
-**🔗 لینک‌های قابل کپی:**
+### 🇺🇸 آمریکا (US)
 ```text
-🇺🇸 US  https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-US.txt
-🇩🇪 DE  https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-DE.txt
-🇳🇱 NL  https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-NL.txt
-🇬🇧 UK  https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-UK.txt
-🇫🇷 FR  https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-FR.txt
+https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-US.txt
 ```
+
+### 🇩🇪 آلمان (DE)
+```text
+https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-DE.txt
+```
+
+### 🇳🇱 هلند (NL)
+```text
+https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-NL.txt
+```
+
+### 🇬🇧 انگلیس (UK)
+```text
+https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-UK.txt
+```
+
+### 🇫🇷 فرانسه (FR)
+```text
+https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-FR.txt
+```
+
+---
 
 ### ⚙️ فرمت کلاینت‌ها
 
@@ -75,35 +87,33 @@ https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/Confi
 https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-week.txt
 ```
 
-### 🌍 Country-Based Subscriptions
+---
 
-| Flag | Country |
-|---|---|
-| 🇺🇸 | United States |
-| 🇩🇪 | Germany |
-| 🇳🇱 | Netherlands |
-| 🇬🇧 | United Kingdom |
-| 🇫🇷 | France |
+## 🌍 Country-Based Subscriptions (Copy-ready)
 
-**🔗 Copy-ready links:**
+### 🇺🇸 United States (US)
 ```text
-🇺🇸 US  https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-US.txt
-🇩🇪 DE  https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-DE.txt
-🇳🇱 NL  https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-NL.txt
-🇬🇧 UK  https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-UK.txt
-🇫🇷 FR  https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-FR.txt
+https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-US.txt
 ```
 
-### ⚙️ Client Formats
-
-**Clash Meta (YAML):**
+### 🇩🇪 Germany (DE)
 ```text
-https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/Config-jo.yaml
+https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-DE.txt
 ```
 
-**Sing-box (JSON):**
+### 🇳🇱 Netherlands (NL)
 ```text
-https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/Config_jo.json
+https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-NL.txt
+```
+
+### 🇬🇧 United Kingdom (UK)
+```text
+https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-UK.txt
+```
+
+### 🇫🇷 France (FR)
+```text
+https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-FR.txt
 ```
 
 ---
