@@ -1,132 +1,10 @@
-Skip to content
-Navigation Menu
-R3ZARAHIMI
-tg-v2ray-configs-every2h
-
-Type / to search
-Code
-Issues
-Pull requests
-Actions
-Projects
-Wiki
-Security
-Insights
-Settings
-tg-v2ray-configs-every2h
-/
-README.md
-in
-main
-
-Edit
-
-Preview
-Indent mode
-
-Spaces
-Indent size
-
-2
-Line wrap mode
-
-Soft wrap
-Editing README.md file contents
-1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-36
-37
-38
-39
-40
-41
-42
-43
-44
-45
-46
-47
-48
-49
-50
-51
-52
-53
-54
-55
-56
-57
-58
-59
-60
-61
-62
-63
-64
-65
-66
-67
-68
-69
-70
-71
-72
-73
-74
-75
-76
-77
-78
-79
-80
-81
-82
-83
-84
-85
-86
-87
-88
-89
-90
 # 🎒 Config Jo — کانفیگ جو
+
 [![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)](https://www.python.org/)
 [![Auto Update](https://img.shields.io/badge/Update-every%202h-brightgreen)](#)
 [![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-enabled-blueviolet)](#)
-[![License](https://img.shields.io/badge/License-MIT-lightgrey)](#)
+[![Stars](https://img.shields.io/github/stars/r3zarahimi/tg-v2ray-configs-every2h?style=flat)](https://github.com/r3zarahimi/tg-v2ray-configs-every2h/stargazers)
+[![Forks](https://img.shields.io/github/forks/r3zarahimi/tg-v2ray-configs-every2h?style=flat)](https://github.com/r3zarahimi/tg-v2ray-configs-every2h/network/members)
 
 ---
 
@@ -135,33 +13,29 @@ Editing README.md file contents
 **Config Jo** یک اسکریپت هوشمند پایتون است که به‌صورت خودکار (هر ۲ ساعت) کانال‌های تلگرام را اسکن می‌کند،  
 کانفیگ‌های فعال **V2Ray** را استخراج، پالایش و در فایل‌های مرتب و قابل سابسکرایب منتشر می‌کند.
 
-### ✨ نسخه 2.0
-- آرشیو هوشمند هفتگی (Rolling Window)
-- تفکیک کانفیگ‌ها بر اساس کشور
+### 📦 لینک‌های اصلی (Main Subscriptions)
 
-### 🚀 قابلیت‌ها
-- اجرای خودکار هر ۲ ساعت
-- پشتیبانی از پروتکل‌ها:  
-  `vmess`, `vless`, `trojan`, `ss`, `hysteria2`, `tuic`
-- آرشیو شناور ۷ روزه بدون پاک شدن ناگهانی فایل‌ها
-- دسته‌بندی کانفیگ‌ها بر اساس کشور
-- انتشار خودکار در GitHub
+**⭐ فایل اصلی (پیشنهادی و سبک‌تر):**
+```text
+https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/Config_jo.txt
+```
+
+**📅 آرشیو هفتگی ۷ روزه (حجم بالاتر):**
+```text
+https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-week.txt
+```
+
+---
 
 ### 🌍 سابسکرایب بر اساس کشور
 
 | پرچم | کشور | لینک |
 |---|---|---|
-| 🇺🇸 | آمریکا | https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-US.txt |
-| 🇩🇪 | آلمان | https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-DE.txt |
-| 🇳🇱 | هلند | https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-NL.txt |
-| 🇬🇧 | انگلیس | https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-UK.txt |
-| 🇫🇷 | فرانسه | https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-FR.txt |
-
-### 📦 لینک‌های اصلی
-- فایل اصلی (پیشنهادی):  
-  https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/Config_jo.txt
-- آرشیو هفتگی ۷ روزه:  
-  https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-week.txt
+| 🇺🇸 | آمریکا | ```https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-US.txt``` |
+| 🇩🇪 | آلمان | ```https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-DE.txt``` |
+| 🇳🇱 | هلند | ```https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-NL.txt``` |
+| 🇬🇧 | انگلیس | ```https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-UK.txt``` |
+| 🇫🇷 | فرانسه | ```https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-FR.txt``` |
 
 ---
 
@@ -170,48 +44,49 @@ Editing README.md file contents
 **Config Jo** is a smart Python script that automatically (every 2 hours) scans Telegram channels,  
 extracts active **V2Ray** configurations, cleans them, and publishes ready-to-use subscription files.
 
-### ✨ Version 2.0 Highlights
-- Smart 7-day rolling archive
-- Country-based configuration separation
+### 📦 Main Subscriptions
 
-### 🚀 Features
-- Fully automated execution (every 2 hours)
-- Supported protocols:  
-  `vmess`, `vless`, `trojan`, `ss`, `hysteria2`, `tuic`
-- 7-day rolling window (no sudden file resets)
-- Country-based subscription files
-- Automatic GitHub updates
+**⭐ Main (Recommended):**
+```text
+https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/Config_jo.txt
+```
+
+**📅 Weekly 7-Day Archive:**
+```text
+https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-week.txt
+```
+
+---
 
 ### 🌍 Country-Based Subscriptions
 
 | Flag | Country | Link |
 |---|---|---|
-| 🇺🇸 | United States | https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-US.txt |
-| 🇩🇪 | Germany | https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-DE.txt |
-| 🇳🇱 | Netherlands | https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-NL.txt |
-| 🇬🇧 | United Kingdom | https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-UK.txt |
-| 🇫🇷 | France | https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-FR.txt |
-
-### 📦 Main Subscriptions
-- Main (Recommended):  
-  https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/Config_jo.txt
-- Weekly Archive:  
-  https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-week.txt
+| 🇺🇸 | United States | ```https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-US.txt``` |
+| 🇩🇪 | Germany | ```https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-DE.txt``` |
+| 🇳🇱 | Netherlands | ```https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-NL.txt``` |
+| 🇬🇧 | United Kingdom | ```https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-UK.txt``` |
+| 🇫🇷 | France | ```https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-FR.txt``` |
 
 ---
 
 ## ⚙️ Client Formats
-- **Clash Meta (YAML)**  
-  https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/Config-jo.yaml
-- **Sing-box (JSON)**  
-  https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/Config_jo.json
+
+**Clash Meta (YAML)**
+```text
+https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/Config-jo.yaml
+```
+
+**Sing-box (JSON)**
+```text
+https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/Config_jo.json
+```
 
 ---
 
 ## ⚠️ Disclaimer
+
 This project only aggregates publicly available configurations shared on Telegram.  
 We do **not** own or operate any of the servers listed. Use at your own risk.
 
-Use Control + Shift + m to toggle the tab key moving focus. Alternatively, use esc then tab to move to the next interactive element on the page.
-No file chosen
-Attach files by dragging & dropping, selecting or pasting them.
+⭐ If you find this project useful, please consider giving it a **Star**!
