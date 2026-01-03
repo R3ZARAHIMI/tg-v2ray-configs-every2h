@@ -15,7 +15,7 @@
 
 ### 📦 لینک‌های اصلی
 
-**⭐ فایل اصلی (پیشنهادی):**
+**⭐ فایل اصلی (سبک-پیشنهادی):**
 ```text
 https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/Config_jo.txt
 ```
