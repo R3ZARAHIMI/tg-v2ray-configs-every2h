@@ -1,4 +1,4 @@
-# 🎒 Telegram V2Ray Collector & Cleaner
+# 🎒 Config Jo (کانفیگ جو)
 
 این پروژه یک اسکریپت هوشمند پایتون است که به صورت خودکار (هر ۲ ساعت) کانال‌های تلگرامی را اسکن کرده و کانفیگ‌های فعال V2Ray را استخراج، تست و مرتب‌سازی می‌کند.
 
@@ -35,28 +35,27 @@
 ## 🔗 لینک‌های سابسکرایب (Subscription Links)
 
 برای استفاده، لینک‌های زیر را در برنامه خود (v2rayNG, V2Box, Streisand, Hiddify و...) وارد کنید.
-*(به جای `USERNAME` نام کاربری گیت‌هاب خود را قرار دهید)*
 
 ### 📦 آرشیوهای اصلی
 | نوع | توضیحات | لینک (Raw) |
 | :--- | :--- | :--- |
-| **اصلی (همه)** | شامل تمام کانفیگ‌های استخراج شده اخیر | `https://raw.githubusercontent.com/USERNAME/tg-v2ray-configs-every2h/main/Config_jo.txt` |
-| **آرشیو هفتگی** | **پیشنهادی:** آرشیو ۷ روزه (پایدارتر) | `https://raw.githubusercontent.com/USERNAME/tg-v2ray-configs-every2h/main/conf-week.txt` |
+| **اصلی (همه)** | **(پیشنهادی و سبک‌تر)** شامل آخرین کانفیگ‌های استخراج شده | `https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/Config_jo.txt` |
+| **آرشیو هفتگی** | شامل آرشیو کامل ۷ روزه (تعداد بالا) | `https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-week.txt` |
 
 ### 🌍 بر اساس کشور (اختصاصی)
 | کشور | فایل |
 | :--- | :--- |
-| 🇺🇸 **آمریکا** | `https://raw.githubusercontent.com/USERNAME/tg-v2ray-configs-every2h/main/conf-US.txt` |
-| 🇩🇪 **آلمان** | `https://raw.githubusercontent.com/USERNAME/tg-v2ray-configs-every2h/main/conf-DE.txt` |
-| 🇳🇱 **هلند** | `https://raw.githubusercontent.com/USERNAME/tg-v2ray-configs-every2h/main/conf-NL.txt` |
-| 🇬🇧 **انگلیس** | `https://raw.githubusercontent.com/USERNAME/tg-v2ray-configs-every2h/main/conf-UK.txt` |
-| 🇫🇷 **فرانسه** | `https://raw.githubusercontent.com/USERNAME/tg-v2ray-configs-every2h/main/conf-FR.txt` |
+| 🇺🇸 **آمریکا** | `https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-US.txt` |
+| 🇩🇪 **آلمان** | `https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-DE.txt` |
+| 🇳🇱 **هلند** | `https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-NL.txt` |
+| 🇬🇧 **انگلیس** | `https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-UK.txt` |
+| 🇫🇷 **فرانسه** | `https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-FR.txt` |
 
 ### ⚙️ کلاینت‌های خاص
 | کلاینت | فرمت | لینک |
 | :--- | :--- | :--- |
-| **Clash Meta** | YAML | `https://raw.githubusercontent.com/USERNAME/tg-v2ray-configs-every2h/main/Config-jo.yaml` |
-| **Sing-box** | JSON | `https://raw.githubusercontent.com/USERNAME/tg-v2ray-configs-every2h/main/Config_jo.json` |
+| **Clash Meta** | YAML | `https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/Config-jo.yaml` |
+| **Sing-box** | JSON | `https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/Config_jo.json` |
 
 ---
 
