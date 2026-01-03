@@ -236,50 +236,28 @@ class V2RayExtractor:
             print(f"❌ Error scanning {chat_id}: {e}")
 
     # =================================================================================
-    # NEW: SPLIT CONFIGS INTO TOP COUNTRIES
+    # NEW: SPLIT CONFIGS INTO TOP COUNTRIES (UPDATED FOR FIX)
     # =================================================================================
     def split_configs_by_country(self, links: List[str]):
-        """
-        Splits the given links into separate files for specific top countries.
-        """
-        # ISO Codes mapped to filenames
         target_countries = {
-            'US': 'conf-US.txt',  # United States
-            'DE': 'conf-DE.txt',  # Germany
-            'NL': 'conf-NL.txt',  # Netherlands
-            'GB': 'conf-UK.txt',  # United Kingdom
-            'FR': 'conf-FR.txt'   # France
+            'US': 'conf-US.txt', 'DE': 'conf-DE.txt', 'NL': 'conf-NL.txt', 'GB': 'conf-UK.txt', 'FR': 'conf-FR.txt'
         }
-        
         print(f"\n🌍 Separating configs into {len(target_countries)} top countries...")
-        
-        # Prepare buckets
         country_buckets = {code: [] for code in target_countries}
-        
         for link in links:
-            # We need to re-parse to find the host/IP reliably
             proxy = self.parse_config_for_clash(link)
             if not proxy: continue
-            
-            # Extract Host
-            host = proxy.get('server') or proxy.get('servername') or proxy.get('sni')
+            # FIX: Prioritize SERVER IP over SNI/Host
+            host = proxy.get('server')
             if not host: continue
-            
-            # Get Country Code
             iso_code = self.get_country_iso_code(host)
-            
-            # If matches our targets, add to bucket
             if iso_code in target_countries:
                 country_buckets[iso_code].append(link)
-        
-        # Save to files
         for code, filename in target_countries.items():
             configs = country_buckets[code]
             with open(filename, 'w', encoding='utf-8') as f:
                 f.write("\n".join(sorted(configs)))
-            
-            if configs:
-                print(f"   ✅ Saved {len(configs)} configs to {filename}")
+            if configs: print(f"   ✅ Saved {len(configs)} configs to {filename}")
 
     # =================================================================================
     # SMART WEEKLY ROLLING WINDOW
@@ -287,8 +265,6 @@ class V2RayExtractor:
     def handle_weekly_file(self, new_configs: List[str]):
         now = datetime.datetime.now()
         cutoff = now - datetime.timedelta(days=7)
-        
-        # 1. Load History
         history = {}
         if os.path.exists(HISTORY_FILE):
             try:
@@ -296,11 +272,8 @@ class V2RayExtractor:
                     history = json.load(f)
             except: history = {}
 
-        # 2. Prune Old & Add New
         new_history = {}
         kept_count = 0
-        
-        # A) Keep valid old configs
         for base_cfg, meta in history.items():
             try:
                 added_date = datetime.datetime.fromisoformat(meta['date'])
@@ -309,7 +282,6 @@ class V2RayExtractor:
                     kept_count += 1
             except: pass
 
-        # B) Add new unique configs
         added_count = 0
         for cfg in new_configs:
             base = cfg.split('#')[0]
@@ -320,18 +292,11 @@ class V2RayExtractor:
                 }
                 added_count += 1
         
-        # 3. Save Updated History
-        with open(HISTORY_FILE, 'w') as f:
-            json.dump(new_history, f, indent=2)
-            
-        # 4. Generate Weekly TXT File
+        with open(HISTORY_FILE, 'w') as f: json.dump(new_history, f, indent=2)
         final_links = [meta['link'] for meta in new_history.values()]
-        with open(WEEKLY_FILE, 'w', encoding='utf-8') as f:
-            f.write("\n".join(sorted(final_links)))
+        with open(WEEKLY_FILE, 'w', encoding='utf-8') as f: f.write("\n".join(sorted(final_links)))
         
         print(f"📅 Rolling Window Update: Kept {kept_count} old, Added {added_count} new. Total: {len(final_links)}")
-        
-        # 5. CALL COUNTRY SPLITTER
         self.split_configs_by_country(final_links)
 
     def save_files(self):
@@ -340,7 +305,6 @@ class V2RayExtractor:
             print("⚠️ No configs found.")
             return
         
-        # Filter Valid
         valid_configs = set()
         for url in self.raw_configs:
             try:
@@ -355,7 +319,10 @@ class V2RayExtractor:
         
         for i, url in enumerate(sorted(list(valid_configs)), 1):
             if not (proxy := self.parse_config_for_clash(url)): continue
-            host_to_check = proxy.get('servername') or proxy.get('sni') or proxy.get('server', '')
+            
+            # FIX: Prioritize SERVER IP over SNI/Host for Main Files too
+            host_to_check = proxy.get('server') or proxy.get('servername') or proxy.get('sni')
+            
             country_code = self.get_country_iso_code(host_to_check)
             country_flag = COUNTRY_FLAGS.get(country_code, '🏳️')
             name_compatible = f"{country_code} Config_jo-{i:02d}"
@@ -373,7 +340,6 @@ class V2RayExtractor:
                     renamed_txt_configs.append(urlunparse(parsed))
                 except: renamed_txt_configs.append(f"{url.split('#')[0]}#{name_with_flag}")
 
-        # Save Normal Files
         try:
             with open(OUTPUT_ORIGINAL_CONFIGS, 'w', encoding='utf-8') as f: f.write("\n".join(sorted(list(self.raw_configs))))
             with open(OUTPUT_TXT, 'w', encoding='utf-8') as f: f.write("\n".join(sorted(renamed_txt_configs)))
@@ -387,7 +353,6 @@ class V2RayExtractor:
                     json.dump(self.build_sing_box_config(proxies_list_clash), f, ensure_ascii=False, indent=4)
         except Exception as e: print(f"❌ Error saving files: {e}")
 
-        # CALL ROLLING WINDOW LOGIC (WHICH CALLS COUNTRY SPLITTER)
         self.handle_weekly_file(renamed_txt_configs)
         print("\n✨ All operations completed successfully!")
 
