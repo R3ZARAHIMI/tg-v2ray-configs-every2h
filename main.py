@@ -29,10 +29,9 @@ OUTPUT_TXT = "Config_jo.txt"
 OUTPUT_JSON_CONFIG_JO = "Config_jo.json"
 OUTPUT_ORIGINAL_CONFIGS = "Original-Configs.txt"
 
-# فایل‌های سیستم هفتگی هوشمند
+# فایل‌های سیستم هفتگی و تفکیک کشورها
 WEEKLY_FILE = "conf-week.txt"
-HISTORY_FILE = "conf-week-history.json" # دیتابیس تاریخ ورود کانفیگ‌ها
-
+HISTORY_FILE = "conf-week-history.json" # دیتابیس تاریخ ورود
 GEOIP_DATABASE_PATH = 'dbip-country-lite.mmdb'
 
 V2RAY_PATTERNS = [
@@ -237,14 +236,55 @@ class V2RayExtractor:
             print(f"❌ Error scanning {chat_id}: {e}")
 
     # =================================================================================
-    # SMART WEEKLY ROLLING WINDOW (The Fix!)
+    # NEW: SPLIT CONFIGS INTO TOP COUNTRIES
+    # =================================================================================
+    def split_configs_by_country(self, links: List[str]):
+        """
+        Splits the given links into separate files for specific top countries.
+        """
+        # ISO Codes mapped to filenames
+        target_countries = {
+            'US': 'conf-US.txt',  # United States
+            'DE': 'conf-DE.txt',  # Germany
+            'NL': 'conf-NL.txt',  # Netherlands
+            'GB': 'conf-UK.txt',  # United Kingdom
+            'FR': 'conf-FR.txt'   # France
+        }
+        
+        print(f"\n🌍 Separating configs into {len(target_countries)} top countries...")
+        
+        # Prepare buckets
+        country_buckets = {code: [] for code in target_countries}
+        
+        for link in links:
+            # We need to re-parse to find the host/IP reliably
+            proxy = self.parse_config_for_clash(link)
+            if not proxy: continue
+            
+            # Extract Host
+            host = proxy.get('server') or proxy.get('servername') or proxy.get('sni')
+            if not host: continue
+            
+            # Get Country Code
+            iso_code = self.get_country_iso_code(host)
+            
+            # If matches our targets, add to bucket
+            if iso_code in target_countries:
+                country_buckets[iso_code].append(link)
+        
+        # Save to files
+        for code, filename in target_countries.items():
+            configs = country_buckets[code]
+            with open(filename, 'w', encoding='utf-8') as f:
+                f.write("\n".join(sorted(configs)))
+            
+            if configs:
+                print(f"   ✅ Saved {len(configs)} configs to {filename}")
+
+    # =================================================================================
+    # SMART WEEKLY ROLLING WINDOW
     # =================================================================================
     def handle_weekly_file(self, new_configs: List[str]):
-        """
-        Manages weekly file using a 'Rolling Window' approach.
-        Stores (config_base -> entry_date) in a JSON file.
-        Removes configs older than 7 days from their INDIVIDUAL entry date.
-        """
         now = datetime.datetime.now()
         cutoff = now - datetime.timedelta(days=7)
         
@@ -256,20 +296,20 @@ class V2RayExtractor:
                     history = json.load(f)
             except: history = {}
 
-        # 2. Prune Old Configs (Older than 7 days) & Build New History
+        # 2. Prune Old & Add New
         new_history = {}
         kept_count = 0
         
+        # A) Keep valid old configs
         for base_cfg, meta in history.items():
             try:
                 added_date = datetime.datetime.fromisoformat(meta['date'])
                 if added_date > cutoff:
                     new_history[base_cfg] = meta
                     kept_count += 1
-            except: pass # Corrupt date, drop it
+            except: pass
 
-        # 3. Add New Configs (If not already present)
-        # Use 'base config' (without #name) as key to avoid duplicates with different names
+        # B) Add new unique configs
         added_count = 0
         for cfg in new_configs:
             base = cfg.split('#')[0]
@@ -280,16 +320,19 @@ class V2RayExtractor:
                 }
                 added_count += 1
         
-        # 4. Save Updated History
+        # 3. Save Updated History
         with open(HISTORY_FILE, 'w') as f:
             json.dump(new_history, f, indent=2)
             
-        # 5. Generate Weekly TXT File
+        # 4. Generate Weekly TXT File
         final_links = [meta['link'] for meta in new_history.values()]
         with open(WEEKLY_FILE, 'w', encoding='utf-8') as f:
             f.write("\n".join(sorted(final_links)))
         
-        print(f"📅 Rolling Window Update: Kept {kept_count} old valid configs, Added {added_count} new. Total: {len(final_links)}")
+        print(f"📅 Rolling Window Update: Kept {kept_count} old, Added {added_count} new. Total: {len(final_links)}")
+        
+        # 5. CALL COUNTRY SPLITTER
+        self.split_configs_by_country(final_links)
 
     def save_files(self):
         print(f"\n⚙️ ∑ Total Unique Configs Found: {len(self.raw_configs)}")
@@ -344,7 +387,7 @@ class V2RayExtractor:
                     json.dump(self.build_sing_box_config(proxies_list_clash), f, ensure_ascii=False, indent=4)
         except Exception as e: print(f"❌ Error saving files: {e}")
 
-        # CALL ROLLING WINDOW LOGIC
+        # CALL ROLLING WINDOW LOGIC (WHICH CALLS COUNTRY SPLITTER)
         self.handle_weekly_file(renamed_txt_configs)
         print("\n✨ All operations completed successfully!")
 
