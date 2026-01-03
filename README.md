@@ -27,44 +27,64 @@
 
 ## 🔗 لینک‌های سابسکرایب (Subscription Links)
 
-برای استفاده، لینک مورد نظر را کپی کرده و در برنامه خود (v2rayNG و...) وارد کنید.
+برای کپی کردن، روی دکمه‌ی کپی در گوشه سمت راست کادر کلیک کنید.
 
 ### 📦 آرشیوهای اصلی
 
-🔹 **اصلی (همه) - پیشنهادی و سبک‌تر**
-`https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/Config_jo.txt`
+**اصلی (همه) - (پیشنهادی و سبک‌تر)**
+شامل آخرین کانفیگ‌های استخراج شده:
+```text
+[https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/Config_jo.txt](https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/Config_jo.txt)
+```
 
-🔹 **آرشیو هفتگی (کامل ۷ روزه)**
-`https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-week.txt`
+**آرشیو هفتگی**
+شامل آرشیو کامل ۷ روزه (تعداد بالا):
+```text
+[https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-week.txt](https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-week.txt)
+```
 
 ---
 
 ### 🌍 بر اساس کشور (اختصاصی)
 
-🇺🇸 **آمریکا (USA)**
-`https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-US.txt`
+**🇺🇸 آمریکا (USA)**
+```text
+[https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-US.txt](https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-US.txt)
+```
 
-🇩🇪 **آلمان (Germany)**
-`https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-DE.txt`
+**🇩🇪 آلمان (Germany)**
+```text
+[https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-DE.txt](https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-DE.txt)
+```
 
-🇳🇱 **هلند (Netherlands)**
-`https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-NL.txt`
+**🇳🇱 هلند (Netherlands)**
+```text
+[https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-NL.txt](https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-NL.txt)
+```
 
-🇬🇧 **انگلیس (UK)**
-`https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-UK.txt`
+**🇬🇧 انگلیس (UK)**
+```text
+[https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-UK.txt](https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-UK.txt)
+```
 
-🇫🇷 **فرانسه (France)**
-`https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-FR.txt`
+**🇫🇷 فرانسه (France)**
+```text
+[https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-FR.txt](https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-FR.txt)
+```
 
 ---
 
 ### ⚙️ کلاینت‌های خاص
 
-🔸 **Clash Meta (YAML)**
-`https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/Config-jo.yaml`
+**Clash Meta (فرمت YAML)**
+```text
+[https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/Config-jo.yaml](https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/Config-jo.yaml)
+```
 
-🔸 **Sing-box (JSON)**
-`https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/Config_jo.json`
+**Sing-box (فرمت JSON)**
+```text
+[https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/Config_jo.json](https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/Config_jo.json)
+```
 
 ---
 
@@ -74,7 +94,7 @@
 3. **پالایش:** نام کشور و پرچم به نام کانفیگ اضافه می‌شود.
 4. **دسته‌بندی:**
    - کانفیگ‌ها در فایل اصلی `Config_jo.txt` ذخیره می‌شوند.
-   - کانفیگ‌های جدید به آرشیو هفتگی `conf-week.txt` اضافه می‌شوند.
+   - کانفیگ‌های جدید به آرشیو هفتگی `conf-week.txt` اضافه می‌شوند (و قدیمی‌ها حذف می‌شوند).
    - کانفیگ‌های ۵ کشور برتر در فایل‌های جداگانه کپی می‌شوند.
 5. **انتشار:** تغییرات به صورت خودکار در گیت‌هاب Push می‌شوند.
 
