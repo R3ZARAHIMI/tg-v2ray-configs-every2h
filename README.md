@@ -27,7 +27,7 @@ https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-
 
 ---
 
-## 🌍 سابسکرایب بر اساس کشور (Copy-ready)
+## 🌍 سابسکرایب بر اساس کشور 
 
 ### 🇺🇸 آمریکا (US)
 ```text
