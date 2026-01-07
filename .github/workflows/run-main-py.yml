@@ -3,15 +3,17 @@ name: Extract VPN Configs (User Client)
 on:
   schedule:
     # اجرا در زمان‌های مشخص به وقت تهران
-    - cron: '30 4 * * *'  # 08:00 Tehran Time
-    - cron: '45 7 * * *'  # 11:15 Tehran Time
-    - cron: '05 10 * * *' # 13:35 Tehran Time
-    - cron: '50 11 * * *' # 15:20 Tehran Time
-    - cron: '30 13 * * *' # 17:00 Tehran Time
-    - cron: '00 15 * * *' # 18:30 Tehran Time
-    - cron: '30 17 * * *' # 21:00 Tehran Time
-    - cron: '30 18 * * *' # 22:00 Tehran Time
-    - cron: '29 20 * * *' # 23:59 Tehran Time
+    # - cron: '30 4 * * *'  # 08:00 Tehran Time
+    # - cron: '45 7 * * *'  # 11:15 Tehran Time
+    # - cron: '05 10 * * *' # 13:35 Tehran Time
+    # - cron: '50 11 * * *' # 15:20 Tehran Time
+    # - cron: '30 13 * * *' # 17:00 Tehran Time
+    # - cron: '00 15 * * *' # 18:30 Tehran Time
+    # - cron: '30 17 * * *' # 21:00 Tehran Time
+    # - cron: '30 18 * * *' # 22:00 Tehran Time
+    # - cron: '29 20 * * *' # 23:59 Tehran Time
+    # اجرا هر 30 دقیقه یک‌بار
+    - cron: '*/30 * * * *'
   
   workflow_dispatch: # اجازه اجرای دستی
 
