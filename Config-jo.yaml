@@ -585,17 +585,19 @@ proxies:
   reality-opts:
     public-key: EltWI8AOqkN8lMjRycweRRoFRah5hu6xiKtgBmQOdE8
     short-id: 1ed136481e0ede74
-- name: IR Config_jo-112
+- name: NL Config_jo-112
   type: vless
-  server: ee1vip.vnet215.xyz
-  port: 24003
-  uuid: a21aca43-aaae-4e4a-a64f-ff1afc285eb6
+  server: midorinote.online
+  port: 8443
+  uuid: a307515b-bfac-4dfb-a5ac-0dd5596e76f2
   udp: true
-  tls: false
+  tls: true
   network: tcp
-  servername: null
+  servername: sun6-22.userapi.com
   ws-opts: null
-  reality-opts: null
+  reality-opts:
+    public-key: Cxvc5bVMKln6RxPs5MtviUZNDsmpfuYUK8UFBlcBaS0
+    short-id: 387d2fb5f83c0cde
 - name: NL Config_jo-113
   type: vless
   server: midorinote.online
@@ -609,20 +611,7 @@ proxies:
   reality-opts:
     public-key: Cxvc5bVMKln6RxPs5MtviUZNDsmpfuYUK8UFBlcBaS0
     short-id: 387d2fb5f83c0cde
-- name: NL Config_jo-114
-  type: vless
-  server: midorinote.online
-  port: 8443
-  uuid: a307515b-bfac-4dfb-a5ac-0dd5596e76f2
-  udp: true
-  tls: true
-  network: tcp
-  servername: sun6-22.userapi.com
-  ws-opts: null
-  reality-opts:
-    public-key: Cxvc5bVMKln6RxPs5MtviUZNDsmpfuYUK8UFBlcBaS0
-    short-id: 387d2fb5f83c0cde
-- name: CLOUDFLARE Config_jo-115
+- name: CLOUDFLARE Config_jo-114
   type: vless
   server: 104.21.43.168
   port: 443
@@ -636,7 +625,7 @@ proxies:
     headers:
       Host: private.digikala.lat
   reality-opts: null
-- name: CLOUDFLARE Config_jo-116
+- name: CLOUDFLARE Config_jo-115
   type: vless
   server: 104.21.62.144
   port: 443
@@ -646,6 +635,20 @@ proxies:
   network: xhttp
   servername: sauron.melkore.ir
   ws-opts: null
+  reality-opts: null
+- name: CLOUDFLARE Config_jo-116
+  type: vless
+  server: chatgpt.com
+  port: 2096
+  uuid: c077a7aa-7ec8-4117-8ffc-9ade75a5efce
+  udp: true
+  tls: true
+  network: ws
+  servername: cdn.sheriffbus.com
+  ws-opts:
+    path: /
+    headers:
+      Host: cdn.sheriffbus.com
   reality-opts: null
 - name: AU Config_jo-117
   type: vless
@@ -1105,9 +1108,9 @@ proxy-groups:
   - CLOUDFLARE Config_jo-109
   - JP Config_jo-110
   - JP Config_jo-111
-  - IR Config_jo-112
+  - NL Config_jo-112
   - NL Config_jo-113
-  - NL Config_jo-114
+  - CLOUDFLARE Config_jo-114
   - CLOUDFLARE Config_jo-115
   - CLOUDFLARE Config_jo-116
   - AU Config_jo-117
@@ -1188,9 +1191,9 @@ proxy-groups:
   - CLOUDFLARE Config_jo-109
   - JP Config_jo-110
   - JP Config_jo-111
-  - IR Config_jo-112
+  - NL Config_jo-112
   - NL Config_jo-113
-  - NL Config_jo-114
+  - CLOUDFLARE Config_jo-114
   - CLOUDFLARE Config_jo-115
   - CLOUDFLARE Config_jo-116
   - AU Config_jo-117
