@@ -31,8 +31,11 @@ OUTPUT_ORIGINAL_CONFIGS = "Original-Configs.txt"
 
 # فایل‌های سیستم هفتگی و تفکیک کشورها
 WEEKLY_FILE = "conf-week.txt"
-HISTORY_FILE = "conf-week-history.json" # دیتابیس تاریخ ورود
+HISTORY_FILE = "conf-week-history.json"
 GEOIP_DATABASE_PATH = 'dbip-country-lite.mmdb'
+
+# تنظیمات فیلتر زمانی کانال‌ها (کانال‌های قدیمی‌تر از این تعداد روز اسکن نمی‌شوند)
+CHANNEL_MAX_INACTIVE_DAYS = 4
 
 V2RAY_PATTERNS = [
     re.compile(r'(vless:\/\/[^\s\'\"<>`]+)'), re.compile(r'(vmess:\/\/[^\s\'\"<>`]+)'),
@@ -209,6 +212,27 @@ class V2RayExtractor:
     async def find_raw_configs_from_chat(self, chat_id: int, limit: int, retries: int = 3):
         local_configs = set()
         try:
+            # ==========================================================
+            # NEW LOGIC: Skip channels inactive for more than 4 days
+            # ==========================================================
+            is_active = False
+            try:
+                # Check only the latest message to see the date
+                async for last_msg in self.client.get_chat_history(chat_id, limit=1):
+                    # If message date is NEWER than (NOW - 4 DAYS), keep it
+                    if last_msg.date > (datetime.datetime.now() - datetime.timedelta(days=CHANNEL_MAX_INACTIVE_DAYS)):
+                        is_active = True
+                    break # We only need to check the first (latest) message
+            except Exception as e:
+                # If we can't check history (e.g. private/banned), assume inactive or log error
+                print(f"⚠️ Could not check activity for {chat_id}: {e}")
+                pass
+
+            if not is_active:
+                print(f"💤 Skipping {chat_id}: Inactive for >{CHANNEL_MAX_INACTIVE_DAYS} days or empty.")
+                return
+            # ==========================================================
+
             async for message in self.client.get_chat_history(chat_id, limit=limit):
                 text_to_check = message.text or message.caption or ""
                 texts_to_scan = [text_to_check]
@@ -236,7 +260,7 @@ class V2RayExtractor:
             print(f"❌ Error scanning {chat_id}: {e}")
 
     # =================================================================================
-    # NEW: SPLIT CONFIGS INTO TOP COUNTRIES (UPDATED FOR FIX)
+    # SPLIT CONFIGS INTO TOP COUNTRIES (With IP Prioritization)
     # =================================================================================
     def split_configs_by_country(self, links: List[str]):
         target_countries = {
@@ -247,7 +271,7 @@ class V2RayExtractor:
         for link in links:
             proxy = self.parse_config_for_clash(link)
             if not proxy: continue
-            # FIX: Prioritize SERVER IP over SNI/Host
+            # Prioritize SERVER IP over SNI/Host
             host = proxy.get('server')
             if not host: continue
             iso_code = self.get_country_iso_code(host)
@@ -320,7 +344,7 @@ class V2RayExtractor:
         for i, url in enumerate(sorted(list(valid_configs)), 1):
             if not (proxy := self.parse_config_for_clash(url)): continue
             
-            # FIX: Prioritize SERVER IP over SNI/Host for Main Files too
+            # Prioritize SERVER IP over SNI/Host for Main Files too
             host_to_check = proxy.get('server') or proxy.get('servername') or proxy.get('sni')
             
             country_code = self.get_country_iso_code(host_to_check)
