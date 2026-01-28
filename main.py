@@ -230,16 +230,19 @@ class V2RayExtractor:
                 text_to_check = message.text or message.caption or ""
                 texts_to_scan = [text_to_check]
                 
-                # اصلاح شده: اسکن موجودیت‌های BLOCKQUOTE و CODE
+                # اصلاح شده برای استخراج دقیق متن از کوت‌ها بر اساس UTF-16 تلگرام
                 if message.entities:
+                    encoded_text = text_to_check.encode("utf-16-le")
                     for entity in message.entities:
                         if entity.type in [enums.MessageEntityType.CODE, enums.MessageEntityType.PRE, enums.MessageEntityType.BLOCKQUOTE]:
-                            raw_segment = text_to_check[entity.offset : entity.offset + entity.length]
-                            # اسکن خود متن کوت شده (بدون حذف فاصله برای حفظ ساختار لینک‌های احتمالی)
-                            texts_to_scan.append(raw_segment)
-                            # اسکن نسخه فشرده شده (برای متونی که شکستگی خط دارند)
-                            cleaned_segment = raw_segment.replace('\n', '').replace(' ', '')
-                            texts_to_scan.append(cleaned_segment)
+                            start = entity.offset * 2
+                            end = (entity.offset + entity.length) * 2
+                            try:
+                                raw_segment = encoded_text[start:end].decode("utf-16-le")
+                                texts_to_scan.append(raw_segment)
+                                # اضافه کردن نسخه فشرده برای مواقعی که کانفیگ شکسته شده است
+                                texts_to_scan.append(raw_segment.replace('\n', '').replace(' ', ''))
+                            except: continue
                 
                 for b64_str in BASE64_PATTERN.findall(text_to_check):
                     try:
@@ -373,7 +376,6 @@ class V2RayExtractor:
         print("\n✨ All operations completed successfully!")
 
     def build_pro_config(self, proxies, proxy_names):
-        # فیلتر کردن پروکسی‌های ناقص برای جلوگیری از ارور uuid missing در کلش
         clean_proxies = []
         clean_names = []
         for p in proxies:
