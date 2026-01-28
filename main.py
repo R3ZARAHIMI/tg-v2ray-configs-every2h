@@ -212,43 +212,44 @@ class V2RayExtractor:
     async def find_raw_configs_from_chat(self, chat_id: int, limit: int, retries: int = 3):
         local_configs = set()
         try:
-            # ==========================================================
-            # NEW LOGIC: Skip channels inactive for more than 4 days
-            # ==========================================================
             is_active = False
             try:
-                # Check only the latest message to see the date
                 async for last_msg in self.client.get_chat_history(chat_id, limit=1):
-                    # If message date is NEWER than (NOW - 4 DAYS), keep it
                     if last_msg.date > (datetime.datetime.now() - datetime.timedelta(days=CHANNEL_MAX_INACTIVE_DAYS)):
                         is_active = True
-                    break # We only need to check the first (latest) message
+                    break 
             except Exception as e:
-                # If we can't check history (e.g. private/banned), assume inactive or log error
                 print(f"⚠️ Could not check activity for {chat_id}: {e}")
                 pass
 
             if not is_active:
                 print(f"💤 Skipping {chat_id}: Inactive for >{CHANNEL_MAX_INACTIVE_DAYS} days or empty.")
                 return
-            # ==========================================================
 
             async for message in self.client.get_chat_history(chat_id, limit=limit):
                 text_to_check = message.text or message.caption or ""
                 texts_to_scan = [text_to_check]
+                
+                # اصلاح شده: اسکن موجودیت‌های BLOCKQUOTE و CODE
                 if message.entities:
                     for entity in message.entities:
-                        if entity.type in [enums.MessageEntityType.CODE, enums.MessageEntityType.PRE, getattr(enums.MessageEntityType, 'BLOCKQUOTE', 'blockquote')]:
+                        if entity.type in [enums.MessageEntityType.CODE, enums.MessageEntityType.PRE, enums.MessageEntityType.BLOCKQUOTE]:
                             raw_segment = text_to_check[entity.offset : entity.offset + entity.length]
+                            # اسکن خود متن کوت شده (بدون حذف فاصله برای حفظ ساختار لینک‌های احتمالی)
+                            texts_to_scan.append(raw_segment)
+                            # اسکن نسخه فشرده شده (برای متونی که شکستگی خط دارند)
                             cleaned_segment = raw_segment.replace('\n', '').replace(' ', '')
                             texts_to_scan.append(cleaned_segment)
+                
                 for b64_str in BASE64_PATTERN.findall(text_to_check):
                     try:
                         decoded = base64.b64decode(b64_str + '=' * 4).decode('utf-8', errors='ignore')
                         texts_to_scan.append(decoded)
                     except: continue
+                
                 for text in texts_to_scan:
                     if text: local_configs.update(self.extract_configs_from_text(text))
+            
             print(f"   ✅ Fetched {len(local_configs)} configs from {chat_id}")
             self.raw_configs.update(local_configs)
         except FloodWait as e:
@@ -259,9 +260,6 @@ class V2RayExtractor:
         except Exception as e:
             print(f"❌ Error scanning {chat_id}: {e}")
 
-    # =================================================================================
-    # SPLIT CONFIGS INTO TOP COUNTRIES (With IP Prioritization)
-    # =================================================================================
     def split_configs_by_country(self, links: List[str]):
         target_countries = {
             'US': 'conf-US.txt', 'DE': 'conf-DE.txt', 'NL': 'conf-NL.txt', 'GB': 'conf-UK.txt', 'FR': 'conf-FR.txt'
@@ -271,7 +269,6 @@ class V2RayExtractor:
         for link in links:
             proxy = self.parse_config_for_clash(link)
             if not proxy: continue
-            # Prioritize SERVER IP over SNI/Host
             host = proxy.get('server')
             if not host: continue
             iso_code = self.get_country_iso_code(host)
@@ -283,9 +280,6 @@ class V2RayExtractor:
                 f.write("\n".join(sorted(configs)))
             if configs: print(f"   ✅ Saved {len(configs)} configs to {filename}")
 
-    # =================================================================================
-    # SMART WEEKLY ROLLING WINDOW
-    # =================================================================================
     def handle_weekly_file(self, new_configs: List[str]):
         now = datetime.datetime.now()
         cutoff = now - datetime.timedelta(days=7)
@@ -344,9 +338,7 @@ class V2RayExtractor:
         for i, url in enumerate(sorted(list(valid_configs)), 1):
             if not (proxy := self.parse_config_for_clash(url)): continue
             
-            # Prioritize SERVER IP over SNI/Host for Main Files too
             host_to_check = proxy.get('server') or proxy.get('servername') or proxy.get('sni')
-            
             country_code = self.get_country_iso_code(host_to_check)
             country_flag = COUNTRY_FLAGS.get(country_code, '🏳️')
             name_compatible = f"{country_code} Config_jo-{i:02d}"
@@ -385,7 +377,6 @@ class V2RayExtractor:
         clean_proxies = []
         clean_names = []
         for p in proxies:
-            # بررسی فیلدهای حیاتی برای هر پروتکل
             if p.get('type') in ['vless', 'vmess', 'tuic']:
                 if not p.get('uuid'): continue
             if p.get('type') == 'trojan' and not p.get('password'): continue
@@ -398,17 +389,8 @@ class V2RayExtractor:
             'port': 7890, 'socks-port': 7891, 'allow-lan': True, 'mode': 'rule', 'log-level': 'info', 'external-controller': '127.0.0.1:9090',
             'dns': {'enable': True, 'listen': '0.0.0.0:53', 'default-nameserver': ['8.8.8.8', '1.1.1.1'], 'enhanced-mode': 'fake-ip', 'fake-ip-range': '198.18.0.1/16', 'fallback': ['https://dns.google/dns-query', 'https://cloudflare-dns.com/dns-query'], 'fallback-filter': {'geoip': True, 'ipcidr': ['240.0.0.0/4', '0.0.0.0/32']}},
             'proxies': clean_proxies,
-            'proxy-groups': [
-                {'name': 'PROXY', 'type': 'select', 'proxies': ['⚡ Auto-Select', 'DIRECT', *clean_names]},
-                {'name': '⚡ Auto-Select', 'type': 'url-test', 'proxies': clean_names, 'url': 'http://www.gstatic.com/generate_204', 'interval': 300},
-                {'name': '🇮🇷 Iran', 'type': 'select', 'proxies': ['DIRECT', 'PROXY']},
-                {'name': '🛑 Block-Ads', 'type': 'select', 'proxies': ['REJECT', 'DIRECT']}
-            ],
-            'rule-providers': {
-                'iran_domains': {'type': 'http', 'behavior': 'domain', 'url': "https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/iran-domains.txt", 'path': './rules/iran_domains.txt', 'interval': 86400},
-                'blocked_domains': {'type': 'http', 'behavior': 'domain', 'url': "https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/blocked-domains.txt", 'path': './rules/blocked_domains.txt', 'interval': 86400},
-                'ad_domains': {'type': 'http', 'behavior': 'domain', 'url': "https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/ad-domains.txt", 'path': './rules/ad_domains.txt', 'interval': 86400}
-            },
+            'proxy-groups': [{'name': 'PROXY', 'type': 'select', 'proxies': ['⚡ Auto-Select', 'DIRECT', *clean_names]}, {'name': '⚡ Auto-Select', 'type': 'url-test', 'proxies': clean_names, 'url': 'http://www.gstatic.com/generate_204', 'interval': 300}, {'name': '🇮🇷 Iran', 'type': 'select', 'proxies': ['DIRECT', 'PROXY']}, {'name': '🛑 Block-Ads', 'type': 'select', 'proxies': ['REJECT', 'DIRECT']}],
+            'rule-providers': {'iran_domains': {'type': 'http', 'behavior': 'domain', 'url': "https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/iran-domains.txt", 'path': './rules/iran_domains.txt', 'interval': 86400}, 'blocked_domains': {'type': 'http', 'behavior': 'domain', 'url': "https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/blocked-domains.txt", 'path': './rules/blocked_domains.txt', 'interval': 86400}, 'ad_domains': {'type': 'http', 'behavior': 'domain', 'url': "https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/ad-domains.txt", 'path': './rules/ad_domains.txt', 'interval': 86400}},
             'rules': ['RULE-SET,ad_domains,🛑 Block-Ads', 'RULE-SET,blocked_domains,PROXY', 'RULE-SET,iran_domains,🇮🇷 Iran', 'GEOIP,IR,🇮🇷 Iran', 'MATCH,PROXY']
         }
 
