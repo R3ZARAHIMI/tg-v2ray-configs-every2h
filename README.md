@@ -20,6 +20,22 @@
 https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/Config_jo.txt
 ```
 
+---
+
+### ⚙️ فرمت کلاینت‌ها
+
+**Clash Meta (YAML):**
+```text
+https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/Config-jo.yaml
+```
+
+**Sing-box (JSON):**
+```text
+https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/Config_jo.json
+```
+
+---
+
 **📅 آرشیو هفتگی ۷ روزه:**
 ```text
 https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-week.txt
@@ -53,22 +69,6 @@ https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-
 ```text
 https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-FR.txt
 ```
-
----
-
-### ⚙️ فرمت کلاینت‌ها
-
-**Clash Meta (YAML):**
-```text
-https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/Config-jo.yaml
-```
-
-**Sing-box (JSON):**
-```text
-https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/Config_jo.json
-```
-
----
 
 ## 🇬🇧 English
 
