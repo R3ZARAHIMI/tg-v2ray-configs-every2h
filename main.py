@@ -236,7 +236,11 @@ class V2RayExtractor:
             async for message in self.client.get_chat_history(chat_id, limit=limit):
                 text_to_check = message.text or message.caption or ""
                 texts_to_scan = [text_to_check]
-               if message.entities:
+                
+                # ==========================================================
+                # اصلاح شده برای پشتیبانی از کوت‌های بازشو (Expandable)
+                # ==========================================================
+                if message.entities:
                     # لیست انواع مجاز شامل کد، کوت معمولی و کوت بازشو
                     valid_types = [
                         enums.MessageEntityType.CODE,
@@ -253,6 +257,8 @@ class V2RayExtractor:
                             raw_segment = text_to_check[entity.offset : entity.offset + entity.length]
                             cleaned_segment = raw_segment.replace('\n', '').replace(' ', '')
                             texts_to_scan.append(cleaned_segment)
+                # ==========================================================
+                
                 for b64_str in BASE64_PATTERN.findall(text_to_check):
                     try:
                         decoded = base64.b64decode(b64_str + '=' * 4).decode('utf-8', errors='ignore')
