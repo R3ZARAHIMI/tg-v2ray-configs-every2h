@@ -236,9 +236,20 @@ class V2RayExtractor:
             async for message in self.client.get_chat_history(chat_id, limit=limit):
                 text_to_check = message.text or message.caption or ""
                 texts_to_scan = [text_to_check]
-                if message.entities:
+               if message.entities:
+                    # لیست انواع مجاز شامل کد، کوت معمولی و کوت بازشو
+                    valid_types = [
+                        enums.MessageEntityType.CODE,
+                        enums.MessageEntityType.PRE,
+                    ]
+                    
+                    # اضافه کردن ایمن انواع کوت (چون ممکن است نام‌ها در نسخه‌های مختلف کمی متفاوت باشد)
+                    for attr in ['BLOCKQUOTE', 'EXPANDABLE_BLOCKQUOTE']:
+                        if hasattr(enums.MessageEntityType, attr):
+                            valid_types.append(getattr(enums.MessageEntityType, attr))
+
                     for entity in message.entities:
-                        if entity.type in [enums.MessageEntityType.CODE, enums.MessageEntityType.PRE, getattr(enums.MessageEntityType, 'BLOCKQUOTE', 'blockquote')]:
+                        if entity.type in valid_types:
                             raw_segment = text_to_check[entity.offset : entity.offset + entity.length]
                             cleaned_segment = raw_segment.replace('\n', '').replace(' ', '')
                             texts_to_scan.append(cleaned_segment)
