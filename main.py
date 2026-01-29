@@ -207,7 +207,20 @@ class V2RayExtractor:
         found = set()
         for pattern in V2RAY_PATTERNS:
             found.update(pattern.findall(text))
-        return {corrected for url in found if (corrected := self._correct_config_type(url.strip())) and self._validate_config_type(corrected)}
+        
+        clean_configs = set()
+        for url in found:
+            url = url.strip()
+            # فیلتر تکراری‌های منطقی: حذف بخش هشتگ (اسم) برای مقایسه
+            # این کار باعث می‌شود vless://...#name1 و vless://...#name2 یکی در نظر گرفته شوند
+            if not url.startswith('vmess://') and '#' in url:
+                url = url.split('#')[0]
+            
+            if corrected := self._correct_config_type(url):
+                if self._validate_config_type(corrected):
+                    clean_configs.add(corrected)
+                    
+        return clean_configs
 
     async def find_raw_configs_from_chat(self, chat_id: int, limit: int, retries: int = 3):
         local_configs = set()
