@@ -5,6 +5,7 @@ import json
 import yaml
 import os
 import datetime
+import ipaddress
 from urllib.parse import urlparse, parse_qs, unquote, urlunparse
 from pyrogram import Client, enums
 from pyrogram.errors import FloodWait
@@ -28,11 +29,16 @@ OUTPUT_YAML_PRO = "Config-jo.yaml"
 OUTPUT_TXT = "Config_jo.txt"
 OUTPUT_JSON_CONFIG_JO = "Config_jo.json"
 OUTPUT_ORIGINAL_CONFIGS = "Original-Configs.txt"
+OUTPUT_NO_CF = "Config_no_cf.txt"  # فایل خروجی برای کانفیگ‌های بدون کلودفلر/دامنه‌
 
 # فایل‌های سیستم هفتگی و تفکیک کشورها
 WEEKLY_FILE = "conf-week.txt"
 HISTORY_FILE = "conf-week-history.json"
 GEOIP_DATABASE_PATH = 'dbip-country-lite.mmdb'
+
+# فایل‌های مربوط به سیستم بدون کلودفلر (No CF)
+NO_CF_HISTORY_FILE = "no_cf_history.json"
+BLOCKED_IPS_FILE = "blocked_ips.txt"
 
 # تنظیمات فیلتر زمانی کانال‌ها (کانال‌های قدیمی‌تر از این تعداد روز اسکن نمی‌شوند)
 CHANNEL_MAX_INACTIVE_DAYS = 4
@@ -50,6 +56,7 @@ COUNTRY_FLAGS = {
 }
 
 GEOIP_READER = None
+BLOCKED_NETWORKS = []
 
 def load_ip_data():
     global GEOIP_READER
@@ -61,6 +68,44 @@ def load_ip_data():
         print(f"❌ CRITICAL: GeoIP database not found at '{GEOIP_DATABASE_PATH}'. Flags will be disabled.")
     except Exception as e:
         print(f"❌ CRITICAL: Failed to load GeoIP database: {e}")
+
+def load_blocked_ips():
+    """Load blocked CIDR ranges from file."""
+    global BLOCKED_NETWORKS
+    if os.path.exists(BLOCKED_IPS_FILE):
+        try:
+            with open(BLOCKED_IPS_FILE, 'r', encoding='utf-8') as f:
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith('#'):
+                        try:
+                            BLOCKED_NETWORKS.append(ipaddress.ip_network(line, strict=False))
+                        except ValueError:
+                            print(f"⚠️ Invalid IP range in file: {line}")
+            print(f"🚫 Loaded {len(BLOCKED_NETWORKS)} blocked IP ranges from {BLOCKED_IPS_FILE}")
+        except Exception as e:
+            print(f"❌ Error loading blocked IPs: {e}")
+    else:
+        print(f"⚠️ Warning: '{BLOCKED_IPS_FILE}' not found. No IPs will be filtered.")
+
+def is_clean_ip(host: str) -> bool:
+    """
+    Returns True if:
+    1. Host is a valid IP address (not a domain/URL).
+    2. IP is NOT in the BLOCKED_NETWORKS list.
+    """
+    try:
+        # Check if it's a valid IP
+        ip = ipaddress.ip_address(host)
+        
+        # Check if it's in any blocked range
+        for network in BLOCKED_NETWORKS:
+            if ip in network:
+                return False # It's a blocked IP
+        
+        return True # It's a clean IP
+    except ValueError:
+        return False # It's a domain/URL (not an IP)
 
 def process_lists():
     channels = [ch.strip() for ch in CHANNELS_STR.split(',')] if CHANNELS_STR else []
@@ -212,7 +257,6 @@ class V2RayExtractor:
         for url in found:
             url = url.strip()
             # فیلتر تکراری‌های منطقی: حذف بخش هشتگ (اسم) برای مقایسه
-            # این کار باعث می‌شود vless://...#name1 و vless://...#name2 یکی در نظر گرفته شوند
             if not url.startswith('vmess://') and '#' in url:
                 url = url.split('#')[0]
             
@@ -226,18 +270,15 @@ class V2RayExtractor:
         local_configs = set()
         try:
             # ==========================================================
-            # NEW LOGIC: Skip channels inactive for more than 4 days
+            # Activity Check
             # ==========================================================
             is_active = False
             try:
-                # Check only the latest message to see the date
                 async for last_msg in self.client.get_chat_history(chat_id, limit=1):
-                    # If message date is NEWER than (NOW - 4 DAYS), keep it
                     if last_msg.date > (datetime.datetime.now() - datetime.timedelta(days=CHANNEL_MAX_INACTIVE_DAYS)):
                         is_active = True
-                    break # We only need to check the first (latest) message
+                    break 
             except Exception as e:
-                # If we can't check history (e.g. private/banned), assume inactive or log error
                 print(f"⚠️ Could not check activity for {chat_id}: {e}")
                 pass
 
@@ -250,17 +291,8 @@ class V2RayExtractor:
                 text_to_check = message.text or message.caption or ""
                 texts_to_scan = [text_to_check]
                 
-                # ==========================================================
-                # اصلاح شده برای پشتیبانی از کوت‌های بازشو (Expandable)
-                # ==========================================================
                 if message.entities:
-                    # لیست انواع مجاز شامل کد، کوت معمولی و کوت بازشو
-                    valid_types = [
-                        enums.MessageEntityType.CODE,
-                        enums.MessageEntityType.PRE,
-                    ]
-                    
-                    # اضافه کردن ایمن انواع کوت (چون ممکن است نام‌ها در نسخه‌های مختلف کمی متفاوت باشد)
+                    valid_types = [enums.MessageEntityType.CODE, enums.MessageEntityType.PRE]
                     for attr in ['BLOCKQUOTE', 'EXPANDABLE_BLOCKQUOTE']:
                         if hasattr(enums.MessageEntityType, attr):
                             valid_types.append(getattr(enums.MessageEntityType, attr))
@@ -270,7 +302,6 @@ class V2RayExtractor:
                             raw_segment = text_to_check[entity.offset : entity.offset + entity.length]
                             cleaned_segment = raw_segment.replace('\n', '').replace(' ', '')
                             texts_to_scan.append(cleaned_segment)
-                # ==========================================================
                 
                 for b64_str in BASE64_PATTERN.findall(text_to_check):
                     try:
@@ -301,7 +332,6 @@ class V2RayExtractor:
         for link in links:
             proxy = self.parse_config_for_clash(link)
             if not proxy: continue
-            # Prioritize SERVER IP over SNI/Host
             host = proxy.get('server')
             if not host: continue
             iso_code = self.get_country_iso_code(host)
@@ -314,7 +344,7 @@ class V2RayExtractor:
             if configs: print(f"   ✅ Saved {len(configs)} configs to {filename}")
 
     # =================================================================================
-    # SMART WEEKLY ROLLING WINDOW
+    # SMART WEEKLY ROLLING WINDOW (GENERAL)
     # =================================================================================
     def handle_weekly_file(self, new_configs: List[str]):
         now = datetime.datetime.now()
@@ -353,6 +383,76 @@ class V2RayExtractor:
         print(f"📅 Rolling Window Update: Kept {kept_count} old, Added {added_count} new. Total: {len(final_links)}")
         self.split_configs_by_country(final_links)
 
+    # =================================================================================
+    # 72H ROLLING WINDOW (NO-CF / CLEAN IPs) WITH UUID DEDUPLICATION
+    # =================================================================================
+    def handle_no_cf_retention(self, new_configs: List[str]):
+        now = datetime.datetime.now()
+        # حذف کانفیگ‌های قدیمی‌تر از ۷۲ ساعت
+        cutoff = now - datetime.timedelta(hours=72)
+        
+        history = {}
+        if os.path.exists(NO_CF_HISTORY_FILE):
+            try:
+                with open(NO_CF_HISTORY_FILE, 'r') as f:
+                    history = json.load(f)
+            except: history = {}
+
+        new_history = {} # Key: UUID, Value: Meta Data
+        
+        # تابع کمکی برای استخراج شناسه یکتا (UUID/Password)
+        def get_unique_id(link):
+            try:
+                proxy = self.parse_config_for_clash(link)
+                if proxy:
+                    # اولویت با uuid است، اگر نبود password یا auth (برای سایر پروتکل‌ها)
+                    uid = proxy.get('uuid') or proxy.get('password') or proxy.get('auth')
+                    if uid:
+                        return str(uid)
+            except: pass
+            # اگر نتوانستیم آی‌دی را پیدا کنیم، کل لینک (بدون اسم) را به عنوان شناسه برمی‌گردانیم
+            return link.split('#')[0]
+
+        # ۱. پردازش تاریخچه قبلی (حفظ کانفیگ‌های هنوز معتبر)
+        for meta in history.values():
+            try:
+                link = meta.get('link')
+                if not link: continue
+                
+                date_str = meta.get('date')
+                added_date = datetime.datetime.fromisoformat(date_str)
+                
+                if added_date > cutoff:
+                    uid = get_unique_id(link)
+                    if uid not in new_history:
+                        new_history[uid] = meta
+            except Exception: pass
+
+        # ۲. پردازش و اضافه کردن کانفیگ‌های جدید
+        added_count = 0
+        for cfg in new_configs:
+            uid = get_unique_id(cfg)
+            if uid not in new_history:
+                new_history[uid] = {
+                    "link": cfg,
+                    "date": now.isoformat()
+                }
+                added_count += 1
+        
+        # ۳. ذخیره فایل‌ها
+        try:
+            with open(NO_CF_HISTORY_FILE, 'w') as f: 
+                json.dump(new_history, f, indent=2)
+            
+            final_links = [meta['link'] for meta in new_history.values()]
+            
+            with open(OUTPUT_NO_CF, 'w', encoding='utf-8') as f: 
+                f.write("\n".join(sorted(final_links)))
+            
+            print(f"⏱️ 72h Retention (UUID Check): Kept {len(new_history) - added_count} old, Added {added_count} new. Total: {len(final_links)}")
+        except Exception as e:
+            print(f"❌ Error in 72h retention: {e}")
+
     def save_files(self):
         print(f"\n⚙️ ∑ Total Unique Configs Found: {len(self.raw_configs)}")
         if not self.raw_configs:
@@ -370,11 +470,11 @@ class V2RayExtractor:
             except: continue
 
         proxies_list_clash, renamed_txt_configs = [], []
-        
+        clean_ip_configs = []  # لیست جدید برای کانفیگ‌های بدون دامنه و بدون آی‌پی‌های مسدود
+
         for i, url in enumerate(sorted(list(valid_configs)), 1):
             if not (proxy := self.parse_config_for_clash(url)): continue
             
-            # Prioritize SERVER IP over SNI/Host for Main Files too
             host_to_check = proxy.get('server') or proxy.get('servername') or proxy.get('sni')
             
             country_code = self.get_country_iso_code(host_to_check)
@@ -384,19 +484,32 @@ class V2RayExtractor:
             proxies_list_clash.append(proxy)
             
             name_with_flag = f"{country_flag} Config_jo-{i:02d}"
+            
+            final_link = ""
             if proxy['type'] == 'ss':
                 ss_p = proxy.copy(); ss_p['name'] = name_with_flag
                 clean = self.generate_sip002_link(ss_p)
-                renamed_txt_configs.append(clean if clean else f"{url.split('#')[0]}#{name_with_flag}")
+                final_link = clean if clean else f"{url.split('#')[0]}#{name_with_flag}"
             else:
                 try:
                     parsed = list(urlparse(url)); parsed[5] = name_with_flag
-                    renamed_txt_configs.append(urlunparse(parsed))
-                except: renamed_txt_configs.append(f"{url.split('#')[0]}#{name_with_flag}")
+                    final_link = urlunparse(parsed)
+                except: final_link = f"{url.split('#')[0]}#{name_with_flag}"
+            
+            renamed_txt_configs.append(final_link)
+
+            # --- فیلتر جدید: فقط آی‌پی‌های تمیز (غیر دامنه و غیر مسدود) ---
+            server_address = proxy.get('server')
+            if server_address and is_clean_ip(server_address):
+                clean_ip_configs.append(final_link)
+            # -----------------------------------------------------------
 
         try:
             with open(OUTPUT_ORIGINAL_CONFIGS, 'w', encoding='utf-8') as f: f.write("\n".join(sorted(list(self.raw_configs))))
             with open(OUTPUT_TXT, 'w', encoding='utf-8') as f: f.write("\n".join(sorted(renamed_txt_configs)))
+            
+            # ذخیره فایل جدید Clean IP با چرخش ۷۲ ساعته
+            self.handle_no_cf_retention(clean_ip_configs)
             
             os.makedirs('rules', exist_ok=True)
             if proxies_list_clash:
@@ -415,7 +528,6 @@ class V2RayExtractor:
         clean_proxies = []
         clean_names = []
         for p in proxies:
-            # بررسی فیلدهای حیاتی برای هر پروتکل
             if p.get('type') in ['vless', 'vmess', 'tuic']:
                 if not p.get('uuid'): continue
             if p.get('type') == 'trojan' and not p.get('password'): continue
@@ -450,6 +562,7 @@ class V2RayExtractor:
 async def main():
     print("🚀 Starting config extractor...")
     load_ip_data()
+    load_blocked_ips()
     extractor = V2RayExtractor()
     async with extractor.client:
         print("🔄 Refreshing dialogs...")
