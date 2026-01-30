@@ -376,6 +376,7 @@ class V2RayExtractor:
             self.handle_no_cf_retention(clean_ip_configs)
             os.makedirs('rules', exist_ok=True)
             if proxies_list_clash:
+                # Manual YAML generation to solve pyyaml issues and sanitize server addresses
                 yaml_content = self.generate_yaml_content(proxies_list_clash)
                 with open(OUTPUT_YAML_PRO, 'w', encoding='utf-8') as f: f.write(yaml_content)
                 
@@ -395,10 +396,21 @@ class V2RayExtractor:
             if p.get('type') == 'trojan' and not p.get('password'): continue
             if p.get('type') == 'ss' and (not p.get('cipher') or not p.get('password')): continue
             
-            server = str(p.get('server', '')).strip()
-            if ' ' in server: server = server.split(' ')[0]
-            if not server or len(server) > 50 or re.search(r'[^\w\.\-\:]', server): continue
+            # --- CRITICAL FIX: Aggressive Server Cleaning ---
+            # Using re.split to split by ANY whitespace (space, tab, etc.)
+            raw_server = str(p.get('server', '')).strip()
+            if not raw_server: continue
+            
+            # Split by whitespace and take the first part
+            server_parts = re.split(r'\s+', raw_server)
+            server = server_parts[0]
+            
+            # Validation: Server must be a valid hostname or IP
+            if len(server) > 255 or not re.match(r'^[a-zA-Z0-9\.\-\_:]+$', server): 
+                continue
+            
             p['server'] = server
+            # ------------------------------------------------
 
             sni = p.get('servername') or p.get('sni')
             if sni:
@@ -515,18 +527,27 @@ proxies:
                 if isinstance(val, bool):
                     yaml_str += f"  {key}: {str(val).lower()}\n"
                 elif isinstance(val, dict):
-                    # Recursive clean for dicts
-                    clean_val = {k: v for k, v in val.items() if v is not None and v != ''}
-                    if not clean_val: continue
+                    # --- FIX 3: Strict Nested Filtering ---
+                    clean_val = {}
+                    for k2, v2 in val.items():
+                        # Skip if None, empty string, or string with only whitespace
+                        if v2 is None: continue
+                        if isinstance(v2, str) and not v2.strip(): continue
+                        clean_val[k2] = v2
                     
+                    if not clean_val: continue
+
                     yaml_str += f"  {key}:\n"
                     for k2, v2 in clean_val.items():
                         if isinstance(v2, dict):
-                             clean_v2 = {k: v for k, v in v2.items() if v is not None and v != ''}
-                             if not clean_v2: continue
-                             yaml_str += f"    {k2}:\n"
-                             for k3, v3 in clean_v2.items():
-                                 yaml_str += f"      {k3}: {v3}\n"
+                             clean_v3 = {}
+                             for k3, v3 in v2.items():
+                                 if v3 is not None and str(v3).strip():
+                                     clean_v3[k3] = v3
+                             if clean_v3:
+                                 yaml_str += f"    {k2}:\n"
+                                 for k3, v3 in clean_v3.items():
+                                     yaml_str += f"      {k3}: {v3}\n"
                         else:
                             yaml_str += f"    {k2}: {v2}\n"
                 elif isinstance(val, list):
