@@ -10,6 +10,12 @@
 
 ## 🇮🇷 فارسی
 
+<p align="center">
+  <a href="https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/Config_no_cf.txt">
+    <img src="https://img.shields.io/badge/Subscribe-No_CF_Configs-green?style=for-the-badge&logo=telegram" alt="Clean IP Configs">
+  </a>
+</p>
+
 کانفیگ جو یک اسکریپت هوشمند پایتون است که به‌صورت خودکار (هر ۲ ساعت) کانال‌ها و گروه های منتخب تلگرام را اسکن می‌کند و  
 کانفیگ‌های فعال **V2Ray** را استخراج، پالایش و در فایل‌های مرتب و قابل سابسکرایب منتشر می‌کند.
 
