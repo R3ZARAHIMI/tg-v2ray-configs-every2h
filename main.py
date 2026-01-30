@@ -57,17 +57,13 @@ BLOCKED_NETWORKS = []
 
 def load_ip_data():
     global GEOIP_READER
-    print("Attempting to load GeoIP database...")
     try:
         GEOIP_READER = geoip2.database.Reader(GEOIP_DATABASE_PATH)
         print(f"✅ Successfully loaded GeoIP database.")
-    except FileNotFoundError:
+    except:
         print(f"❌ CRITICAL: GeoIP database not found at '{GEOIP_DATABASE_PATH}'. Flags will be disabled.")
-    except Exception as e:
-        print(f"❌ CRITICAL: Failed to load GeoIP database: {e}")
 
 def load_blocked_ips():
-    """Load blocked CIDR ranges from file."""
     global BLOCKED_NETWORKS
     if os.path.exists(BLOCKED_IPS_FILE):
         try:
@@ -77,23 +73,19 @@ def load_blocked_ips():
                     if line and not line.startswith('#'):
                         try:
                             BLOCKED_NETWORKS.append(ipaddress.ip_network(line, strict=False))
-                        except ValueError:
-                            print(f"⚠️ Invalid IP range in file: {line}")
-            print(f"🚫 Loaded {len(BLOCKED_NETWORKS)} blocked IP ranges from {BLOCKED_IPS_FILE}")
-        except Exception as e:
-            print(f"❌ Error loading blocked IPs: {e}")
+                        except: pass
+            print(f"🚫 Loaded {len(BLOCKED_NETWORKS)} blocked IP ranges.")
+        except: pass
     else:
-        print(f"⚠️ Warning: '{BLOCKED_IPS_FILE}' not found. No IPs will be filtered.")
+        print(f"⚠️ Warning: '{BLOCKED_IPS_FILE}' not found.")
 
 def is_clean_ip(host: str) -> bool:
     try:
         ip = ipaddress.ip_address(host)
         for network in BLOCKED_NETWORKS:
-            if ip in network:
-                return False 
+            if ip in network: return False 
         return True 
-    except ValueError:
-        return False 
+    except: return False 
 
 def process_lists():
     channels = [ch.strip() for ch in CHANNELS_STR.split(',')] if CHANNELS_STR else []
@@ -101,7 +93,7 @@ def process_lists():
     if GROUPS_STR:
         try:
             groups = [int(g.strip()) for g in GROUPS_STR.split(',')]
-        except ValueError: pass
+        except: pass
     return channels, groups
 
 CHANNELS, GROUPS = process_lists()
@@ -112,8 +104,7 @@ class V2RayExtractor:
         self.client = Client("my_account", api_id=API_ID, api_hash=API_HASH, session_string=SESSION_STRING)
 
     def get_country_iso_code(self, hostname: str) -> str:
-        if not hostname: return "N/A"
-        if not GEOIP_READER: return "N/A"
+        if not hostname or not GEOIP_READER: return "N/A"
         try:
             ip_address = hostname
             try: socket.inet_aton(hostname)
@@ -179,22 +170,14 @@ class V2RayExtractor:
         try:
             content = ss_url[5:]
             name = ''
-            if '#' in content:
-                content, name_encoded = content.split('#', 1)
-                name = unquote(name_encoded)
+            if '#' in content: content, name_encoded = content.split('#', 1); name = unquote(name_encoded)
             if '@' not in content: return None
             userinfo_b64, server_part = content.rsplit('@', 1)
-            if ':' in server_part:
-                server_host, server_port_str = server_part.rsplit(':', 1)
-                port = int(server_port_str)
+            if ':' in server_part: server_host, server_port_str = server_part.rsplit(':', 1); port = int(server_port_str)
             else: return None
             userinfo_b64_padded = userinfo_b64 + '=' * (-len(userinfo_b64) % 4)
-            try:
-                userinfo_bytes = base64.b64decode(userinfo_b64_padded, validate=False)
-                userinfo_str = userinfo_bytes.decode('utf-8')
-            except:
-                userinfo_bytes = base64.urlsafe_b64decode(userinfo_b64_padded)
-                userinfo_str = userinfo_bytes.decode('utf-8')
+            try: userinfo_bytes = base64.b64decode(userinfo_b64_padded, validate=False); userinfo_str = userinfo_bytes.decode('utf-8')
+            except: userinfo_bytes = base64.urlsafe_b64decode(userinfo_b64_padded); userinfo_str = userinfo_bytes.decode('utf-8')
             if ':' in userinfo_str:
                 cipher, password = userinfo_str.split(':', 1)
                 return {'name': name, 'type': 'ss', 'server': server_host, 'port': port, 'cipher': cipher, 'password': password, 'udp': True}
@@ -231,17 +214,13 @@ class V2RayExtractor:
 
     def extract_configs_from_text(self, text: str) -> Set[str]:
         found = set()
-        for pattern in V2RAY_PATTERNS:
-            found.update(pattern.findall(text))
-        
+        for pattern in V2RAY_PATTERNS: found.update(pattern.findall(text))
         clean_configs = set()
         for url in found:
             url = url.strip()
-            if not url.startswith('vmess://') and '#' in url:
-                url = url.split('#')[0]
+            if not url.startswith('vmess://') and '#' in url: url = url.split('#')[0]
             if corrected := self._correct_config_type(url):
-                if self._validate_config_type(corrected):
-                    clean_configs.add(corrected)
+                if self._validate_config_type(corrected): clean_configs.add(corrected)
         return clean_configs
 
     async def find_raw_configs_from_chat(self, chat_id: int, limit: int, retries: int = 3):
@@ -250,11 +229,9 @@ class V2RayExtractor:
             is_active = False
             try:
                 async for last_msg in self.client.get_chat_history(chat_id, limit=1):
-                    if last_msg.date > (datetime.datetime.now() - datetime.timedelta(days=CHANNEL_MAX_INACTIVE_DAYS)):
-                        is_active = True
+                    if last_msg.date > (datetime.datetime.now() - datetime.timedelta(days=CHANNEL_MAX_INACTIVE_DAYS)): is_active = True
                     break 
             except: pass
-
             if not is_active:
                 print(f"💤 Skipping {chat_id}: Inactive or empty.")
                 return
@@ -265,13 +242,11 @@ class V2RayExtractor:
                 if message.entities:
                     valid_types = [enums.MessageEntityType.CODE, enums.MessageEntityType.PRE]
                     for attr in ['BLOCKQUOTE', 'EXPANDABLE_BLOCKQUOTE']:
-                        if hasattr(enums.MessageEntityType, attr):
-                            valid_types.append(getattr(enums.MessageEntityType, attr))
+                        if hasattr(enums.MessageEntityType, attr): valid_types.append(getattr(enums.MessageEntityType, attr))
                     for entity in message.entities:
                         if entity.type in valid_types:
                             raw_segment = text_to_check[entity.offset : entity.offset + entity.length]
-                            cleaned_segment = raw_segment.replace('\n', '').replace(' ', '')
-                            texts_to_scan.append(cleaned_segment)
+                            texts_to_scan.append(raw_segment.replace('\n', '').replace(' ', ''))
                 for b64_str in BASE64_PATTERN.findall(text_to_check):
                     try:
                         decoded = base64.b64decode(b64_str + '=' * 4).decode('utf-8', errors='ignore')
@@ -283,11 +258,9 @@ class V2RayExtractor:
             self.raw_configs.update(local_configs)
         except FloodWait as e:
             if retries > 0:
-                print(f"⏳ FloodWait {e.value}s in {chat_id}. Sleeping...")
                 await asyncio.sleep(e.value + 2)
                 await self.find_raw_configs_from_chat(chat_id, limit, retries - 1)
-        except Exception as e:
-            print(f"❌ Error scanning {chat_id}: {e}")
+        except Exception as e: print(f"❌ Error scanning {chat_id}: {e}")
 
     def split_configs_by_country(self, links: List[str]):
         target_countries = {'US': 'conf-US.txt', 'DE': 'conf-DE.txt', 'NL': 'conf-NL.txt', 'GB': 'conf-UK.txt', 'FR': 'conf-FR.txt'}
@@ -298,8 +271,7 @@ class V2RayExtractor:
             host = proxy.get('server')
             if not host: continue
             iso_code = self.get_country_iso_code(host)
-            if iso_code in target_countries:
-                country_buckets[iso_code].append(link)
+            if iso_code in target_countries: country_buckets[iso_code].append(link)
         for code, filename in target_countries.items():
             configs = country_buckets[code]
             with open(filename, 'w', encoding='utf-8') as f: f.write("\n".join(sorted(configs)))
@@ -315,13 +287,11 @@ class V2RayExtractor:
         new_history = {}
         for base_cfg, meta in history.items():
             try:
-                if datetime.datetime.fromisoformat(meta['date']) > cutoff:
-                    new_history[base_cfg] = meta
+                if datetime.datetime.fromisoformat(meta['date']) > cutoff: new_history[base_cfg] = meta
             except: pass
         for cfg in new_configs:
             base = cfg.split('#')[0]
-            if base not in new_history:
-                new_history[base] = {"link": cfg, "date": now.isoformat()}
+            if base not in new_history: new_history[base] = {"link": cfg, "date": now.isoformat()}
         with open(HISTORY_FILE, 'w') as f: json.dump(new_history, f, indent=2)
         final_links = [meta['link'] for meta in new_history.values()]
         with open(WEEKLY_FILE, 'w', encoding='utf-8') as f: f.write("\n".join(sorted(final_links)))
@@ -353,8 +323,7 @@ class V2RayExtractor:
             except: pass
         for cfg in new_configs:
             uid = get_unique_id(cfg)
-            if uid not in new_history:
-                new_history[uid] = {"link": cfg, "date": now.isoformat()}
+            if uid not in new_history: new_history[uid] = {"link": cfg, "date": now.isoformat()}
         with open(NO_CF_HISTORY_FILE, 'w') as f: json.dump(new_history, f, indent=2)
         final_links = [meta['link'] for meta in new_history.values()]
         with open(OUTPUT_NO_CF, 'w', encoding='utf-8') as f: f.write("\n".join(sorted(final_links)))
@@ -423,16 +392,18 @@ class V2RayExtractor:
         seen_names = set()
 
         for p in proxies:
-            # 1. Validation
             if p.get('type') in ['vless', 'vmess', 'tuic'] and not p.get('uuid'): continue
             if p.get('type') == 'trojan' and not p.get('password'): continue
             if p.get('type') == 'ss' and (not p.get('cipher') or not p.get('password')): continue
             
-            # 2. Server Address Sanity
-            server = p.get('server', '')
+            # --- FIX: Sanitize Server Address (Fixes "server port" on same line) ---
+            server = str(p.get('server', '')).strip()
+            # Remove any garbage suffix like " port: 80" that might be present
+            if ' ' in server: server = server.split(' ')[0]
             if not server or len(server) > 50 or re.search(r'[^\w\.\-\:]', server): continue
+            p['server'] = server
+            # -----------------------------------------------------------------------
 
-            # 3. SNI Sanity
             sni = p.get('servername') or p.get('sni')
             if sni:
                 if re.search(r'[^\w\.\-]', sni):
@@ -440,13 +411,10 @@ class V2RayExtractor:
                     p['sni'] = None
                     if p.get('tls'): p['servername'] = 'google.com'
 
-            # 4. Remove Unsupported Networks
             if p.get('network') in ['xhttp', 'httpupgrade']: continue
-
-            # 5. Clean up None values
+            
             p_clean = {k: v for k, v in p.items() if v is not None and v != ''}
             
-            # 6. Duplicate Name Handling
             name = p_clean['name']
             counter = 1
             original_name = name
@@ -475,42 +443,23 @@ class V2RayExtractor:
             "geo-auto-update": True,
             "geo-update-interval": 168,
             "external-controller": "127.0.0.1:9090",
-            "external-controller-cors": {
-                "allow-origins": ["*"],
-                "allow-private-network": True
-            },
+            "external-controller-cors": {"allow-origins": ["*"], "allow-private-network": True},
             "external-ui": "ui",
             "external-ui-url": "https://github.com/MetaCubeX/metacubexd/archive/refs/heads/gh-pages.zip",
-            "profile": {
-                "store-selected": True,
-                "store-fake-ip": True
-            },
+            "profile": {"store-selected": True, "store-fake-ip": True},
             "dns": {
                 "enable": True,
                 "respect-rules": True,
                 "use-system-hosts": False,
                 "listen": "127.0.0.1:1053",
                 "ipv6": True,
-                "enhanced-mode": "fake-ip", 
+                "enhanced-mode": "fake-ip",
                 "fake-ip-range": "198.18.0.1/16",
-                "nameserver": [
-                    "https://8.8.8.8/dns-query",
-                    "https://1.1.1.1/dns-query"
-                ],
-                "proxy-server-nameserver": [
-                    "8.8.8.8",
-                    "1.1.1.1"
-                ],
-                "direct-nameserver": [
-                    "8.8.8.8",
-                    "1.1.1.1",
-                    "https://1.1.1.1/dns-query"
-                ],
+                "nameserver": ["https://8.8.8.8/dns-query", "https://1.1.1.1/dns-query"],
+                "proxy-server-nameserver": ["8.8.8.8", "1.1.1.1"],
+                "direct-nameserver": ["8.8.8.8", "1.1.1.1", "https://1.1.1.1/dns-query"],
                 "direct-nameserver-follow-policy": True,
-                "nameserver-policy": {
-                    "geosite:ir": "https://1.1.1.1/dns-query",
-                    "geosite:cn": "https://1.1.1.1/dns-query"
-                }
+                "nameserver-policy": {"geosite:ir": "https://1.1.1.1/dns-query", "geosite:cn": "https://1.1.1.1/dns-query"}
             },
             "tun": {
                 "enable": True,
@@ -558,30 +507,9 @@ class V2RayExtractor:
                 }
             ],
             "rule-providers": {
-                "iran_domains": {
-                    "type": "http",
-                    "behavior": "domain",
-                    "format": "text",
-                    "url": "https://raw.githubusercontent.com/Chocolate4U/Iran-clash-rules/release/ir.txt",
-                    "path": "./rules/ir.txt",
-                    "interval": 86400
-                },
-                "iran_ips": {
-                    "type": "http",
-                    "behavior": "ipcidr",
-                    "format": "text",
-                    "url": "https://raw.githubusercontent.com/Chocolate4U/Iran-clash-rules/release/ircidr.txt",
-                    "path": "./rules/ircidr.txt",
-                    "interval": 86400
-                },
-                "ad_domains": {
-                    "type": "http",
-                    "behavior": "domain",
-                    "format": "yaml",
-                    "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/category-ads-all.yaml",
-                    "path": "./rules/ads.yaml",
-                    "interval": 86400
-                }
+                "iran_domains": {"type": "http", "behavior": "domain", "format": "text", "url": "https://raw.githubusercontent.com/Chocolate4U/Iran-clash-rules/release/ir.txt", "path": "./rules/ir.txt", "interval": 86400},
+                "iran_ips": {"type": "http", "behavior": "ipcidr", "format": "text", "url": "https://raw.githubusercontent.com/Chocolate4U/Iran-clash-rules/release/ircidr.txt", "path": "./rules/ircidr.txt", "interval": 86400},
+                "ad_domains": {"type": "http", "behavior": "domain", "format": "yaml", "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/category-ads-all.yaml", "path": "./rules/ads.yaml", "interval": 86400}
             },
             "rules": [
                 "GEOIP,lan,DIRECT,no-resolve",
