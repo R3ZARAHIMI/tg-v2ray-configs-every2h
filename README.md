@@ -21,9 +21,9 @@ https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/Confi
 
 
 
-### ⚙️ فرمت کلاینت‌ها
+### ⚙️ فرمت سایر کلاینت‌ها
 
-**Clash Meta (YAML):**
+**Clash (YAML):**
 ```text
 https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/Config-jo.yaml
 ```
