@@ -31,12 +31,10 @@ OUTPUT_JSON_CONFIG_JO = "Config_jo.json"
 OUTPUT_ORIGINAL_CONFIGS = "Original-Configs.txt"
 OUTPUT_NO_CF = "Config_no_cf.txt"
 
-# فایل‌های سیستم هفتگی و تفکیک کشورها
 WEEKLY_FILE = "conf-week.txt"
 HISTORY_FILE = "conf-week-history.json"
 GEOIP_DATABASE_PATH = 'dbip-country-lite.mmdb'
 
-# فایل‌های مربوط به سیستم بدون کلودفلر (No CF)
 NO_CF_HISTORY_FILE = "no_cf_history.json"
 BLOCKED_IPS_FILE = "blocked_ips.txt"
 
@@ -175,7 +173,7 @@ class V2RayExtractor:
 
     def parse_trojan(self, trojan_url: str) -> Optional[Dict[str, Any]]:
         p, q = urlparse(trojan_url), parse_qs(urlparse(trojan_url).query)
-        return {'name': unquote(p.fragment or ''), 'type': 'trojan', 'server': p.hostname, 'port': p.port or 443, 'password': p.username, 'udp': True, 'sni': q.get('sni', [p.hostname])[0]}
+        return {'name': unquote(p.fragment or ''), 'type': 'trojan', 'server': p.hostname, 'port': p.port or 443, 'password': p.username, 'udp': True, 'sni': q.get('sni', [None])[0]}
 
     def parse_shadowsocks(self, ss_url: str) -> Optional[Dict[str, Any]]:
         try:
@@ -409,7 +407,6 @@ class V2RayExtractor:
             self.handle_no_cf_retention(clean_ip_configs)
             os.makedirs('rules', exist_ok=True)
             if proxies_list_clash:
-                # ساخت فایل کلش با تابع اصلاح شده
                 clash_config = self.build_pro_config(proxies_list_clash)
                 if clash_config:
                     with open(OUTPUT_YAML_PRO, 'w', encoding='utf-8') as f:
@@ -426,46 +423,45 @@ class V2RayExtractor:
         seen_names = set()
 
         for p in proxies:
-            # 1. Validation Basic
+            # 1. Validation
             if p.get('type') in ['vless', 'vmess', 'tuic'] and not p.get('uuid'): continue
             if p.get('type') == 'trojan' and not p.get('password'): continue
             if p.get('type') == 'ss' and (not p.get('cipher') or not p.get('password')): continue
             
-            # 2. Server Address Sanity Check (حذف سرورهای خراب و طولانی)
+            # 2. Server Address Sanity
             server = p.get('server', '')
-            if not server or len(server) > 50 or re.search(r'[^\w\.\-\:]', server):
-                continue
+            if not server or len(server) > 50 or re.search(r'[^\w\.\-\:]', server): continue
 
-            # 3. SNI Sanity Check (حذف اموجی و کاراکترهای غیرمجاز از SNI)
-            # اگر SNI خراب بود، کانفیگ حذف نمی‌شود بلکه SNI آن حذف یا اصلاح می‌شود
+            # 3. SNI Sanity
             sni = p.get('servername') or p.get('sni')
             if sni:
-                if re.search(r'[^\w\.\-]', sni): # اگر کاراکتر غیرمجاز داشت (مثل فاصله یا براکت)
-                    p['servername'] = None # حذف SNI خراب
+                if re.search(r'[^\w\.\-]', sni): # If contains invalid chars
+                    p['servername'] = None
                     p['sni'] = None
-                    if p.get('tls'): # اگر TLS بود باید یک SNI داشته باشد
-                         p['servername'] = 'google.com' # فال‌بک
+                    if p.get('tls'): p['servername'] = 'google.com' # Fallback for TLS
 
-            # 4. Network Compatibility Check (حذف xhttp که در کلش پشتیبانی نمی‌شود)
-            if p.get('network') in ['xhttp', 'httpupgrade']: 
-                continue
+            # 4. Remove Unsupported Networks
+            if p.get('network') in ['xhttp', 'httpupgrade']: continue
 
-            # 5. Duplicate Name Handling
-            name = p['name']
+            # 5. REMOVE NULL KEYS (Crucial fix for "sni: null")
+            # Create a clean copy of the dictionary without None values
+            p_clean = {k: v for k, v in p.items() if v is not None and v != ''}
+            
+            # 6. Duplicate Name Handling
+            name = p_clean['name']
             counter = 1
             original_name = name
             while name in seen_names:
                 name = f"{original_name}_{counter}"
                 counter += 1
             
-            p['name'] = name
+            p_clean['name'] = name
             seen_names.add(name)
             
-            clean_proxies.append(p)
+            clean_proxies.append(p_clean)
             clean_names.append(name)
 
-        if not clean_proxies:
-            return {}
+        if not clean_proxies: return {}
 
         return {
             'port': 7890,
@@ -496,13 +492,7 @@ class V2RayExtractor:
                 'blocked_domains': {'type': 'http', 'behavior': 'domain', 'url': "https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/blocked-domains.txt", 'path': './rules/blocked_domains.txt', 'interval': 86400},
                 'ad_domains': {'type': 'http', 'behavior': 'domain', 'url': "https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/ad-domains.txt", 'path': './rules/ad_domains.txt', 'interval': 86400}
             },
-            'rules': [
-                'RULE-SET,ad_domains,🛑 Block-Ads',
-                'RULE-SET,blocked_domains,PROXY',
-                'RULE-SET,iran_domains,🇮🇷 Iran',
-                'GEOIP,IR,🇮🇷 Iran',
-                'MATCH,PROXY'
-            ]
+            'rules': ['RULE-SET,ad_domains,🛑 Block-Ads', 'RULE-SET,blocked_domains,PROXY', 'RULE-SET,iran_domains,🇮🇷 Iran', 'GEOIP,IR,🇮🇷 Iran', 'MATCH,PROXY']
         }
 
     def build_sing_box_config(self, proxies_clash: List[Dict[str, Any]]) -> Dict[str, Any]:
