@@ -2,7 +2,6 @@ import re
 import asyncio
 import base64
 import json
-import yaml
 import os
 import datetime
 import ipaddress
@@ -106,9 +105,11 @@ class V2RayExtractor:
     def get_country_iso_code(self, hostname: str) -> str:
         if not hostname or not GEOIP_READER: return "N/A"
         try:
-            ip_address = hostname
-            try: socket.inet_aton(hostname)
-            except: ip_address = socket.gethostbyname(hostname)
+            # FIX: Ensure hostname is clean before looking up
+            clean_host = str(hostname).split()[0].strip()
+            ip_address = clean_host
+            try: socket.inet_aton(clean_host)
+            except: ip_address = socket.gethostbyname(clean_host)
             response = GEOIP_READER.country(ip_address)
             return response.country.iso_code or "N/A"
         except: return "N/A"
@@ -376,34 +377,41 @@ class V2RayExtractor:
             self.handle_no_cf_retention(clean_ip_configs)
             os.makedirs('rules', exist_ok=True)
             if proxies_list_clash:
-                clash_config = self.build_pro_config(proxies_list_clash)
-                if clash_config:
-                    with open(OUTPUT_YAML_PRO, 'w', encoding='utf-8') as f:
-                        yaml.dump(clash_config, f, allow_unicode=True, sort_keys=False, indent=2, width=120)
+                # Manual YAML generation to solve pyyaml issues and sanitize server addresses
+                yaml_content = self.generate_yaml_content(proxies_list_clash)
+                with open(OUTPUT_YAML_PRO, 'w', encoding='utf-8') as f: f.write(yaml_content)
+                
                 with open(OUTPUT_JSON_CONFIG_JO, 'w', encoding='utf-8') as f:
                     json.dump(self.build_sing_box_config(proxies_list_clash), f, ensure_ascii=False, indent=4)
         except Exception as e: print(f"❌ Error saving files: {e}")
         self.handle_weekly_file(renamed_txt_configs)
         print("\n✨ Done.")
 
-    def build_pro_config(self, proxies):
+    def generate_yaml_content(self, proxies):
         clean_proxies = []
         clean_names = []
         seen_names = set()
 
         for p in proxies:
+            # 1. Type validation
             if p.get('type') in ['vless', 'vmess', 'tuic'] and not p.get('uuid'): continue
             if p.get('type') == 'trojan' and not p.get('password'): continue
             if p.get('type') == 'ss' and (not p.get('cipher') or not p.get('password')): continue
             
-            # --- FIX: Sanitize Server Address (Fixes "server port" on same line) ---
-            server = str(p.get('server', '')).strip()
-            # Remove any garbage suffix like " port: 80" that might be present
-            if ' ' in server: server = server.split(' ')[0]
-            if not server or len(server) > 50 or re.search(r'[^\w\.\-\:]', server): continue
+            # 2. Server Address Sanity Check (Aggressive)
+            raw_server = str(p.get('server', '')).strip()
+            # This regex keeps only valid hostname/IP characters. It removes ports, spaces, tabs.
+            server_match = re.search(r'^[a-zA-Z0-9\.\-\_\:]+', raw_server)
+            if not server_match: continue
+            
+            server = server_match.group(0)
+            
+            # If server still looks too long or invalid, skip
+            if len(server) > 50 or not server: continue
+            
             p['server'] = server
-            # -----------------------------------------------------------------------
 
+            # 3. SNI Sanity
             sni = p.get('servername') or p.get('sni')
             if sni:
                 if re.search(r'[^\w\.\-]', sni):
@@ -427,99 +435,182 @@ class V2RayExtractor:
             clean_proxies.append(p_clean)
             clean_names.append(name)
 
-        if not clean_proxies: return {}
+        if not clean_proxies: return ""
 
-        return {
-            "mixed-port": 7890,
-            "ipv6": True,
-            "allow-lan": False,
-            "unified-delay": False,
-            "log-level": "info",
-            "mode": "rule",
-            "disable-keep-alive": False,
-            "keep-alive-idle": 10,
-            "keep-alive-interval": 15,
-            "tcp-concurrent": True,
-            "geo-auto-update": True,
-            "geo-update-interval": 168,
-            "external-controller": "127.0.0.1:9090",
-            "external-controller-cors": {"allow-origins": ["*"], "allow-private-network": True},
-            "external-ui": "ui",
-            "external-ui-url": "https://github.com/MetaCubeX/metacubexd/archive/refs/heads/gh-pages.zip",
-            "profile": {"store-selected": True, "store-fake-ip": True},
-            "dns": {
-                "enable": True,
-                "respect-rules": True,
-                "use-system-hosts": False,
-                "listen": "127.0.0.1:1053",
-                "ipv6": True,
-                "enhanced-mode": "fake-ip",
-                "fake-ip-range": "198.18.0.1/16",
-                "nameserver": ["https://8.8.8.8/dns-query", "https://1.1.1.1/dns-query"],
-                "proxy-server-nameserver": ["8.8.8.8", "1.1.1.1"],
-                "direct-nameserver": ["8.8.8.8", "1.1.1.1", "https://1.1.1.1/dns-query"],
-                "direct-nameserver-follow-policy": True,
-                "nameserver-policy": {"geosite:ir": "https://1.1.1.1/dns-query", "geosite:cn": "https://1.1.1.1/dns-query"}
-            },
-            "tun": {
-                "enable": True,
-                "stack": "mixed",
-                "auto-route": True,
-                "strict-route": True,
-                "auto-detect-interface": True,
-                "dns-hijack": ["any:53", "tcp://any:53"],
-                "mtu": 9000
-            },
-            "sniffer": {
-                "enable": True,
-                "force-dns-mapping": True,
-                "parse-pure-ip": True,
-                "override-destination": True,
-                "sniff": {
-                    "HTTP": {"ports": [80, 8080, 8880, 2052, 2082, 2086, 2095]},
-                    "TLS": {"ports": [443, 8443, 2053, 2083, 2087, 2096]}
-                }
-            },
-            "proxies": clean_proxies,
-            "proxy-groups": [
-                {
-                    "name": "PROXY",
-                    "type": "select",
-                    "proxies": ["⚡ Auto-Select", "DIRECT", *clean_names]
-                },
-                {
-                    "name": "⚡ Auto-Select",
-                    "type": "url-test",
-                    "proxies": clean_names,
-                    "url": "https://www.gstatic.com/generate_204",
-                    "interval": 300,
-                    "tolerance": 50
-                },
-                {
-                    "name": "🇮🇷 Iran",
-                    "type": "select",
-                    "proxies": ["DIRECT", "PROXY"]
-                },
-                {
-                    "name": "🛑 Block-Ads",
-                    "type": "select",
-                    "proxies": ["REJECT", "DIRECT"]
-                }
-            ],
-            "rule-providers": {
-                "iran_domains": {"type": "http", "behavior": "domain", "format": "text", "url": "https://raw.githubusercontent.com/Chocolate4U/Iran-clash-rules/release/ir.txt", "path": "./rules/ir.txt", "interval": 86400},
-                "iran_ips": {"type": "http", "behavior": "ipcidr", "format": "text", "url": "https://raw.githubusercontent.com/Chocolate4U/Iran-clash-rules/release/ircidr.txt", "path": "./rules/ircidr.txt", "interval": 86400},
-                "ad_domains": {"type": "http", "behavior": "domain", "format": "yaml", "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/category-ads-all.yaml", "path": "./rules/ads.yaml", "interval": 86400}
-            },
-            "rules": [
-                "GEOIP,lan,DIRECT,no-resolve",
-                "RULE-SET,ad_domains,🛑 Block-Ads",
-                "RULE-SET,iran_domains,🇮🇷 Iran",
-                "RULE-SET,iran_ips,🇮🇷 Iran",
-                "GEOIP,IR,🇮🇷 Iran",
-                "MATCH,PROXY"
-            ]
-        }
+        # HEADER
+        yaml_str = """mixed-port: 7890
+ipv6: true
+allow-lan: false
+unified-delay: false
+log-level: info
+mode: rule
+disable-keep-alive: false
+keep-alive-idle: 10
+keep-alive-interval: 15
+tcp-concurrent: true
+geo-auto-update: true
+geo-update-interval: 168
+external-controller: 127.0.0.1:9090
+external-controller-cors:
+  allow-origins:
+  - '*'
+  allow-private-network: true
+external-ui: ui
+external-ui-url: https://github.com/MetaCubeX/metacubexd/archive/refs/heads/gh-pages.zip
+profile:
+  store-selected: true
+  store-fake-ip: true
+dns:
+  enable: true
+  respect-rules: true
+  use-system-hosts: false
+  listen: 127.0.0.1:1053
+  ipv6: true
+  enhanced-mode: fake-ip
+  fake-ip-range: 198.18.0.1/16
+  nameserver:
+  - https://8.8.8.8/dns-query
+  - https://1.1.1.1/dns-query
+  proxy-server-nameserver:
+  - 8.8.8.8
+  - 1.1.1.1
+  direct-nameserver:
+  - 8.8.8.8
+  - 1.1.1.1
+  - https://1.1.1.1/dns-query
+  direct-nameserver-follow-policy: true
+  nameserver-policy:
+    geosite:ir: https://1.1.1.1/dns-query
+    geosite:cn: https://1.1.1.1/dns-query
+tun:
+  enable: true
+  stack: mixed
+  auto-route: true
+  strict-route: true
+  auto-detect-interface: true
+  dns-hijack:
+  - any:53
+  - tcp://any:53
+  mtu: 9000
+sniffer:
+  enable: true
+  force-dns-mapping: true
+  parse-pure-ip: true
+  override-destination: true
+  sniff:
+    HTTP:
+      ports:
+      - 80
+      - 8080
+      - 8880
+      - 2052
+      - 2082
+      - 2086
+      - 2095
+    TLS:
+      ports:
+      - 443
+      - 8443
+      - 2053
+      - 2083
+      - 2087
+      - 2096
+proxies:
+"""
+        # PROXIES LOOP
+        for p in clean_proxies:
+            yaml_str += f"- name: {p['name']}\n"
+            yaml_str += f"  type: {p['type']}\n"
+            yaml_str += f"  server: {p['server']}\n"
+            yaml_str += f"  port: {p['port']}\n"
+            
+            for key, val in p.items():
+                if key in ['name', 'type', 'server', 'port']: continue
+                if isinstance(val, bool):
+                    yaml_str += f"  {key}: {str(val).lower()}\n"
+                elif isinstance(val, dict):
+                    yaml_str += f"  {key}:\n"
+                    for k2, v2 in val.items():
+                        if isinstance(v2, dict):
+                            yaml_str += f"    {k2}:\n"
+                            for k3, v3 in v2.items():
+                                yaml_str += f"      {k3}: {v3}\n"
+                        else:
+                            yaml_str += f"    {k2}: {v2}\n"
+                elif isinstance(val, list):
+                    yaml_str += f"  {key}:\n"
+                    for item in val:
+                        yaml_str += f"  - {item}\n"
+                else:
+                    safe_val = str(val)
+                    if ':' in safe_val or '{' in safe_val or '[' in safe_val:
+                         safe_val = f"'{safe_val}'"
+                    yaml_str += f"  {key}: {safe_val}\n"
+
+        # PROXY GROUPS
+        yaml_str += "proxy-groups:\n"
+        
+        # 1. Main Proxy Group
+        yaml_str += "- name: PROXY\n"
+        yaml_str += "  type: select\n"
+        yaml_str += "  proxies:\n"
+        yaml_str += "  - ⚡ Auto-Select\n"
+        yaml_str += "  - DIRECT\n"
+        for name in clean_names:
+            yaml_str += f"  - {name}\n"
+
+        # 2. Auto Select Group
+        yaml_str += "- name: ⚡ Auto-Select\n"
+        yaml_str += "  type: url-test\n"
+        yaml_str += "  proxies:\n"
+        for name in clean_names:
+            yaml_str += f"  - {name}\n"
+        yaml_str += "  url: https://www.gstatic.com/generate_204\n"
+        yaml_str += "  interval: 300\n"
+        yaml_str += "  tolerance: 50\n"
+
+        # 3. Static Groups
+        yaml_str += """- name: 🇮🇷 Iran
+  type: select
+  proxies:
+  - DIRECT
+  - PROXY
+- name: 🛑 Block-Ads
+  type: select
+  proxies:
+  - REJECT
+  - DIRECT
+rule-providers:
+  iran_domains:
+    type: http
+    behavior: domain
+    format: text
+    url: https://raw.githubusercontent.com/Chocolate4U/Iran-clash-rules/release/ir.txt
+    path: ./rules/ir.txt
+    interval: 86400
+  iran_ips:
+    type: http
+    behavior: ipcidr
+    format: text
+    url: https://raw.githubusercontent.com/Chocolate4U/Iran-clash-rules/release/ircidr.txt
+    path: ./rules/ircidr.txt
+    interval: 86400
+  ad_domains:
+    type: http
+    behavior: domain
+    format: yaml
+    url: https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/category-ads-all.yaml
+    path: ./rules/ads.yaml
+    interval: 86400
+rules:
+- GEOIP,lan,DIRECT,no-resolve
+- RULE-SET,ad_domains,🛑 Block-Ads
+- RULE-SET,iran_domains,🇮🇷 Iran
+- RULE-SET,iran_ips,🇮🇷 Iran
+- GEOIP,IR,🇮🇷 Iran
+- MATCH,PROXY
+"""
+        return yaml_str
 
     def build_sing_box_config(self, proxies_clash: List[Dict[str, Any]]) -> Dict[str, Any]:
         outbounds = [p for p in (self.convert_to_singbox_outbound(proxy) for proxy in proxies_clash) if p]
