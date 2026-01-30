@@ -435,16 +435,15 @@ class V2RayExtractor:
             # 3. SNI Sanity
             sni = p.get('servername') or p.get('sni')
             if sni:
-                if re.search(r'[^\w\.\-]', sni): # If contains invalid chars
+                if re.search(r'[^\w\.\-]', sni):
                     p['servername'] = None
                     p['sni'] = None
-                    if p.get('tls'): p['servername'] = 'google.com' # Fallback for TLS
+                    if p.get('tls'): p['servername'] = 'google.com'
 
             # 4. Remove Unsupported Networks
             if p.get('network') in ['xhttp', 'httpupgrade']: continue
 
-            # 5. REMOVE NULL KEYS (Crucial fix for "sni: null")
-            # Create a clean copy of the dictionary without None values
+            # 5. Clean up None values
             p_clean = {k: v for k, v in p.items() if v is not None and v != ''}
             
             # 6. Duplicate Name Handling
@@ -457,42 +456,141 @@ class V2RayExtractor:
             
             p_clean['name'] = name
             seen_names.add(name)
-            
             clean_proxies.append(p_clean)
             clean_names.append(name)
 
         if not clean_proxies: return {}
 
         return {
-            'port': 7890,
-            'socks-port': 7891,
-            'allow-lan': True,
-            'mode': 'rule',
-            'log-level': 'info',
-            'external-controller': '127.0.0.1:9090',
-            'dns': {
-                'enable': True,
-                'listen': '0.0.0.0:53',
-                'default-nameserver': ['8.8.8.8', '1.1.1.1'],
-                'enhanced-mode': 'fake-ip',
-                'fake-ip-range': '198.18.0.1/16',
-                'nameserver': ['https://dns.google/dns-query', 'https://cloudflare-dns.com/dns-query'],
-                'fallback': ['https://dns.google/dns-query', 'https://cloudflare-dns.com/dns-query'],
-                'fallback-filter': {'geoip': True, 'ipcidr': ['240.0.0.0/4', '0.0.0.0/32']}
+            "mixed-port": 7890,
+            "ipv6": True,
+            "allow-lan": False,
+            "unified-delay": False,
+            "log-level": "info",
+            "mode": "rule",
+            "disable-keep-alive": False,
+            "keep-alive-idle": 10,
+            "keep-alive-interval": 15,
+            "tcp-concurrent": True,
+            "geo-auto-update": True,
+            "geo-update-interval": 168,
+            "external-controller": "127.0.0.1:9090",
+            "external-controller-cors": {
+                "allow-origins": ["*"],
+                "allow-private-network": True
             },
-            'proxies': clean_proxies,
-            'proxy-groups': [
-                {'name': 'PROXY', 'type': 'select', 'proxies': ['⚡ Auto-Select', 'DIRECT', *clean_names]},
-                {'name': '⚡ Auto-Select', 'type': 'url-test', 'proxies': clean_names, 'url': 'http://www.gstatic.com/generate_204', 'interval': 300},
-                {'name': '🇮🇷 Iran', 'type': 'select', 'proxies': ['DIRECT', 'PROXY']},
-                {'name': '🛑 Block-Ads', 'type': 'select', 'proxies': ['REJECT', 'DIRECT']}
+            "external-ui": "ui",
+            "external-ui-url": "https://github.com/MetaCubeX/metacubexd/archive/refs/heads/gh-pages.zip",
+            "profile": {
+                "store-selected": True,
+                "store-fake-ip": True
+            },
+            "dns": {
+                "enable": True,
+                "respect-rules": True,
+                "use-system-hosts": False,
+                "listen": "127.0.0.1:1053",
+                "ipv6": True,
+                "enhanced-mode": "fake-ip", 
+                "fake-ip-range": "198.18.0.1/16",
+                "nameserver": [
+                    "https://8.8.8.8/dns-query",
+                    "https://1.1.1.1/dns-query"
+                ],
+                "proxy-server-nameserver": [
+                    "8.8.8.8",
+                    "1.1.1.1"
+                ],
+                "direct-nameserver": [
+                    "8.8.8.8",
+                    "1.1.1.1",
+                    "https://1.1.1.1/dns-query"
+                ],
+                "direct-nameserver-follow-policy": True,
+                "nameserver-policy": {
+                    "geosite:ir": "https://1.1.1.1/dns-query",
+                    "geosite:cn": "https://1.1.1.1/dns-query"
+                }
+            },
+            "tun": {
+                "enable": True,
+                "stack": "mixed",
+                "auto-route": True,
+                "strict-route": True,
+                "auto-detect-interface": True,
+                "dns-hijack": ["any:53", "tcp://any:53"],
+                "mtu": 9000
+            },
+            "sniffer": {
+                "enable": True,
+                "force-dns-mapping": True,
+                "parse-pure-ip": True,
+                "override-destination": True,
+                "sniff": {
+                    "HTTP": {"ports": [80, 8080, 8880, 2052, 2082, 2086, 2095]},
+                    "TLS": {"ports": [443, 8443, 2053, 2083, 2087, 2096]}
+                }
+            },
+            "proxies": clean_proxies,
+            "proxy-groups": [
+                {
+                    "name": "PROXY",
+                    "type": "select",
+                    "proxies": ["⚡ Auto-Select", "DIRECT", *clean_names]
+                },
+                {
+                    "name": "⚡ Auto-Select",
+                    "type": "url-test",
+                    "proxies": clean_names,
+                    "url": "https://www.gstatic.com/generate_204",
+                    "interval": 300,
+                    "tolerance": 50
+                },
+                {
+                    "name": "🇮🇷 Iran",
+                    "type": "select",
+                    "proxies": ["DIRECT", "PROXY"]
+                },
+                {
+                    "name": "🛑 Block-Ads",
+                    "type": "select",
+                    "proxies": ["REJECT", "DIRECT"]
+                }
             ],
-            'rule-providers': {
-                'iran_domains': {'type': 'http', 'behavior': 'domain', 'url': "https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/iran-domains.txt", 'path': './rules/iran_domains.txt', 'interval': 86400},
-                'blocked_domains': {'type': 'http', 'behavior': 'domain', 'url': "https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/blocked-domains.txt", 'path': './rules/blocked_domains.txt', 'interval': 86400},
-                'ad_domains': {'type': 'http', 'behavior': 'domain', 'url': "https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/ad-domains.txt", 'path': './rules/ad_domains.txt', 'interval': 86400}
+            "rule-providers": {
+                "iran_domains": {
+                    "type": "http",
+                    "behavior": "domain",
+                    "format": "text",
+                    "url": "https://raw.githubusercontent.com/Chocolate4U/Iran-clash-rules/release/ir.txt",
+                    "path": "./rules/ir.txt",
+                    "interval": 86400
+                },
+                "iran_ips": {
+                    "type": "http",
+                    "behavior": "ipcidr",
+                    "format": "text",
+                    "url": "https://raw.githubusercontent.com/Chocolate4U/Iran-clash-rules/release/ircidr.txt",
+                    "path": "./rules/ircidr.txt",
+                    "interval": 86400
+                },
+                "ad_domains": {
+                    "type": "http",
+                    "behavior": "domain",
+                    "format": "yaml",
+                    "url": "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/category-ads-all.yaml",
+                    "path": "./rules/ads.yaml",
+                    "interval": 86400
+                }
             },
-            'rules': ['RULE-SET,ad_domains,🛑 Block-Ads', 'RULE-SET,blocked_domains,PROXY', 'RULE-SET,iran_domains,🇮🇷 Iran', 'GEOIP,IR,🇮🇷 Iran', 'MATCH,PROXY']
+            "rules": [
+                "GEOIP,lan,DIRECT,no-resolve",
+                "RULE-SET,ad_domains,🛑 Block-Ads",
+                "RULE-SET,iran_domains,🇮🇷 Iran",
+                "RULE-SET,iran_ips,🇮🇷 Iran",
+                "GEOIP,IR,🇮🇷 Iran",
+                "MATCH,PROXY"
+            ]
         }
 
     def build_sing_box_config(self, proxies_clash: List[Dict[str, Any]]) -> Dict[str, Any]:
