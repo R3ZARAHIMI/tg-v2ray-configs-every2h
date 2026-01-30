@@ -105,7 +105,6 @@ class V2RayExtractor:
     def get_country_iso_code(self, hostname: str) -> str:
         if not hostname or not GEOIP_READER: return "N/A"
         try:
-            # FIX: Ensure hostname is clean before looking up
             clean_host = str(hostname).split()[0].strip()
             ip_address = clean_host
             try: socket.inet_aton(clean_host)
@@ -377,7 +376,6 @@ class V2RayExtractor:
             self.handle_no_cf_retention(clean_ip_configs)
             os.makedirs('rules', exist_ok=True)
             if proxies_list_clash:
-                # Manual YAML generation to solve pyyaml issues and sanitize server addresses
                 yaml_content = self.generate_yaml_content(proxies_list_clash)
                 with open(OUTPUT_YAML_PRO, 'w', encoding='utf-8') as f: f.write(yaml_content)
                 
@@ -393,25 +391,15 @@ class V2RayExtractor:
         seen_names = set()
 
         for p in proxies:
-            # 1. Type validation
             if p.get('type') in ['vless', 'vmess', 'tuic'] and not p.get('uuid'): continue
             if p.get('type') == 'trojan' and not p.get('password'): continue
             if p.get('type') == 'ss' and (not p.get('cipher') or not p.get('password')): continue
             
-            # 2. Server Address Sanity Check (Aggressive)
-            raw_server = str(p.get('server', '')).strip()
-            # This regex keeps only valid hostname/IP characters. It removes ports, spaces, tabs.
-            server_match = re.search(r'^[a-zA-Z0-9\.\-\_\:]+', raw_server)
-            if not server_match: continue
-            
-            server = server_match.group(0)
-            
-            # If server still looks too long or invalid, skip
-            if len(server) > 50 or not server: continue
-            
+            server = str(p.get('server', '')).strip()
+            if ' ' in server: server = server.split(' ')[0]
+            if not server or len(server) > 50 or re.search(r'[^\w\.\-\:]', server): continue
             p['server'] = server
 
-            # 3. SNI Sanity
             sni = p.get('servername') or p.get('sni')
             if sni:
                 if re.search(r'[^\w\.\-]', sni):
@@ -437,7 +425,6 @@ class V2RayExtractor:
 
         if not clean_proxies: return ""
 
-        # HEADER
         yaml_str = """mixed-port: 7890
 ipv6: true
 allow-lan: false
@@ -517,7 +504,6 @@ sniffer:
       - 2096
 proxies:
 """
-        # PROXIES LOOP
         for p in clean_proxies:
             yaml_str += f"- name: {p['name']}\n"
             yaml_str += f"  type: {p['type']}\n"
@@ -529,12 +515,18 @@ proxies:
                 if isinstance(val, bool):
                     yaml_str += f"  {key}: {str(val).lower()}\n"
                 elif isinstance(val, dict):
+                    # Recursive clean for dicts
+                    clean_val = {k: v for k, v in val.items() if v is not None and v != ''}
+                    if not clean_val: continue
+                    
                     yaml_str += f"  {key}:\n"
-                    for k2, v2 in val.items():
+                    for k2, v2 in clean_val.items():
                         if isinstance(v2, dict):
-                            yaml_str += f"    {k2}:\n"
-                            for k3, v3 in v2.items():
-                                yaml_str += f"      {k3}: {v3}\n"
+                             clean_v2 = {k: v for k, v in v2.items() if v is not None and v != ''}
+                             if not clean_v2: continue
+                             yaml_str += f"    {k2}:\n"
+                             for k3, v3 in clean_v2.items():
+                                 yaml_str += f"      {k3}: {v3}\n"
                         else:
                             yaml_str += f"    {k2}: {v2}\n"
                 elif isinstance(val, list):
@@ -547,10 +539,7 @@ proxies:
                          safe_val = f"'{safe_val}'"
                     yaml_str += f"  {key}: {safe_val}\n"
 
-        # PROXY GROUPS
         yaml_str += "proxy-groups:\n"
-        
-        # 1. Main Proxy Group
         yaml_str += "- name: PROXY\n"
         yaml_str += "  type: select\n"
         yaml_str += "  proxies:\n"
@@ -559,7 +548,6 @@ proxies:
         for name in clean_names:
             yaml_str += f"  - {name}\n"
 
-        # 2. Auto Select Group
         yaml_str += "- name: ⚡ Auto-Select\n"
         yaml_str += "  type: url-test\n"
         yaml_str += "  proxies:\n"
@@ -569,7 +557,6 @@ proxies:
         yaml_str += "  interval: 300\n"
         yaml_str += "  tolerance: 50\n"
 
-        # 3. Static Groups
         yaml_str += """- name: 🇮🇷 Iran
   type: select
   proxies:
