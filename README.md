@@ -14,12 +14,12 @@
 
 ### 📦 لینک‌های اصلی
 
-**⭐ سابسکرایب اصلی (سبک و پیشنهادی):**
+**⭐ سابسکرایب اصلی :**
 ```text
 https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/Config_jo.txt
 ```
 
----
+
 
 ### ⚙️ فرمت کلاینت‌ها
 
@@ -48,6 +48,7 @@ https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/Confi
 https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-week.txt
 ```
 
+---
 ---
 
 ## 🌍 سابسکرایب بر اساس کشور 
