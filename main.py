@@ -8,20 +8,26 @@ from pyrogram import Client
 from pyrogram.errors import FloodWait
 from typing import Optional, Dict, Any, Set, List
 
-# ================================================================================
-# GLOBAL FILTERS
-# ================================================================================
+# =============================================================================
+# FILTERS
+# =============================================================================
 
-BAD_CIPHERS = {"rc4-md5", "aes-128-cfb", "aes-256-cfb"}
+BAD_SS_CIPHERS = {
+    "rc4-md5",
+    "aes-128-cfb",
+    "aes-192-cfb",
+    "aes-256-cfb"
+}
 
 BAD_HOST_KEYWORDS = {
-    "cloudflare", "workers.dev", "pages.dev", "github.io", "vercel.app",
-    "arvan", "derak"
+    "cloudflare", "workers.dev", "pages.dev",
+    "github.io", "vercel.app", "arvan", "derak"
 }
 
 PUBLIC_DOMAINS = {
-    "chatgpt.com", "speedtest.net", "google.com", "bing.com",
-    "yahoo.com", "wikipedia.org", "telegram.org", "instagram.com"
+    "google.com", "bing.com", "yahoo.com",
+    "wikipedia.org", "telegram.org", "instagram.com",
+    "speedtest.net", "chatgpt.com"
 }
 
 UUID_REGEX = re.compile(
@@ -33,50 +39,69 @@ UUID_REGEX = re.compile(
 )
 
 V2RAY_PATTERNS = [
-    re.compile(r'(vless:\/\/[^\s\'\"<>`]+)'),
-    re.compile(r'(vmess:\/\/[^\s\'\"<>`]+)'),
-    re.compile(r'(trojan:\/\/[^\s\'\"<>`]+)'),
-    re.compile(r'(ss:\/\/[^\s\'\"<>`]+)'),
-    re.compile(r"(hysteria2:\/\/[^\s'\"<>`]+)"),
-    re.compile(r"(hy2:\/\/[^\s'\"<>`]+)"),
-    re.compile(r"(tuic:\/\/[^\s'\"<>`]+)")
+    re.compile(r'(vless://[^\s\'\"<>`]+)'),
+    re.compile(r'(vmess://[^\s\'\"<>`]+)'),
+    re.compile(r'(trojan://[^\s\'\"<>`]+)'),
+    re.compile(r'(ss://[^\s\'\"<>`]+)'),
+    re.compile(r'(hysteria2://[^\s\'\"<>`]+)'),
+    re.compile(r'(hy2://[^\s\'\"<>`]+)'),
+    re.compile(r'(tuic://[^\s\'\"<>`]+)')
 ]
 
-# ================================================================================
+# =============================================================================
 # SETTINGS
-# ================================================================================
+# =============================================================================
 
-API_ID = int(os.environ.get("API_ID"))
-API_HASH = os.environ.get("API_HASH")
-SESSION_STRING = os.environ.get("SESSION_STRING")
-CHANNELS_STR = os.environ.get("CHANNELS_LIST")
-GROUPS_STR = os.environ.get("GROUPS_LIST")
+API_ID = int(os.environ["API_ID"])
+API_HASH = os.environ["API_HASH"]
+SESSION_STRING = os.environ["SESSION_STRING"]
 
-CHANNEL_SEARCH_LIMIT = int(os.environ.get("CHANNEL_SEARCH_LIMIT", 5))
-GROUP_SEARCH_LIMIT = int(os.environ.get("GROUP_SEARCH_LIMIT", 100))
+CHANNELS = os.environ.get("CHANNELS_LIST", "").split(",")
+GROUPS = [int(x) for x in os.environ.get("GROUPS_LIST", "").split(",") if x]
 
-OUTPUT_SINGBOX = "sing-box.json"
+CHANNEL_LIMIT = int(os.environ.get("CHANNEL_SEARCH_LIMIT", 5))
+GROUP_LIMIT = int(os.environ.get("GROUP_SEARCH_LIMIT", 100))
 
-def process_lists():
-    channels = [c.strip() for c in CHANNELS_STR.split(',')] if CHANNELS_STR else []
-    groups = []
-    if GROUPS_STR:
-        try:
-            groups = [int(g.strip()) for g in GROUPS_STR.split(',')]
-        except:
-            pass
-    return channels, groups
+OUTPUT_FILE = "sing-box.json"
 
-CHANNELS, GROUPS = process_lists()
+# =============================================================================
+# CLASH / SING-BOX SAFE FILTER
+# =============================================================================
 
-# ================================================================================
+def is_safe_proxy(p: Dict[str, Any]) -> bool:
+    server = p.get("server")
+    if not server:
+        return False
+
+    s = server.lower()
+    if s in PUBLIC_DOMAINS:
+        return False
+    if any(k in s for k in BAD_HOST_KEYWORDS):
+        return False
+
+    t = p["type"]
+
+    if t == "ss" and p.get("cipher") in BAD_SS_CIPHERS:
+        return False
+
+    if t in ("vmess", "vless", "tuic"):
+        if not p.get("uuid") or not UUID_REGEX.match(p["uuid"]):
+            return False
+
+    if t == "vless" and p.get("reality"):
+        r = p["reality"]
+        if not r.get("public_key") or not r.get("short_id"):
+            return False
+
+    return True
+
+# =============================================================================
 # MAIN CLASS
-# ================================================================================
+# =============================================================================
 
 class V2RayExtractor:
-
     def __init__(self):
-        self.raw_configs: Set[str] = set()
+        self.raw: Set[str] = set()
         self.client = Client(
             "my_account",
             api_id=API_ID,
@@ -84,293 +109,200 @@ class V2RayExtractor:
             session_string=SESSION_STRING
         )
 
-    # ---------------------------------------------------------------------------
-    # VALIDATION
-    # ---------------------------------------------------------------------------
-
-    def is_valid_proxy_object(self, p: Dict[str, Any]) -> bool:
-        server = p.get("server")
-        if not server:
-            return False
-
-        s = server.lower()
-        if s in PUBLIC_DOMAINS:
-            return False
-        if any(k in s for k in BAD_HOST_KEYWORDS):
-            return False
-
-        if p["type"] in ("vless", "vmess", "tuic"):
-            if not p.get("uuid") or not UUID_REGEX.match(p["uuid"]):
-                return False
-
-        if p["type"] == "trojan":
-            if not p.get("password") or len(str(p["password"])) < 6:
-                return False
-
-        if p["type"] == "ss" and p.get("cipher") in BAD_CIPHERS:
-            return False
-
-        if p["type"] == "vless" and p.get("reality-opts"):
-            r = p["reality-opts"]
-            if not r.get("public-key") or not r.get("short-id"):
-                return False
-
-        return True
-
-    # ---------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     # PARSERS
-    # ---------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
 
-    def parse_config_for_clash(self, url: str) -> Optional[Dict[str, Any]]:
+    def parse(self, url: str) -> Optional[Dict[str, Any]]:
         try:
             if url.startswith("vmess://"):
-                return self.parse_vmess(url)
+                data = json.loads(base64.b64decode(url[8:] + "==").decode())
+                return {
+                    "type": "vmess",
+                    "server": data.get("add"),
+                    "port": int(data.get("port", 443)),
+                    "uuid": data.get("id"),
+                    "tls": data.get("tls") == "tls",
+                    "servername": data.get("sni") or data.get("host"),
+                    "ws": data.get("net") == "ws",
+                    "ws_path": data.get("path"),
+                    "ws_host": data.get("host")
+                }
+
             if url.startswith("vless://"):
-                return self.parse_vless(url)
+                p = urlparse(url)
+                q = parse_qs(p.query)
+                return {
+                    "type": "vless",
+                    "server": p.hostname,
+                    "port": p.port or 443,
+                    "uuid": p.username,
+                    "servername": q.get("sni", [""])[0],
+                    "flow": q.get("flow", [""])[0],
+                    "reality": {
+                        "public_key": q.get("pbk", [""])[0],
+                        "short_id": q.get("sid", [""])[0]
+                    } if q.get("security", [""])[0] == "reality" else None
+                }
+
             if url.startswith("trojan://"):
-                return self.parse_trojan(url)
+                p = urlparse(url)
+                q = parse_qs(p.query)
+                return {
+                    "type": "trojan",
+                    "server": p.hostname,
+                    "port": p.port or 443,
+                    "password": p.username,
+                    "servername": q.get("sni", [""])[0]
+                }
+
             if url.startswith("ss://"):
-                return self.parse_ss(url)
+                raw = url[5:]
+                user, host = raw.split("@", 1)
+                cipher, password = base64.b64decode(user + "==").decode().split(":")
+                server, port = host.split(":")
+                return {
+                    "type": "ss",
+                    "server": server,
+                    "port": int(port),
+                    "cipher": cipher,
+                    "password": password
+                }
+
             if url.startswith(("hy2://", "hysteria2://")):
-                return self.parse_hysteria2(url)
+                p = urlparse(url)
+                return {
+                    "type": "hysteria2",
+                    "server": p.hostname,
+                    "port": p.port or 443,
+                    "password": p.username
+                }
+
             if url.startswith("tuic://"):
-                return self.parse_tuic(url)
+                p = urlparse(url)
+                q = parse_qs(p.query)
+                return {
+                    "type": "tuic",
+                    "server": p.hostname,
+                    "port": p.port or 443,
+                    "uuid": p.username,
+                    "password": q.get("password", [""])[0]
+                }
         except:
             return None
         return None
 
-    def parse_vmess(self, url: str):
-        data = json.loads(base64.b64decode(url[8:] + "==").decode())
-        return {
-            "type": "vmess",
-            "server": data.get("add"),
-            "port": int(data.get("port", 443)),
-            "uuid": data.get("id"),
-            "cipher": data.get("scy", "auto"),
-            "alterId": int(data.get("aid", 0)),
-            "tls": data.get("tls") == "tls",
-            "servername": data.get("sni") or data.get("host"),
-            "ws-opts": {
-                "path": data.get("path", "/"),
-                "headers": {"Host": data.get("host", "")}
-            } if data.get("net") == "ws" else None
-        }
+    # -------------------------------------------------------------------------
+    # SCAN
+    # -------------------------------------------------------------------------
 
-    def parse_vless(self, url: str):
-        p = urlparse(url)
-        q = parse_qs(p.query)
-
-        ws = None
-        if q.get("type", [""])[0] == "ws":
-            ws = {
-                "path": q.get("path", ["/"])[0],
-                "headers": {"Host": q.get("host", [""])[0]}
-            }
-
-        reality = None
-        if q.get("security", [""])[0] == "reality":
-            reality = {
-                "public-key": q.get("pbk", [""])[0],
-                "short-id": q.get("sid", [""])[0]
-            }
-
-        return {
-            "type": "vless",
-            "server": p.hostname,
-            "port": p.port or 443,
-            "uuid": p.username,
-            "flow": q.get("flow", [""])[0],
-            "tls": True,
-            "servername": q.get("sni", [""])[0],
-            "ws-opts": ws,
-            "reality-opts": reality
-        }
-
-    def parse_trojan(self, url: str):
-        p = urlparse(url)
-        q = parse_qs(p.query)
-        return {
-            "type": "trojan",
-            "server": p.hostname,
-            "port": p.port or 443,
-            "password": p.username,
-            "servername": q.get("sni", [""])[0]
-        }
-
-    def parse_ss(self, url: str):
-        raw = url[5:]
-        user, host = raw.split("@", 1)
-        cipher, password = base64.b64decode(user + "==").decode().split(":")
-        server, port = host.split(":")
-        return {
-            "type": "ss",
-            "server": server,
-            "port": int(port),
-            "cipher": cipher,
-            "password": password
-        }
-
-    def parse_hysteria2(self, url: str):
-        p = urlparse(url)
-        return {
-            "type": "hysteria2",
-            "server": p.hostname,
-            "port": p.port or 443,
-            "password": p.username,
-            "sni": p.hostname
-        }
-
-    def parse_tuic(self, url: str):
-        p = urlparse(url)
-        q = parse_qs(p.query)
-        return {
-            "type": "tuic",
-            "server": p.hostname,
-            "port": p.port or 443,
-            "uuid": p.username,
-            "password": q.get("password", [""])[0],
-            "sni": q.get("sni", [""])[0]
-        }
-
-    # ---------------------------------------------------------------------------
-    # EXTRACTION
-    # ---------------------------------------------------------------------------
-
-    def extract_configs(self, text: str):
-        found = set()
-        for pat in V2RAY_PATTERNS:
-            found.update(pat.findall(text))
-        return found
-
-    async def scan_chat(self, chat_id: int, limit: int):
+    async def scan(self, chat_id: int, limit: int):
         try:
-            async for msg in self.client.get_chat_history(chat_id, limit=limit):
-                text = msg.text or msg.caption or ""
-                self.raw_configs.update(self.extract_configs(text))
+            async for m in self.client.get_chat_history(chat_id, limit=limit):
+                text = m.text or m.caption or ""
+                for pat in V2RAY_PATTERNS:
+                    self.raw.update(pat.findall(text))
         except FloodWait as e:
             await asyncio.sleep(e.value + 1)
-            await self.scan_chat(chat_id, limit)
+            await self.scan(chat_id, limit)
         except:
             pass
 
-    # ---------------------------------------------------------------------------
-    # SING-BOX EXPORT (LOSSLESS)
-    # ---------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
+    # BUILD SING-BOX
+    # -------------------------------------------------------------------------
 
-    def convert_to_singbox_outbound(self, p: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        t = p["type"]
-        base = {
-            "tag": p["name"],
-            "type": t,
-            "server": p["server"],
-            "server_port": p["port"]
-        }
-
-        tls_base = {
-            "enabled": True,
-            "server_name": p.get("servername") or p.get("server"),
-            "insecure": True,
-            "utls": {"enabled": True, "fingerprint": "chrome"}
-        }
-
-        if t == "vmess":
-            out = {**base, "uuid": p["uuid"], "security": "auto"}
-            if p.get("alterId", 0):
-                out["alter_id"] = p["alterId"]
-            if p.get("tls"):
-                out["tls"] = tls_base
-            if p.get("ws-opts"):
-                out["transport"] = {
-                    "type": "ws",
-                    "path": p["ws-opts"]["path"],
-                    "headers": p["ws-opts"].get("headers", {})
-                }
-            return out
-
-        if t == "vless":
-            out = {**base, "uuid": p["uuid"], "tls": tls_base}
-            if p.get("flow"):
-                out["flow"] = p["flow"]
-            if p.get("reality-opts"):
-                out["tls"]["reality"] = {
-                    "enabled": True,
-                    "public_key": p["reality-opts"]["public-key"],
-                    "short_id": p["reality-opts"]["short-id"]
-                }
-            elif p.get("ws-opts"):
-                out["transport"] = {
-                    "type": "ws",
-                    "path": p["ws-opts"]["path"],
-                    "headers": p["ws-opts"].get("headers", {})
-                }
-            return out
-
-        if t == "trojan":
-            return {**base, "password": p["password"], "tls": tls_base}
-
-        if t == "ss":
-            return {
-                "type": "shadowsocks",
-                "tag": base["tag"],
-                "server": base["server"],
-                "server_port": base["server_port"],
-                "method": p["cipher"],
-                "password": p["password"]
-            }
-
-        if t == "hysteria2":
-            return {
-                **base,
-                "password": p["password"],
-                "up_mbps": 100,
-                "down_mbps": 100,
-                "tls": tls_base
-            }
-
-        if t == "tuic":
-            tuic_tls = dict(tls_base)
-            tuic_tls["alpn"] = ["h3"]
-            return {
-                **base,
-                "uuid": p["uuid"],
-                "password": p["password"],
-                "congestion_control": "bbr",
-                "tls": tuic_tls
-            }
-
-        return None
-
-    # ---------------------------------------------------------------------------
-    # SAVE
-    # ---------------------------------------------------------------------------
-
-    def save(self):
-        proxies: List[Dict[str, Any]] = []
-
-        for i, url in enumerate(sorted(self.raw_configs), 1):
-            p = self.parse_config_for_clash(url)
-            if not p or not self.is_valid_proxy_object(p):
-                continue
-            p["name"] = f"Config_jo-{i:03d}-{p['type'].upper()}"
-            proxies.append(p)
-
+    def build_singbox(self, proxies: List[Dict[str, Any]]) -> Dict[str, Any]:
         outbounds = []
-        for p in proxies:
-            o = self.convert_to_singbox_outbound(p)
-            if o:
+
+        for i, p in enumerate(proxies, 1):
+            tag = f"proxy-{i}"
+            t = p["type"]
+
+            base = {
+                "tag": tag,
+                "type": t,
+                "server": p["server"],
+                "server_port": p["port"]
+            }
+
+            if t == "vmess":
+                o = {**base, "uuid": p["uuid"], "security": "auto"}
+                if p.get("tls"):
+                    o["tls"] = {
+                        "enabled": True,
+                        "server_name": p.get("servername"),
+                        "insecure": True
+                    }
                 outbounds.append(o)
+
+            elif t == "vless":
+                o = {**base, "uuid": p["uuid"], "tls": {
+                    "enabled": True,
+                    "server_name": p.get("servername"),
+                    "insecure": True
+                }}
+                if p.get("flow"):
+                    o["flow"] = p["flow"]
+                if p.get("reality"):
+                    o["tls"]["reality"] = {
+                        "enabled": True,
+                        "public_key": p["reality"]["public_key"],
+                        "short_id": p["reality"]["short_id"]
+                    }
+                outbounds.append(o)
+
+            elif t == "trojan":
+                outbounds.append({**base, "password": p["password"], "tls": {
+                    "enabled": True,
+                    "server_name": p.get("servername"),
+                    "insecure": True
+                }})
+
+            elif t == "ss":
+                outbounds.append({
+                    "type": "shadowsocks",
+                    "tag": tag,
+                    "server": p["server"],
+                    "server_port": p["port"],
+                    "method": p["cipher"],
+                    "password": p["password"]
+                })
+
+            elif t == "hysteria2":
+                outbounds.append({
+                    **base,
+                    "password": p["password"],
+                    "up_mbps": 100,
+                    "down_mbps": 100,
+                    "tls": {"enabled": True, "insecure": True}
+                })
+
+            elif t == "tuic":
+                outbounds.append({
+                    **base,
+                    "uuid": p["uuid"],
+                    "password": p["password"],
+                    "tls": {"enabled": True, "insecure": True}
+                })
 
         tags = [o["tag"] for o in outbounds]
 
-        config = {
-            "log": {"level": "warn"},
+        return {
+            "log": {"level": "warn", "timestamp": True},
             "dns": {
-                "servers": [{"tag": "google", "address": "8.8.8.8", "detour": "PROXY"}]
+                "servers": [
+                    {"tag": "dns-direct", "address": "8.8.8.8"},
+                    {"tag": "dns-proxy", "address": "https://dns.google/dns-query", "detour": "PROXY"}
+                ],
+                "rules": [{"outbound": "any", "server": "dns-proxy"}],
+                "final": "dns-proxy"
             },
             "inbounds": [{
                 "type": "mixed",
                 "listen": "127.0.0.1",
-                "listen_port": 2080
+                "listen_port": 2080,
+                "sniff": True
             }],
             "outbounds": [
                 {"type": "direct", "tag": "direct"},
@@ -384,23 +316,37 @@ class V2RayExtractor:
             }
         }
 
-        with open(OUTPUT_SINGBOX, "w", encoding="utf-8") as f:
+    # -------------------------------------------------------------------------
+    # RUN
+    # -------------------------------------------------------------------------
+
+    def save(self):
+        proxies = []
+        for url in self.raw:
+            p = self.parse(url)
+            if p and is_safe_proxy(p):
+                proxies.append(p)
+
+        config = self.build_singbox(proxies)
+
+        with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
             json.dump(config, f, indent=2, ensure_ascii=False)
 
-        print(f"✨ sing-box READY — {len(outbounds)} outbounds")
+        print(f"✔ sing-box.json generated ({len(proxies)} proxies)")
 
-# ================================================================================
+# =============================================================================
 # ENTRY
-# ================================================================================
+# =============================================================================
 
 async def main():
     ex = V2RayExtractor()
     async with ex.client:
         tasks = []
         for c in CHANNELS:
-            tasks.append(ex.scan_chat(c, CHANNEL_SEARCH_LIMIT))
+            if c.strip():
+                tasks.append(ex.scan(c.strip(), CHANNEL_LIMIT))
         for g in GROUPS:
-            tasks.append(ex.scan_chat(g, GROUP_SEARCH_LIMIT))
+            tasks.append(ex.scan(g, GROUP_LIMIT))
         await asyncio.gather(*tasks)
     ex.save()
 
