@@ -7,7 +7,7 @@ ipv6: false
 external-controller: 127.0.0.1:9090
 dns:
   enable: true
-  listen: 0.0.0.0:53
+  listen: 0.0.0.0:1053
   enhanced-mode: fake-ip
   fake-ip-range: 198.18.0.1/16
   default-nameserver:
@@ -17,16 +17,14 @@ dns:
   - https://dns.google/dns-query
   - https://cloudflare-dns.com/dns-query
   fallback:
-  - tcp://8.8.8.8
   - tcp://1.1.1.1
-  - https://dns.nextdns.io
+  - tcp://8.8.8.8
   fallback-filter:
     geoip: true
     geoip-code: IR
     ipcidr:
     - 240.0.0.0/4
     - 0.0.0.0/32
-    - 127.0.0.0/8
 proxies:
 - name: DE Config_jo-01
   type: hysteria2
@@ -288,8 +286,6 @@ proxies:
   udp: true
   tls: false
   network: tcp
-  servername: www.google.com
-  sni: www.google.com
 - name: IR Config_jo-268
   type: vless
   server: 78.157.49.86
@@ -298,8 +294,6 @@ proxies:
   udp: true
   tls: false
   network: tcp
-  servername: www.google.com
-  sni: www.google.com
 - name: IR Config_jo-269
   type: vless
   server: 81.12.33.0
@@ -308,38 +302,6 @@ proxies:
   udp: true
   tls: false
   network: tcp
-  servername: www.google.com
-  sni: www.google.com
-- name: FASTLY Config_jo-270
-  type: vless
-  server: imgur.com
-  port: 80
-  uuid: 009dad76-aa01-4405-a673-591c0ae772bf
-  udp: true
-  tls: false
-  network: xhttp
-  servername: www.google.com
-  sni: www.google.com
-- name: FASTLY Config_jo-271
-  type: vless
-  server: mci.farsnews.fun
-  port: 80
-  uuid: 009dad76-aa01-4405-a673-591c0ae772bf
-  udp: true
-  tls: false
-  network: xhttp
-  servername: www.google.com
-  sni: www.google.com
-- name: FASTLY Config_jo-272
-  type: vless
-  server: www.fastly.com
-  port: 80
-  uuid: 009dad76-aa01-4405-a673-591c0ae772bf
-  udp: true
-  tls: false
-  network: xhttp
-  servername: www.google.com
-  sni: www.google.com
 - name: CLOUDFLARE Config_jo-273
   type: vless
   server: m1.fastspeeds.ir
@@ -381,8 +343,6 @@ proxies:
   udp: true
   tls: false
   network: tcp
-  servername: www.google.com
-  sni: www.google.com
 - name: DE Config_jo-277
   type: vless
   server: do.jadhap.ir
@@ -391,8 +351,6 @@ proxies:
   udp: true
   tls: false
   network: tcp
-  servername: www.google.com
-  sni: www.google.com
 - name: HU Config_jo-278
   type: vless
   server: 5.182.38.91
@@ -644,24 +602,6 @@ proxies:
     path: /
     headers:
       Host: iGbyFq0LoQ6mdBbi9HloBzIYEm7HPluEEqvG8nvt.ViPClUbIrAn.Ir.
-- name: CLOUDFLARE Config_jo-298
-  type: vless
-  server: cloud.nexun.ir
-  port: 443
-  uuid: 4d3b90a9-1b17-4fac-b514-3780d7170b3c
-  udp: true
-  tls: true
-  network: xhttp
-  servername: test.tan3.ir
-- name: CLOUDFLARE Config_jo-299
-  type: vless
-  server: cloud.nexun.ir
-  port: 443
-  uuid: 4d3b90a9-1b17-4fac-b514-3780d7170b3c
-  udp: true
-  tls: true
-  network: xhttp
-  servername: test.tan3.ir
 - name: CLOUDFLARE Config_jo-300
   type: vless
   server: 104.21.55.47
@@ -740,15 +680,6 @@ proxies:
     path: /containers/fi
     headers:
       Host: pool-nemikham-kiri.global.ssl.fastly.net
-- name: CLOUDFLARE Config_jo-306
-  type: vless
-  server: 45.146.201.166
-  port: 2083
-  uuid: 508209de-ac9e-437d-b230-569ab55388da
-  udp: true
-  tls: true
-  network: xhttp
-  servername: 4dacf4d7df4b7a24.bsazbfrosh.site
 - name: GB Config_jo-307
   type: vless
   server: drift.wenllies.com
@@ -769,12 +700,10 @@ proxies:
   udp: true
   tls: false
   network: ws
-  servername: www.google.com
   ws-opts:
     path: /?ed
     headers:
       Host: bIZARRe-CEntEryZCvddNcfJ.spORtLand.COmPANY.
-  sni: www.google.com
 - name: DE Config_jo-309
   type: vless
   server: srvgwtvm.samanidempire.org
@@ -838,15 +767,6 @@ proxies:
   tls: true
   network: grpc
   servername: itw.digishopcenter.ir
-- name: CLOUDFLARE Config_jo-315
-  type: vless
-  server: h6.fastspeeds.ir
-  port: 443
-  uuid: 5fc07d2b-fdc7-492b-b778-2dc874b5ef49
-  udp: true
-  tls: true
-  network: httpupgrade
-  servername: unix.mehrsazi.ir
 - name: DE Config_jo-316
   type: vless
   server: 159.223.24.65
@@ -1062,8 +982,6 @@ proxies:
   udp: true
   tls: false
   network: tcp
-  servername: www.google.com
-  sni: www.google.com
 - name: CLOUDFLARE Config_jo-334
   type: vless
   server: 104.18.32.47
@@ -1121,13 +1039,11 @@ proxies:
   udp: true
   tls: false
   network: ws
-  servername: www.google.com
   ws-opts:
     path: /vless/
     headers:
       Host: ''
-  sni: www.google.com
-- name: DE Config_jo-340
+- name: NL Config_jo-340
   type: vless
   server: deu328.unlockmatrix.org
   port: 443
@@ -1147,8 +1063,6 @@ proxies:
   udp: true
   tls: false
   network: tcp
-  servername: www.google.com
-  sni: www.google.com
 - name: IR Config_jo-342
   type: vless
   server: 81.12.91.177
@@ -1169,8 +1083,6 @@ proxies:
   udp: true
   tls: false
   network: grpc
-  servername: www.google.com
-  sni: www.google.com
 - name: GB Config_jo-344
   type: vless
   server: 146.185.208.206
@@ -1216,8 +1128,6 @@ proxies:
   udp: true
   tls: false
   network: tcp
-  servername: www.google.com
-  sni: www.google.com
 - name: TR Config_jo-349
   type: vless
   server: 94.131.123.167
@@ -1238,12 +1148,10 @@ proxies:
   udp: true
   tls: false
   network: ws
-  servername: www.google.com
   ws-opts:
     path: /
     headers:
       Host: ''
-  sni: www.google.com
 - name: CLOUDFLARE Config_jo-351
   type: vless
   server: 162.159.152.4
@@ -1277,8 +1185,6 @@ proxies:
   udp: true
   tls: false
   network: tcp
-  servername: www.google.com
-  sni: www.google.com
 - name: DE Config_jo-354
   type: vless
   server: 37.120.167.164
@@ -1303,18 +1209,6 @@ proxies:
   reality-opts:
     public-key: H4FG5udS5VtSE51AewtloHXTrFdwUOVuZ9Dy_HaCLGQ
     short-id: 977093ce9137
-- name: RU Config_jo-356
-  type: vless
-  server: 147.45.154.241
-  port: 17839
-  uuid: bfc32338-df17-43ba-8cdf-304d69705c90
-  udp: true
-  tls: true
-  network: xhttp
-  servername: www.yahoo.com
-  reality-opts:
-    public-key: YWCOA3An4yr5-1sLEwGxqozPMbJ4xfOV7SpmVLUfEXk
-    short-id: '60'
 - name: CLOUDFLARE Config_jo-357
   type: vless
   server: meli.dataxshop.ir
@@ -1323,12 +1217,10 @@ proxies:
   udp: true
   tls: false
   network: ws
-  servername: www.google.com
   ws-opts:
     path: /datax_proxy
     headers:
       Host: amsterdam.11.v.www.speedtest.net.nestle.ir.ftp.debian.org.tmo.docb.datax.click.dataxshop.ir
-  sni: www.google.com
 - name: CLOUDFLARE Config_jo-358
   type: vless
   server: 104.17.74.206
@@ -1350,8 +1242,6 @@ proxies:
   udp: true
   tls: false
   network: tcp
-  servername: www.google.com
-  sni: www.google.com
 - name: DE Config_jo-360
   type: vless
   server: rably-m.izumii.ir
@@ -1360,8 +1250,6 @@ proxies:
   udp: true
   tls: false
   network: tcp
-  servername: www.google.com
-  sni: www.google.com
 - name: NL Config_jo-361
   type: vless
   server: 77.239.124.88
@@ -1586,12 +1474,10 @@ proxies:
   udp: true
   tls: false
   network: ws
-  servername: www.google.com
   ws-opts:
     path: /getWorkerUpdates
     headers:
       Host: ''
-  sni: www.google.com
 - name: FASTLY Config_jo-379
   type: vless
   server: omrimisihdizamin.global.ssl.fastly.net
@@ -1671,8 +1557,6 @@ proxies:
   udp: true
   tls: false
   network: tcp
-  servername: www.google.com
-  sni: www.google.com
 - name: MD Config_jo-386
   type: vless
   server: 62.3.12.148
@@ -1848,8 +1732,6 @@ proxies:
   udp: true
   tls: false
   network: tcp
-  servername: www.google.com
-  sni: www.google.com
 - name: CLOUDFLARE Config_jo-400
   type: vmess
   server: 104.21.69.44
@@ -1864,8 +1746,6 @@ proxies:
     path: /nasnet/cdn
     headers:
       Host: nasnet-511952424.mcitel.co
-  servername: www.google.com
-  sni: www.google.com
 - name: US Config_jo-401
   type: vmess
   server: 172.233.229.91
@@ -1876,8 +1756,6 @@ proxies:
   tls: false
   network: tcp
   udp: true
-  servername: www.google.com
-  sni: www.google.com
 - name: US Config_jo-402
   type: vmess
   server: 172.233.229.91
@@ -1888,8 +1766,6 @@ proxies:
   tls: false
   network: tcp
   udp: true
-  servername: www.google.com
-  sni: www.google.com
 - name: CLOUDFLARE Config_jo-403
   type: vmess
   server: 172.64.149.182
@@ -1904,8 +1780,6 @@ proxies:
     path: /nasnet/cdn?ed=2560
     headers:
       Host: nasnet-5712964102.sharghdaily.co
-  servername: www.google.com
-  sni: www.google.com
 - name: GB Config_jo-404
   type: vmess
   server: 57.129.132.223
@@ -1920,8 +1794,6 @@ proxies:
     path: /vmess/
     headers:
       Host: google.com
-  servername: www.google.com
-  sni: www.google.com
 - name: CLOUDFLARE Config_jo-405
   type: vmess
   server: chatgpt.com
@@ -1951,8 +1823,6 @@ proxies:
     path: /sshkit/Arsham85231/6347d08022b91/
     headers:
       Host: zoom.us
-  servername: www.google.com
-  sni: www.google.com
 - name: KR Config_jo-407
   type: vmess
   server: seoul03.zgjok.com
@@ -1982,8 +1852,6 @@ proxies:
     path: /
     headers:
       Host: bmi.ir
-  servername: www.google.com
-  sni: www.google.com
 - name: MY Config_jo-409
   type: vmess
   server: 47.250.45.234
@@ -1998,8 +1866,6 @@ proxies:
     path: /arki?ed=2048
     headers:
       Host: ''
-  servername: www.google.com
-  sni: www.google.com
 - name: CA Config_jo-410
   type: vmess
   server: 51.79.102.253
@@ -2014,8 +1880,6 @@ proxies:
     path: /IOebhLMhl1CTbFHbL95myfRX2
     headers:
       Host: ''
-  servername: www.google.com
-  sni: www.google.com
 - name: FR Config_jo-411
   type: vmess
   server: 57.128.189.211
@@ -2056,8 +1920,6 @@ proxies:
   tls: false
   network: tcp
   udp: true
-  servername: www.google.com
-  sni: www.google.com
 - name: IN Config_jo-414
   type: vmess
   server: 20.193.153.19
@@ -2068,8 +1930,6 @@ proxies:
   tls: false
   network: tcp
   udp: true
-  servername: www.google.com
-  sni: www.google.com
 - name: CLOUDFLARE Config_jo-415
   type: vmess
   server: tgju.org
@@ -2084,8 +1944,6 @@ proxies:
     path: /nasnet/cdn
     headers:
       Host: nasnet-571296497.iranpress.co
-  servername: www.google.com
-  sni: www.google.com
 - name: TR Config_jo-416
   type: vmess
   server: tr1-smart.adelping.com
@@ -2100,8 +1958,6 @@ proxies:
     path: ''
     headers:
       Host: ''
-  servername: www.google.com
-  sni: www.google.com
 - name: DE Config_jo-417
   type: vmess
   server: arda227.ardaserver.site
@@ -2112,8 +1968,6 @@ proxies:
   tls: false
   network: tcp
   udp: true
-  servername: www.google.com
-  sni: www.google.com
 - name: CLOUDFLARE Config_jo-418
   type: vmess
   server: cf.877774.xyz
@@ -2169,8 +2023,6 @@ proxies:
   tls: false
   network: tcp
   udp: true
-  servername: www.google.com
-  sni: www.google.com
 - name: IR Config_jo-422
   type: vmess
   server: s1.fastly4wards.com
@@ -2181,8 +2033,6 @@ proxies:
   tls: false
   network: tcp
   udp: true
-  servername: www.google.com
-  sni: www.google.com
 - name: IR Config_jo-423
   type: vmess
   server: servers.xvon.in
@@ -2272,9 +2122,6 @@ proxy-groups:
   - IR Config_jo-267
   - IR Config_jo-268
   - IR Config_jo-269
-  - FASTLY Config_jo-270
-  - FASTLY Config_jo-271
-  - FASTLY Config_jo-272
   - CLOUDFLARE Config_jo-273
   - DE Config_jo-274
   - FI Config_jo-275
@@ -2300,15 +2147,12 @@ proxy-groups:
   - DE Config_jo-295
   - DE Config_jo-296
   - CLOUDFLARE Config_jo-297
-  - CLOUDFLARE Config_jo-298
-  - CLOUDFLARE Config_jo-299
   - CLOUDFLARE Config_jo-300
   - FASTLY Config_jo-301
   - FASTLY Config_jo-302
   - FASTLY Config_jo-303
   - FASTLY Config_jo-304
   - FASTLY Config_jo-305
-  - CLOUDFLARE Config_jo-306
   - GB Config_jo-307
   - CLOUDFLARE Config_jo-308
   - DE Config_jo-309
@@ -2317,7 +2161,6 @@ proxy-groups:
   - CLOUDFLARE Config_jo-312
   - CLOUDFLARE Config_jo-313
   - CLOUDFLARE Config_jo-314
-  - CLOUDFLARE Config_jo-315
   - DE Config_jo-316
   - FR Config_jo-317
   - NL Config_jo-318
@@ -2342,7 +2185,7 @@ proxy-groups:
   - IR Config_jo-337
   - IR Config_jo-338
   - AL Config_jo-339
-  - DE Config_jo-340
+  - NL Config_jo-340
   - DE Config_jo-341
   - IR Config_jo-342
   - CY Config_jo-343
@@ -2357,7 +2200,6 @@ proxy-groups:
   - IR Config_jo-353
   - DE Config_jo-354
   - DE Config_jo-355
-  - RU Config_jo-356
   - CLOUDFLARE Config_jo-357
   - CLOUDFLARE Config_jo-358
   - N/A Config_jo-359
@@ -2470,9 +2312,6 @@ proxy-groups:
   - IR Config_jo-267
   - IR Config_jo-268
   - IR Config_jo-269
-  - FASTLY Config_jo-270
-  - FASTLY Config_jo-271
-  - FASTLY Config_jo-272
   - CLOUDFLARE Config_jo-273
   - DE Config_jo-274
   - FI Config_jo-275
@@ -2498,15 +2337,12 @@ proxy-groups:
   - DE Config_jo-295
   - DE Config_jo-296
   - CLOUDFLARE Config_jo-297
-  - CLOUDFLARE Config_jo-298
-  - CLOUDFLARE Config_jo-299
   - CLOUDFLARE Config_jo-300
   - FASTLY Config_jo-301
   - FASTLY Config_jo-302
   - FASTLY Config_jo-303
   - FASTLY Config_jo-304
   - FASTLY Config_jo-305
-  - CLOUDFLARE Config_jo-306
   - GB Config_jo-307
   - CLOUDFLARE Config_jo-308
   - DE Config_jo-309
@@ -2515,7 +2351,6 @@ proxy-groups:
   - CLOUDFLARE Config_jo-312
   - CLOUDFLARE Config_jo-313
   - CLOUDFLARE Config_jo-314
-  - CLOUDFLARE Config_jo-315
   - DE Config_jo-316
   - FR Config_jo-317
   - NL Config_jo-318
@@ -2540,7 +2375,7 @@ proxy-groups:
   - IR Config_jo-337
   - IR Config_jo-338
   - AL Config_jo-339
-  - DE Config_jo-340
+  - NL Config_jo-340
   - DE Config_jo-341
   - IR Config_jo-342
   - CY Config_jo-343
@@ -2555,7 +2390,6 @@ proxy-groups:
   - IR Config_jo-353
   - DE Config_jo-354
   - DE Config_jo-355
-  - RU Config_jo-356
   - CLOUDFLARE Config_jo-357
   - CLOUDFLARE Config_jo-358
   - N/A Config_jo-359
@@ -2638,6 +2472,12 @@ proxy-groups:
   proxies:
   - REJECT
   - DIRECT
+rules:
+- RULE-SET,ad_domains,🛑 Block-Ads
+- RULE-SET,blocked_domains,PROXY
+- RULE-SET,iran_domains,🇮🇷 Iran
+- GEOIP,IR,🇮🇷 Iran
+- MATCH,PROXY
 rule-providers:
   iran_domains:
     type: http
@@ -2657,9 +2497,3 @@ rule-providers:
     url: https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/ad-domains.txt
     path: ./rules/ad_domains.txt
     interval: 86400
-rules:
-- RULE-SET,ad_domains,🛑 Block-Ads
-- RULE-SET,blocked_domains,PROXY
-- RULE-SET,iran_domains,🇮🇷 Iran
-- GEOIP,IR,🇮🇷 Iran
-- MATCH,PROXY
