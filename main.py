@@ -347,6 +347,7 @@ class V2RayExtractor:
         clean_proxies, clean_names, seen_names = [], [], set()
 
         for p in proxies:
+            if p.get('network') in ['xhttp', 'httpupgrade']: continue
             if p.get('type') in ['vless', 'vmess', 'tuic'] and not p.get('uuid'): continue
             if p.get('type') == 'trojan' and not p.get('password'): continue
             if p.get('type') == 'ss' and (not p.get('cipher') or not p.get('password')): continue
@@ -354,38 +355,31 @@ class V2RayExtractor:
             server = p.get('server', '')
             if not server or len(server) > 50 or re.search(r'[^\w\.\-\:]', server): continue
 
-            # اصلاح هوشمند SNI برای جلوگیری از قطع اتصال (اصلاح ایراد Null و دامنه های نامعتبر)
             sni = p.get('servername') or p.get('sni')
-            if not sni or re.search(r'[^\w\.\-]', str(sni)):
-                if p.get('tls') or p.get('type') in ['trojan', 'hysteria2', 'vless', 'vmess']:
-                    p['servername'] = 'www.google.com'
-                    p['sni'] = 'www.google.com'
-                else:
-                    p.pop('servername', None); p.pop('sni', None)
+            if not sni:
+                if p.get('tls') or p.get('type') == 'trojan':
+                    p['servername'] = 'www.google.com'; p['sni'] = 'www.google.com'
             
-            # حذف فیلدهای خالی برای جلوگیری از خطای سینتکس
             p_clean = {k: v for k, v in p.items() if v is not None and v != ''}
             
             name = p_clean.get('name', 'Proxy')
             counter = 1
             original_name = name
             while name in seen_names:
-                name = f"{original_name}_{counter}"
-                counter += 1
+                name = f"{original_name}_{counter}"; counter += 1
             p_clean['name'] = name; seen_names.add(name)
             clean_proxies.append(p_clean); clean_names.append(name)
 
         if not clean_proxies: return {}
 
-        # تنظیمات بهینه DNS و Rule-Providers (اصلاح تکرار DNS و تداخل پورت 53)
         return {
             'port': 7890, 'socks-port': 7891, 'allow-lan': True, 'mode': 'rule', 'log-level': 'info', 'ipv6': False, 'external-controller': '127.0.0.1:9090',
             'dns': {
-                'enable': True, 'listen': '0.0.0.0:53', 'enhanced-mode': 'fake-ip', 'fake-ip-range': '198.18.0.1/16',
+                'enable': True, 'listen': '0.0.0.0:1053', 'enhanced-mode': 'fake-ip', 'fake-ip-range': '198.18.0.1/16',
                 'default-nameserver': ['1.1.1.1', '8.8.8.8'],
                 'nameserver': ['https://dns.google/dns-query', 'https://cloudflare-dns.com/dns-query'],
-                'fallback': ['tcp://8.8.8.8', 'tcp://1.1.1.1', 'https://dns.nextdns.io'],
-                'fallback-filter': {'geoip': True, 'geoip-code': 'IR', 'ipcidr': ['240.0.0.0/4', '0.0.0.0/32', '127.0.0.0/8']}
+                'fallback': ['tcp://1.1.1.1', 'tcp://8.8.8.8'],
+                'fallback-filter': {'geoip': True, 'geoip-code': 'IR', 'ipcidr': ['240.0.0.0/4', '0.0.0.0/32']}
             },
             'proxies': clean_proxies,
             'proxy-groups': [
@@ -394,12 +388,12 @@ class V2RayExtractor:
                 {'name': '🇮🇷 Iran', 'type': 'select', 'proxies': ['DIRECT', 'PROXY']},
                 {'name': '🛑 Block-Ads', 'type': 'select', 'proxies': ['REJECT', 'DIRECT']}
             ],
+            'rules': ['RULE-SET,ad_domains,🛑 Block-Ads', 'RULE-SET,blocked_domains,PROXY', 'RULE-SET,iran_domains,🇮🇷 Iran', 'GEOIP,IR,🇮🇷 Iran', 'MATCH,PROXY'],
             'rule-providers': {
-                'iran_domains': {'type': 'http', 'behavior': 'domain', 'url': "https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/iran-domains.txt", 'path': './rules/iran_domains.txt', 'interval': 86400},
-                'blocked_domains': {'type': 'http', 'behavior': 'domain', 'url': "https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/blocked-domains.txt", 'path': './rules/blocked_domains.txt', 'interval': 86400},
-                'ad_domains': {'type': 'http', 'behavior': 'domain', 'url': "https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/ad-domains.txt", 'path': './rules/ad_domains.txt', 'interval': 86400}
-            },
-            'rules': ['RULE-SET,ad_domains,🛑 Block-Ads', 'RULE-SET,blocked_domains,PROXY', 'RULE-SET,iran_domains,🇮🇷 Iran', 'GEOIP,IR,🇮🇷 Iran', 'MATCH,PROXY']
+                'iran_domains': {'type': 'http', 'behavior': 'domain', 'url': 'https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/iran-domains.txt', 'path': './rules/iran_domains.txt', 'interval': 86400},
+                'blocked_domains': {'type': 'http', 'behavior': 'domain', 'url': 'https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/blocked-domains.txt', 'path': './rules/blocked_domains.txt', 'interval': 86400},
+                'ad_domains': {'type': 'http', 'behavior': 'domain', 'url': 'https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/ad-domains.txt', 'path': './rules/ad_domains.txt', 'interval': 86400}
+            }
         }
 
     def build_sing_box_config(self, proxies_clash: List[Dict[str, Any]]) -> Dict[str, Any]:
