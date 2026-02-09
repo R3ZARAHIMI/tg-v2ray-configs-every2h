@@ -3,8 +3,10 @@ socks-port: 7891
 allow-lan: false
 mode: rule
 log-level: warning
-ipv6: false
+ipv6: true
 external-controller: 127.0.0.1:9090
+external-ui: ui
+external-ui-url: https://github.com/MetaCubeX/metacubexd/archive/refs/heads/gh-pages.zip
 dns:
   enable: true
   respect-rules: true
@@ -1534,7 +1536,7 @@ proxies:
     path: /vless/
     headers:
       Host: ''
-- name: NL Config_jo-429
+- name: DE Config_jo-429
   type: vless
   server: deu328.unlockmatrix.org
   port: 443
@@ -3015,7 +3017,7 @@ proxy-groups:
   - IR Config_jo-426
   - IR Config_jo-427
   - AL Config_jo-428
-  - NL Config_jo-429
+  - DE Config_jo-429
   - DE Config_jo-430
   - IR Config_jo-431
   - CY Config_jo-432
@@ -3288,7 +3290,7 @@ proxy-groups:
   - IR Config_jo-426
   - IR Config_jo-427
   - AL Config_jo-428
-  - NL Config_jo-429
+  - DE Config_jo-429
   - DE Config_jo-430
   - IR Config_jo-431
   - CY Config_jo-432
@@ -3408,16 +3410,6 @@ proxy-groups:
   - IR Config_jo-554
   url: http://www.gstatic.com/generate_204
   interval: 300
-- name: 🇮🇷 Iran
-  type: select
-  proxies:
-  - DIRECT
-  - ✅ Selector
-- name: 🛑 Block-Ads
-  type: select
-  proxies:
-  - REJECT
-  - DIRECT
 rule-providers:
   ir:
     type: http
@@ -3441,8 +3433,8 @@ rule-providers:
     interval: 86400
     url: https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/openai.yaml
 rules:
-- RULE-SET,openai,✅ Selector
-- RULE-SET,ir,🇮🇷 Iran
-- RULE-SET,ir-cidr,🇮🇷 Iran
-- GEOIP,IR,🇮🇷 Iran
+- GEOIP,lan,DIRECT,no-resolve
+- RULE-SET,ir,DIRECT
+- RULE-SET,ir-cidr,DIRECT
+- RULE-SET,openai,DIRECT
 - MATCH,✅ Selector
