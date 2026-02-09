@@ -206,13 +206,15 @@ class V2RayExtractor:
             p_clean['name'] = name; seen.add(name); clean_p.append(p_clean); clean_n.append(name)
 
         return {
-            'port': 7890, 'socks-port': 7891, 'allow-lan': False, 'mode': 'rule', 'log-level': 'warning', 'ipv6': False,
+            'port': 7890, 'socks-port': 7891, 'allow-lan': False, 'mode': 'rule', 'log-level': 'warning', 'ipv6': True,
             'external-controller': '127.0.0.1:9090',
+            'external-ui': 'ui',
+            'external-ui-url': 'https://github.com/MetaCubeX/metacubexd/archive/refs/heads/gh-pages.zip',
             'dns': {
                 'enable': True,
                 'respect-rules': True,
                 'use-system-hosts': False,
-                'listen': '127.0.0.1:1053',  # پورت فیکس شده طبق دستور
+                'listen': '127.0.0.1:1053',
                 'ipv6': True,
                 'nameserver': ['https://8.8.8.8/dns-query#✅ Selector'],
                 'proxy-server-nameserver': ['8.8.8.8#DIRECT'],
@@ -222,27 +224,24 @@ class V2RayExtractor:
                     'rule-set:openai': '178.22.122.100#DIRECT',
                     'rule-set:ir': '8.8.8.8#DIRECT'
                 },
-                'enhanced-mode': 'fake-ip', # یا redir-host بسته به نیاز، fake-ip معمولاً سریعتر است
+                'enhanced-mode': 'fake-ip',
                 'fake-ip-range': '198.18.0.1/16'
             },
             'proxies': clean_p,
             'proxy-groups': [
                 {'name': '✅ Selector', 'type': 'select', 'proxies': ['⚡ Auto-Select', 'DIRECT', *clean_n]},
-                {'name': '⚡ Auto-Select', 'type': 'url-test', 'proxies': clean_n, 'url': 'http://www.gstatic.com/generate_204', 'interval': 300},
-                {'name': '🇮🇷 Iran', 'type': 'select', 'proxies': ['DIRECT', '✅ Selector']},
-                {'name': '🛑 Block-Ads', 'type': 'select', 'proxies': ['REJECT', 'DIRECT']}
+                {'name': '⚡ Auto-Select', 'type': 'url-test', 'proxies': clean_n, 'url': 'http://www.gstatic.com/generate_204', 'interval': 300}
             ],
-            # الگوی مسیریابی دقیق طبق فایل ارسالی شما
             'rule-providers': {
                 'ir': {'type': 'http', 'format': 'text', 'behavior': 'domain', 'path': './ruleset/ir.txt', 'interval': 86400, 'url': 'https://raw.githubusercontent.com/Chocolate4U/Iran-clash-rules/release/ir.txt'},
                 'ir-cidr': {'type': 'http', 'format': 'text', 'behavior': 'ipcidr', 'path': './ruleset/ir-cidr.txt', 'interval': 86400, 'url': 'https://raw.githubusercontent.com/Chocolate4U/Iran-clash-rules/release/ircidr.txt'},
                 'openai': {'type': 'http', 'format': 'yaml', 'behavior': 'domain', 'path': './ruleset/openai.yaml', 'interval': 86400, 'url': 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/openai.yaml'}
             },
             'rules': [
-                'RULE-SET,openai,✅ Selector',
-                'RULE-SET,ir,🇮🇷 Iran',
-                'RULE-SET,ir-cidr,🇮🇷 Iran',
-                'GEOIP,IR,🇮🇷 Iran',
+                'GEOIP,lan,DIRECT,no-resolve',
+                'RULE-SET,ir,DIRECT',
+                'RULE-SET,ir-cidr,DIRECT',
+                'RULE-SET,openai,DIRECT',
                 'MATCH,✅ Selector'
             ]
         }
