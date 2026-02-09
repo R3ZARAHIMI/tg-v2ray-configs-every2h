@@ -206,12 +206,45 @@ class V2RayExtractor:
             p_clean['name'] = name; seen.add(name); clean_p.append(p_clean); clean_n.append(name)
 
         return {
-            'port': 7890, 'socks-port': 7891, 'allow-lan': True, 'mode': 'rule', 'log-level': 'info', 'ipv6': False, 'external-controller': '127.0.0.1:9090',
-            'dns': {'enable': True, 'listen': '0.0.0.0:1053', 'enhanced-mode': 'fake-ip', 'fake-ip-range': '198.18.0.1/16', 'default-nameserver': ['1.1.1.1', '8.8.8.8'], 'nameserver': ['https://dns.google/dns-query', 'https://cloudflare-dns.com/dns-query'], 'fallback': ['tcp://1.1.1.1', 'tcp://8.8.8.8'], 'fallback-filter': {'geoip': True, 'geoip-code': 'IR', 'ipcidr': ['240.0.0.0/4', '0.0.0.0/32']}},
+            'port': 7890, 'socks-port': 7891, 'allow-lan': False, 'mode': 'rule', 'log-level': 'warning', 'ipv6': False,
+            'external-controller': '127.0.0.1:9090',
+            'dns': {
+                'enable': True,
+                'respect-rules': True,
+                'use-system-hosts': False,
+                'listen': '127.0.0.1:1053',  # پورت فیکس شده طبق دستور
+                'ipv6': True,
+                'nameserver': ['https://8.8.8.8/dns-query#✅ Selector'],
+                'proxy-server-nameserver': ['8.8.8.8#DIRECT'],
+                'direct-nameserver': ['8.8.8.8#DIRECT'],
+                'direct-nameserver-follow-policy': True,
+                'nameserver-policy': {
+                    'rule-set:openai': '178.22.122.100#DIRECT',
+                    'rule-set:ir': '8.8.8.8#DIRECT'
+                },
+                'enhanced-mode': 'fake-ip', # یا redir-host بسته به نیاز، fake-ip معمولاً سریعتر است
+                'fake-ip-range': '198.18.0.1/16'
+            },
             'proxies': clean_p,
-            'proxy-groups': [{'name': 'PROXY', 'type': 'select', 'proxies': ['⚡ Auto-Select', 'DIRECT', *clean_n]}, {'name': '⚡ Auto-Select', 'type': 'url-test', 'proxies': clean_n, 'url': 'http://www.gstatic.com/generate_204', 'interval': 300}, {'name': '🇮🇷 Iran', 'type': 'select', 'proxies': ['DIRECT', 'PROXY']}, {'name': '🛑 Block-Ads', 'type': 'select', 'proxies': ['REJECT', 'DIRECT']}],
-            'rules': ['RULE-SET,ad_domains,🛑 Block-Ads', 'RULE-SET,blocked_domains,PROXY', 'RULE-SET,iran_domains,🇮🇷 Iran', 'GEOIP,IR,🇮🇷 Iran', 'MATCH,PROXY'],
-            'rule-providers': {'iran_domains': {'type': 'http', 'behavior': 'domain', 'url': 'https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/iran-domains.txt', 'path': './rules/iran_domains.txt', 'interval': 86400}, 'blocked_domains': {'type': 'http', 'behavior': 'domain', 'url': 'https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/blocked-domains.txt', 'path': './rules/blocked_domains.txt', 'interval': 86400}, 'ad_domains': {'type': 'http', 'behavior': 'domain', 'url': 'https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/ad-domains.txt', 'path': './rules/ad_domains.txt', 'interval': 86400}}
+            'proxy-groups': [
+                {'name': '✅ Selector', 'type': 'select', 'proxies': ['⚡ Auto-Select', 'DIRECT', *clean_n]},
+                {'name': '⚡ Auto-Select', 'type': 'url-test', 'proxies': clean_n, 'url': 'http://www.gstatic.com/generate_204', 'interval': 300},
+                {'name': '🇮🇷 Iran', 'type': 'select', 'proxies': ['DIRECT', '✅ Selector']},
+                {'name': '🛑 Block-Ads', 'type': 'select', 'proxies': ['REJECT', 'DIRECT']}
+            ],
+            # الگوی مسیریابی دقیق طبق فایل ارسالی شما
+            'rule-providers': {
+                'ir': {'type': 'http', 'format': 'text', 'behavior': 'domain', 'path': './ruleset/ir.txt', 'interval': 86400, 'url': 'https://raw.githubusercontent.com/Chocolate4U/Iran-clash-rules/release/ir.txt'},
+                'ir-cidr': {'type': 'http', 'format': 'text', 'behavior': 'ipcidr', 'path': './ruleset/ir-cidr.txt', 'interval': 86400, 'url': 'https://raw.githubusercontent.com/Chocolate4U/Iran-clash-rules/release/ircidr.txt'},
+                'openai': {'type': 'http', 'format': 'yaml', 'behavior': 'domain', 'path': './ruleset/openai.yaml', 'interval': 86400, 'url': 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/openai.yaml'}
+            },
+            'rules': [
+                'RULE-SET,openai,✅ Selector',
+                'RULE-SET,ir,🇮🇷 Iran',
+                'RULE-SET,ir-cidr,🇮🇷 Iran',
+                'GEOIP,IR,🇮🇷 Iran',
+                'MATCH,✅ Selector'
+            ]
         }
 
     def build_sing_box_config(self, proxies):
