@@ -21,18 +21,6 @@ https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/Confi
 
 
 
-### ⚙️ فرمت سایر کلاینت‌ها
-
-**Clash (YAML):**
-```text
-https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/Config-jo.yaml
-```
-
-**Sing-box (JSON):**
-```text
-https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/Config_jo.json
-```
-
 ---
 
 **📅 کانفیگ‌های بدون آی‌پی کلودفلر*
