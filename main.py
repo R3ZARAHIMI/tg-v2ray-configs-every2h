@@ -157,23 +157,46 @@ class V2RayExtractor:
     def parse_vmess(self, vmess_url: str) -> Optional[Dict[str, Any]]:
         decoded_str = base64.b64decode(vmess_url[8:] + '=' * 4).decode('utf-8')
         c = json.loads(decoded_str)
-        ws_opts = None
+        ws_opts, grpc_opts, h2_opts = None, None, None
         if c.get('net') == 'ws':
             ws_opts = {'path': c.get('path', '/'), 'headers': {'Host': c.get('host', '')}}
-        return {'name': c.get('ps', ''), 'type': 'vmess', 'server': c.get('add'), 'port': int(c.get('port', 443)), 'uuid': c.get('id'), 'alterId': int(c.get('aid', 0)), 'cipher': c.get('scy', 'auto'), 'tls': c.get('tls')=='tls', 'network': c.get('net', 'tcp'), 'udp': True, 'ws-opts': ws_opts, 'servername': c.get('sni', c.get('host'))}
+        elif c.get('net') == 'grpc':
+            grpc_opts = {'grpc-service-name': c.get('path', '')}
+        elif c.get('net') == 'h2':
+            h2_opts = {'path': c.get('path', '/'), 'host': [h.strip() for h in c.get('host', '').split(',') if h.strip()]}
+        return {'name': c.get('ps', ''), 'type': 'vmess', 'server': c.get('add'), 'port': int(c.get('port', 443)), 'uuid': c.get('id'), 'alterId': int(c.get('aid', 0)), 'cipher': c.get('scy', 'auto'), 'tls': c.get('tls')=='tls', 'network': c.get('net', 'tcp'), 'udp': True, 'ws-opts': ws_opts, 'grpc-opts': grpc_opts, 'h2-opts': h2_opts, 'servername': c.get('sni', c.get('host'))}
 
     def parse_vless(self, vless_url: str) -> Optional[Dict[str, Any]]:
         p, q = urlparse(vless_url), parse_qs(urlparse(vless_url).query)
-        ws_opts, reality_opts = None, None
-        if q.get('type', [''])[0] == 'ws':
+        ws_opts, reality_opts, grpc_opts = None, None, None
+        network = q.get('type', ['tcp'])[0]
+        if network == 'ws':
             ws_opts = {'path': q.get('path', ['/'])[0], 'headers': {'Host': q.get('host', [''])[0]}}
+        elif network == 'grpc':
+            grpc_opts = {'grpc-service-name': q.get('serviceName', [''])[0]}
         if q.get('security', [''])[0] == 'reality':
             reality_opts = {'public-key': q.get('pbk', [''])[0], 'short-id': q.get('sid', [''])[0]}
-        return {'name': unquote(p.fragment or ''), 'type': 'vless', 'server': p.hostname, 'port': p.port or 443, 'uuid': p.username, 'udp': True, 'tls': q.get('security', [''])[0] in ['tls', 'reality'], 'network': q.get('type', ['tcp'])[0], 'servername': q.get('sni', [None])[0], 'ws-opts': ws_opts, 'reality-opts': reality_opts}
+        flow = q.get('flow', [None])[0]
+        fp = q.get('fp', [None])[0]
+        return {'name': unquote(p.fragment or ''), 'type': 'vless', 'server': p.hostname, 'port': p.port or 443, 'uuid': p.username, 'udp': True, 'tls': q.get('security', [''])[0] in ['tls', 'reality'], 'flow': flow, 'client-fingerprint': fp, 'network': network, 'servername': q.get('sni', [None])[0], 'ws-opts': ws_opts, 'grpc-opts': grpc_opts, 'reality-opts': reality_opts}
 
     def parse_trojan(self, trojan_url: str) -> Optional[Dict[str, Any]]:
         p, q = urlparse(trojan_url), parse_qs(urlparse(trojan_url).query)
-        return {'name': unquote(p.fragment or ''), 'type': 'trojan', 'server': p.hostname, 'port': p.port or 443, 'password': p.username, 'udp': True, 'sni': q.get('sni', [None])[0]}
+        network = q.get('type', ['tcp'])[0]
+        ws_opts, grpc_opts = None, None
+        if network == 'ws':
+            ws_opts = {'path': q.get('path', ['/'])[0], 'headers': {'Host': q.get('host', [''])[0]}}
+        elif network == 'grpc':
+            grpc_opts = {'grpc-service-name': q.get('serviceName', [''])[0]}
+        fp = q.get('fp', [None])[0]
+        return {'name': unquote(p.fragment or ''), 'type': 'trojan', 'server': p.hostname, 'port': p.port or 443, 'password': p.username, 'udp': True, 'sni': q.get('sni', [None])[0], 'network': network, 'ws-opts': ws_opts, 'grpc-opts': grpc_opts, 'client-fingerprint': fp}
+
+    VALID_SS_CIPHERS = {
+        'aes-128-gcm', 'aes-256-gcm', 'chacha20-ietf-poly1305',
+        '2022-blake3-aes-128-gcm', '2022-blake3-aes-256-gcm',
+        'chacha20-poly1305', 'xchacha20-ietf-poly1305',
+        'aes-128-cfb', 'aes-256-cfb', 'rc4-md5',
+    }
 
     def parse_shadowsocks(self, ss_url: str) -> Optional[Dict[str, Any]]:
         try:
@@ -197,13 +220,16 @@ class V2RayExtractor:
                 userinfo_str = userinfo_bytes.decode('utf-8')
             if ':' in userinfo_str:
                 cipher, password = userinfo_str.split(':', 1)
+                if cipher not in self.VALID_SS_CIPHERS:
+                    return None
                 return {'name': name, 'type': 'ss', 'server': server_host, 'port': port, 'cipher': cipher, 'password': password, 'udp': True}
             return None
         except: return None
 
     def parse_hysteria2(self, hy2_url: str) -> Optional[Dict[str, Any]]:
         p, q = urlparse(hy2_url), parse_qs(urlparse(hy2_url).query)
-        return {'name': unquote(p.fragment or ''), 'type': 'hysteria2', 'server': p.hostname, 'port': p.port or 443, 'auth': p.username, 'up': q.get('up', [''])[0], 'down': q.get('down', [''])[0], 'sni': q.get('sni', [p.hostname])[0], 'skip-cert-verify': q.get('insecure', ['0'])[0]=='1'}
+        password = p.username or unquote(p.password or '') if p.password else p.username
+        return {'name': unquote(p.fragment or ''), 'type': 'hysteria2', 'server': p.hostname, 'port': p.port or 443, 'password': password, 'up': q.get('up', [''])[0], 'down': q.get('down', [''])[0], 'sni': q.get('sni', [p.hostname])[0], 'skip-cert-verify': q.get('insecure', ['0'])[0]=='1'}
 
     def parse_tuic(self, tuic_url: str) -> Optional[Dict[str, Any]]:
         p, q = urlparse(tuic_url), parse_qs(urlparse(tuic_url).query)
@@ -225,7 +251,7 @@ class V2RayExtractor:
         if t=='vless': out.update({'uuid': proxy['uuid'], 'flow': proxy.get('flow',''), 'tls': {'enabled': True, 'server_name': proxy['servername'], 'reality': {'enabled': True, 'public_key': proxy.get('reality-opts',{}).get('public-key'), 'short_id': proxy.get('reality-opts',{}).get('short-id')} if proxy.get('reality-opts') else None} if proxy.get('tls') else None})
         if t=='trojan': out.update({'password': proxy['password'], 'tls': {'enabled': True, 'server_name': proxy.get('sni')}})
         if t=='ss': out.update({'method': proxy['cipher'], 'password': proxy['password']})
-        if t in ['hysteria2','tuic']: out.update({'password': proxy.get('auth') or proxy.get('password'), 'tls': {'enabled': True, 'server_name': proxy['sni'], 'insecure': proxy.get('skip-cert-verify')}})
+        if t in ['hysteria2','tuic']: out.update({'password': proxy.get('password'), 'tls': {'enabled': True, 'server_name': proxy.get('sni'), 'insecure': proxy.get('skip-cert-verify')}})
         if proxy.get('ws-opts'): out['transport'] = {'type': 'ws', 'path': proxy['ws-opts']['path'], 'headers': proxy['ws-opts']['headers']}
         return out
 
@@ -427,6 +453,7 @@ class V2RayExtractor:
             if p.get('type') in ['vless', 'vmess', 'tuic'] and not p.get('uuid'): continue
             if p.get('type') == 'trojan' and not p.get('password'): continue
             if p.get('type') == 'ss' and (not p.get('cipher') or not p.get('password')): continue
+            if p.get('type') == 'hysteria2' and not p.get('password'): continue
             
             # 2. Server Address Sanity
             server = p.get('server', '')
