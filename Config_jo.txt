@@ -110,17 +110,28 @@ class V2RayExtractor:
     def __init__(self):
         self.raw_configs: Set[str] = set()
         self.client = Client("my_account", api_id=API_ID, api_hash=API_HASH, session_string=SESSION_STRING)
+        self._country_cache: Dict[str, str] = {}
 
     def get_country_iso_code(self, hostname: str) -> str:
         if not hostname: return "N/A"
         if not GEOIP_READER: return "N/A"
+        if hostname in self._country_cache:
+            return self._country_cache[hostname]
         try:
             ip_address = hostname
             try: socket.inet_aton(hostname)
-            except: ip_address = socket.gethostbyname(hostname)
+            except:
+                try: ip_address = socket.gethostbyname(hostname)
+                except socket.timeout:
+                    self._country_cache[hostname] = "N/A"
+                    return "N/A"
             response = GEOIP_READER.country(ip_address)
-            return response.country.iso_code or "N/A"
-        except: return "N/A"
+            result = response.country.iso_code or "N/A"
+            self._country_cache[hostname] = result
+            return result
+        except:
+            self._country_cache[hostname] = "N/A"
+            return "N/A"
 
     def _is_valid_shadowsocks(self, ss_url: str) -> bool:
         try:
@@ -529,6 +540,7 @@ class V2RayExtractor:
 
 async def main():
     print("🚀 Starting config extractor...")
+    socket.setdefaulttimeout(5)
     load_ip_data()
     load_blocked_ips()
     extractor = V2RayExtractor()
