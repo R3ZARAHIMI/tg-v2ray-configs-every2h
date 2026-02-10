@@ -1,560 +1,235 @@
-import re
-import asyncio
-import base64
-import json
-import yaml
-import os
-import datetime
-import ipaddress
-import socket
-import geoip2.database
-from urllib.parse import urlparse, parse_qs, unquote, urlunparse
-from pyrogram import Client, enums
-from pyrogram.errors import FloodWait
-from typing import Optional, Dict, Any, Set, List
-
-# =================================================================================
-# Settings and Constants
-# =================================================================================
-
-API_ID = int(os.environ.get("API_ID"))
-API_HASH = os.environ.get("API_HASH")
-SESSION_STRING = os.environ.get("SESSION_STRING")
-CHANNELS_STR = os.environ.get('CHANNELS_LIST')
-GROUPS_STR = os.environ.get('GROUPS_LIST')
-CHANNEL_SEARCH_LIMIT = int(os.environ.get('CHANNEL_SEARCH_LIMIT', 5))
-GROUP_SEARCH_LIMIT = int(os.environ.get('GROUP_SEARCH_LIMIT', 100))
-
-OUTPUT_YAML_PRO = "Config-jo.yaml"
-OUTPUT_TXT = "Config_jo.txt"
-OUTPUT_JSON_CONFIG_JO = "Config_jo.json"
-OUTPUT_ORIGINAL_CONFIGS = "Original-Configs.txt"
-OUTPUT_NO_CF = "Config_no_cf.txt"
-
-WEEKLY_FILE = "conf-week.txt"
-HISTORY_FILE = "conf-week-history.json"
-GEOIP_DATABASE_PATH = 'dbip-country-lite.mmdb'
-
-NO_CF_HISTORY_FILE = "no_cf_history.json"
-BLOCKED_IPS_FILE = "blocked_ips.txt"
-
-CHANNEL_MAX_INACTIVE_DAYS = 4
-
-V2RAY_PATTERNS = [
-    re.compile(r'(vless:\/\/[^\s\'\"<>`]+)'), re.compile(r'(vmess:\/\/[^\s\'\"<>`]+)'),
-    re.compile(r'(trojan:\/\/[^\s\'\"<>`]+)'), re.compile(r'(ss:\/\/[^\s\'\"<>`]+)'),
-    re.compile(r"(hy2://[^\s'\"<>`]+)"), re.compile(r"(hysteria2://[^\s'\"<>`]+)"),
-    re.compile(r"(tuic://[^\s'\"<>`]+)")
-]
-BASE64_PATTERN = re.compile(r"([A-Za-z0-9+/=]{50,})", re.MULTILINE)
-
-COUNTRY_FLAGS = {
-    'AD': '🇦🇩', 'AE': '🇦🇪', 'AF': '🇦🇫', 'AG': '🇦🇬', 'AI': '🇦🇮', 'AL': '🇦🇱', 'AM': '🇦🇲', 'AO': '🇦🇴', 'AQ': '🇦🇶', 'AR': '🇦🇷', 'AS': '🇦🇸', 'AT': '🇦🇹', 'AU': '🇦🇺', 'AW': '🇦🇼', 'AX': '🇦🇽', 'AZ': '🇦🇿', 'BA': '🇧🇦', 'BB': '🇧🇧', 'BD': '🇧🇩', 'BE': '🇧🇪', 'BF': '🇧🇫', 'BG': '🇧🇬', 'BH': '🇧🇭', 'BI': '🇧🇮', 'BJ': '🇧🇯', 'BL': '🇧🇱', 'BM': '🇧🇲', 'BN': '🇧🇳', 'BO': '🇧🇴', 'BR': '🇧🇷', 'BS': '🇧🇸', 'BT': '🇧🇹', 'BW': '🇧🇼', 'BY': '🇧🇾', 'BZ': '🇧🇿', 'CA': '🇨🇦', 'CC': '🇨🇨', 'CD': '🇨🇩', 'CF': '🇨🇫', 'CG': '🇨🇬', 'CH': '🇨🇭', 'CI': '🇨🇮', 'CK': '🇨🇰', 'CL': '🇨🇱', 'CM': '🇨🇲', 'CN': '🇨🇳', 'CO': '🇨🇴', 'CR': '🇨🇷', 'CU': '🇨🇺', 'CV': '🇨🇻', 'CW': '🇨🇼', 'CX': '🇨🇽', 'CY': '🇨🇾', 'CZ': '🇨🇿', 'DE': '🇩🇪', 'DJ': '🇩🇯', 'DK': '🇩🇰', 'DM': '🇩🇲', 'DO': '🇩🇴', 'DZ': '🇩🇿', 'EC': '🇪🇨', 'EE': '🇪🇪', 'EG': '🇪🇬', 'EH': '🇪🇭', 'ER': '🇪🇷', 'ES': '🇪🇸', 'ET': '🇪🇹', 'FI': '🇫🇮', 'FJ': '🇫🇯', 'FK': '🇫🇰', 'FM': '🇫🇲', 'FO': '🇫🇴', 'FR': '🇫🇷', 'GA': '🇬🇦', 'GB': '🇬🇬', 'GD': '🇬🇩', 'GE': '🇬🇪', 'GF': '🇬🇫', 'GG': '🇬🇬', 'GH': '🇬🇭', 'GI': '🇬🇮', 'GL': '🇬🇱', 'GM': '🇬🇲', 'GN': '🇬🇳', 'GP': '🇬🇵', 'GQ': '🇬🇶', 'GR': '🇬🇷', 'GT': '🇬🇹', 'GU': '🇬🇺', 'GW': '🇬🇼', 'GY': '🇬🇾', 'HK': '🇭🇰', 'HN': '🇭🇳', 'HR': '🇭🇷', 'HT': '🇭🇹', 'HU': '🇭🇺', 'ID': '🇮🇩', 'IE': '🇮🇪', 'IL': '🇮🇱', 'IM': '🇮🇲', 'IN': '🇮🇳', 'IO': '🇮🇴', 'IQ': '🇮🇶', 'IR': '🇮🇷', 'IS': '🇮🇸', 'IT': '🇮🇹', 'JE': '🇯🇪', 'JM': '🇯🇲', 'JO': '🇯🇴', 'JP': '🇯🇵', 'KE': '🇰🇪', 'KG': '🇰🇬', 'KH': '🇰🇭', 'KI': '🇰🇮', 'KM': '🇰🇲', 'KN': '🇰🇳', 'KP': '🇰🇵', 'KR': '🇰🇷', 'KW': '🇰🇼', 'KY': '🇰🇾', 'KZ': '🇰🇿', 'LA': '🇱🇦', 'LB': '🇱🇧', 'LC': '🇱🇨', 'LI': '🇱🇮', 'LK': '🇱🇰', 'LR': '🇱🇷', 'LS': '🇱🇸', 'LT': '🇱🇹', 'LU': '🇱🇺', 'LV': '🇱🇻', 'LY': '🇱🇾', 'MA': '🇲🇦', 'MC': '🇲🇨', 'MD': '🇲🇩', 'ME': '🇲🇪', 'MF': '🇲🇫', 'MG': '🇲🇬', 'MH': '🇲🇭', 'MK': '🇲🇰', 'ML': '🇲🇱', 'MM': '🇲🇲', 'MN': '🇲🇳', 'MO': '🇲🇴', 'MP': '🇲🇵', 'MQ': '🇲🇶', 'MR': '🇲🇷', 'MS': '🇲🇸', 'MT': '🇲🇹', 'MU': '🇲🇺', 'MV': '🇲🇻', 'MW': '🇲🇼', 'MX': '🇲🇽', 'MY': '🇲🇾', 'MZ': '🇲🇿', 'NA': '🇳🇦', 'NC': '🇳🇨', 'NE': '🇳🇪', 'NF': '🇳🇫', 'NG': '🇳🇬', 'NI': '🇳🇮', 'NL': '🇳🇱', 'NO': '🇳🇴', 'NP': '🇳🇵', 'NR': '🇳🇷', 'NU': '🇳🇺', 'NZ': '🇳🇿', 'OM': '🇴🇲', 'PA': '🇵🇦', 'PE': '🇵🇪', 'PF': '🇵🇫', 'PG': '🇵🇬', 'PH': '🇵🇭', 'PK': '🇵🇰', 'PL': '🇵🇱', 'PM': '🇵🇲', 'PN': '🇵🇳', 'PR': '🇵🇷', 'PS': '🇵🇸', 'PT': '🇵🇹', 'PW': '🇵🇼', 'PY': '🇵🇾', 'QA': '🇶🇦', 'RE': '🇷🇪', 'RO': '🇷🇴', 'RS': '🇷🇸', 'RU': '🇷🇺', 'RW': '🇷🇼', 'SA': '🇸🇦', 'SB': '🇸🇧', 'SC': '🇸🇨', 'SD': '🇸🇩', 'SE': '🇸🇪', 'SG': '🇸🇬', 'SH': '🇸🇭', 'SI': '🇸🇮', 'SK': '🇸🇰', 'SL': '🇸🇱', 'SM': '🇸🇲', 'SN': '🇸🇳', 'SO': '🇸🇴', 'SR': '🇸🇷', 'SS': '🇸🇸', 'ST': '🇸🇹', 'SV': '🇸🇻', 'SX': '🇸🇽', 'SY': '🇸🇾', 'SZ': '🇸🇿', 'TC': '🇹🇨', 'TD': '🇹🇩', 'TG': '🇹🇬', 'TH': '🇹🇭', 'TJ': '🇹🇯', 'TK': '🇹🇰', 'TL': '🇹🇱', 'TM': '🇹🇲', 'TN': '🇹🇳', 'TO': '🇹🇴', 'TR': '🇹🇷', 'TT': '🇹🇹', 'TV': '🇹🇻', 'TW': '🇹🇼', 'TZ': '🇹🇿', 'UA': '🇺🇦', 'UG': '🇺🇬', 'US': '🇺🇸', 'UY': '🇺🇾', 'UZ': '🇺🇿', 'VA': '🇻🇦', 'VC': '🇻🇨', 'VE': '🇻🇪', 'VG': '🇻🇬', 'VI': '🇻🇮', 'VN': '🇻🇳', 'VU': '🇻🇺', 'WF': '🇼🇫', 'WS': '🇼🇸', 'YE': '🇾🇪', 'YT': '🇾🇹', 'ZA': '🇿🇦', 'ZM': '🇿🇲', 'ZW': '🇿🇼'
-}
-
-GEOIP_READER = None
-BLOCKED_NETWORKS = []
-
-def load_ip_data():
-    global GEOIP_READER
-    print("Attempting to load GeoIP database...")
-    try:
-        GEOIP_READER = geoip2.database.Reader(GEOIP_DATABASE_PATH)
-        print(f"✅ Successfully loaded GeoIP database.")
-    except FileNotFoundError:
-        print(f"❌ CRITICAL: GeoIP database not found at '{GEOIP_DATABASE_PATH}'. Flags will be disabled.")
-    except Exception as e:
-        print(f"❌ CRITICAL: Failed to load GeoIP database: {e}")
-
-def load_blocked_ips():
-    """Load blocked CIDR ranges from file."""
-    global BLOCKED_NETWORKS
-    if os.path.exists(BLOCKED_IPS_FILE):
-        try:
-            with open(BLOCKED_IPS_FILE, 'r', encoding='utf-8') as f:
-                for line in f:
-                    line = line.strip()
-                    if line and not line.startswith('#'):
-                        try:
-                            BLOCKED_NETWORKS.append(ipaddress.ip_network(line, strict=False))
-                        except ValueError:
-                            print(f"⚠️ Invalid IP range in file: {line}")
-            print(f"🚫 Loaded {len(BLOCKED_NETWORKS)} blocked IP ranges from {BLOCKED_IPS_FILE}")
-        except Exception as e:
-            print(f"❌ Error loading blocked IPs: {e}")
-    else:
-        print(f"⚠️ Warning: '{BLOCKED_IPS_FILE}' not found. No IPs will be filtered.")
-
-def is_clean_ip(host: str) -> bool:
-    try:
-        ip = ipaddress.ip_address(host)
-        for network in BLOCKED_NETWORKS:
-            if ip in network:
-                return False 
-        return True 
-    except ValueError:
-        return False 
-
-def process_lists():
-    channels = [ch.strip() for ch in CHANNELS_STR.split(',')] if CHANNELS_STR else []
-    groups = []
-    if GROUPS_STR:
-        try:
-            groups = [int(g.strip()) for g in GROUPS_STR.split(',')]
-        except ValueError: pass
-    return channels, groups
-
-CHANNELS, GROUPS = process_lists()
-
-class V2RayExtractor:
-    def __init__(self):
-        self.raw_configs: Set[str] = set()
-        self.client = Client("my_account", api_id=API_ID, api_hash=API_HASH, session_string=SESSION_STRING)
-        self._country_cache: Dict[str, str] = {}
-
-    def get_country_iso_code(self, hostname: str) -> str:
-        if not hostname: return "N/A"
-        if not GEOIP_READER: return "N/A"
-        if hostname in self._country_cache:
-            return self._country_cache[hostname]
-        try:
-            ip_address = hostname
-            try: socket.inet_aton(hostname)
-            except:
-                try: ip_address = socket.gethostbyname(hostname)
-                except socket.timeout:
-                    self._country_cache[hostname] = "N/A"
-                    return "N/A"
-            response = GEOIP_READER.country(ip_address)
-            result = response.country.iso_code or "N/A"
-            self._country_cache[hostname] = result
-            return result
-        except:
-            self._country_cache[hostname] = "N/A"
-            return "N/A"
-
-    def _is_valid_shadowsocks(self, ss_url: str) -> bool:
-        try:
-            if '@' in ss_url:
-                parts = ss_url.split('@')
-                if len(parts) >= 2: return True
-            return False
-        except: return False
-
-    def _correct_config_type(self, config_url: str) -> str:
-        if config_url.startswith('ss://') and 'v=2' in config_url: return config_url.replace('ss://', 'vmess://', 1)
-        return config_url
-
-    def _validate_config_type(self, config_url: str) -> bool:
-        try:
-            if config_url.startswith('vless://'): return True
-            elif config_url.startswith('vmess://'):
-                decoded_str = base64.b64decode(config_url[8:] + '=' * 4).decode('utf-8')
-                config = json.loads(decoded_str)
-                return bool(config.get('add') and config.get('id'))
-            elif config_url.startswith('trojan://'): return True
-            elif config_url.startswith('ss://'): return self._is_valid_shadowsocks(config_url)
-            return True
-        except: return False
-
-    def parse_config_for_clash(self, config_url: str) -> Optional[Dict[str, Any]]:
-        parsers = {'vmess://': self.parse_vmess, 'vless://': self.parse_vless, 'trojan://': self.parse_trojan, 'ss://': self.parse_shadowsocks, 'hysteria2://': self.parse_hysteria2, 'hy2://': self.parse_hysteria2, 'tuic://': self.parse_tuic}
-        for prefix, parser in parsers.items():
-            if config_url.startswith(prefix):
-                try: return parser(config_url)
-                except: return None
-        return None
-
-    def parse_vmess(self, vmess_url: str) -> Optional[Dict[str, Any]]:
-        decoded_str = base64.b64decode(vmess_url[8:] + '=' * 4).decode('utf-8')
-        c = json.loads(decoded_str)
-        ws_opts, grpc_opts, h2_opts = None, None, None
-        if c.get('net') == 'ws':
-            ws_opts = {'path': c.get('path', '/'), 'headers': {'Host': c.get('host', '')}}
-        elif c.get('net') == 'grpc':
-            grpc_opts = {'grpc-service-name': c.get('path', '')}
-        elif c.get('net') == 'h2':
-            h2_opts = {'path': c.get('path', '/'), 'host': [h.strip() for h in c.get('host', '').split(',') if h.strip()]}
-        return {'name': c.get('ps', ''), 'type': 'vmess', 'server': c.get('add'), 'port': int(c.get('port', 443)), 'uuid': c.get('id'), 'alterId': int(c.get('aid', 0)), 'cipher': c.get('scy', 'auto'), 'tls': c.get('tls')=='tls', 'network': c.get('net', 'tcp'), 'udp': True, 'ws-opts': ws_opts, 'grpc-opts': grpc_opts, 'h2-opts': h2_opts, 'servername': c.get('sni', c.get('host'))}
-
-    def parse_vless(self, vless_url: str) -> Optional[Dict[str, Any]]:
-        p, q = urlparse(vless_url), parse_qs(urlparse(vless_url).query)
-        ws_opts, reality_opts, grpc_opts = None, None, None
-        network = q.get('type', ['tcp'])[0]
-        if network == 'ws':
-            ws_opts = {'path': q.get('path', ['/'])[0], 'headers': {'Host': q.get('host', [''])[0]}}
-        elif network == 'grpc':
-            grpc_opts = {'grpc-service-name': q.get('serviceName', [''])[0]}
-        if q.get('security', [''])[0] == 'reality':
-            reality_opts = {'public-key': q.get('pbk', [''])[0], 'short-id': q.get('sid', [''])[0]}
-        flow = q.get('flow', [None])[0]
-        fp = q.get('fp', [None])[0]
-        return {'name': unquote(p.fragment or ''), 'type': 'vless', 'server': p.hostname, 'port': p.port or 443, 'uuid': p.username, 'udp': True, 'tls': q.get('security', [''])[0] in ['tls', 'reality'], 'flow': flow, 'client-fingerprint': fp, 'network': network, 'servername': q.get('sni', [None])[0], 'ws-opts': ws_opts, 'grpc-opts': grpc_opts, 'reality-opts': reality_opts}
-
-    def parse_trojan(self, trojan_url: str) -> Optional[Dict[str, Any]]:
-        p, q = urlparse(trojan_url), parse_qs(urlparse(trojan_url).query)
-        network = q.get('type', ['tcp'])[0]
-        ws_opts, grpc_opts = None, None
-        if network == 'ws':
-            ws_opts = {'path': q.get('path', ['/'])[0], 'headers': {'Host': q.get('host', [''])[0]}}
-        elif network == 'grpc':
-            grpc_opts = {'grpc-service-name': q.get('serviceName', [''])[0]}
-        fp = q.get('fp', [None])[0]
-        return {'name': unquote(p.fragment or ''), 'type': 'trojan', 'server': p.hostname, 'port': p.port or 443, 'password': p.username, 'udp': True, 'sni': q.get('sni', [None])[0], 'network': network, 'ws-opts': ws_opts, 'grpc-opts': grpc_opts, 'client-fingerprint': fp}
-
-    VALID_SS_CIPHERS = {
-        'aes-128-gcm', 'aes-256-gcm',
-        'chacha20-ietf-poly1305', 'xchacha20-ietf-poly1305',
-        '2022-blake3-aes-128-gcm', '2022-blake3-aes-256-gcm',
-        '2022-blake3-chacha20-poly1305',
-    }
-
-    def parse_shadowsocks(self, ss_url: str) -> Optional[Dict[str, Any]]:
-        try:
-            content = ss_url[5:]
-            name = ''
-            if '#' in content:
-                content, name_encoded = content.split('#', 1)
-                name = unquote(name_encoded)
-            if '@' not in content: return None
-            userinfo_b64, server_part = content.rsplit('@', 1)
-            if ':' in server_part:
-                server_host, server_port_str = server_part.rsplit(':', 1)
-                port = int(server_port_str)
-            else: return None
-            userinfo_b64_padded = userinfo_b64 + '=' * (-len(userinfo_b64) % 4)
-            try:
-                userinfo_bytes = base64.b64decode(userinfo_b64_padded, validate=False)
-                userinfo_str = userinfo_bytes.decode('utf-8')
-            except:
-                userinfo_bytes = base64.urlsafe_b64decode(userinfo_b64_padded)
-                userinfo_str = userinfo_bytes.decode('utf-8')
-            if ':' in userinfo_str:
-                cipher, password = userinfo_str.split(':', 1)
-                if cipher not in self.VALID_SS_CIPHERS:
-                    return None
-                return {'name': name, 'type': 'ss', 'server': server_host, 'port': port, 'cipher': cipher, 'password': password, 'udp': True}
-            return None
-        except: return None
-
-    def parse_hysteria2(self, hy2_url: str) -> Optional[Dict[str, Any]]:
-        p, q = urlparse(hy2_url), parse_qs(urlparse(hy2_url).query)
-        password = p.username or unquote(p.password or '') if p.password else p.username
-        return {'name': unquote(p.fragment or ''), 'type': 'hysteria2', 'server': p.hostname, 'port': p.port or 443, 'password': password, 'up': q.get('up', [''])[0], 'down': q.get('down', [''])[0], 'sni': q.get('sni', [p.hostname])[0], 'skip-cert-verify': q.get('insecure', ['0'])[0]=='1'}
-
-    def parse_tuic(self, tuic_url: str) -> Optional[Dict[str, Any]]:
-        p, q = urlparse(tuic_url), parse_qs(urlparse(tuic_url).query)
-        return {'name': unquote(p.fragment or ''), 'type': 'tuic', 'server': p.hostname, 'port': p.port or 443, 'uuid': p.username, 'password': q.get('password', [''])[0], 'udp': True, 'sni': q.get('sni', [p.hostname])[0], 'skip-cert-verify': q.get('allow_insecure', ['0'])[0]=='1'}
-
-    def generate_sip002_link(self, proxy: Dict[str, Any]) -> str:
-        try:
-            userinfo = f"{proxy['cipher']}:{proxy['password']}"
-            userinfo_b64 = base64.urlsafe_b64encode(userinfo.encode('utf-8')).decode('utf-8').rstrip('=')
-            name = proxy.get('name', 'Shadowsocks')
-            return f"ss://{userinfo_b64}@{proxy['server']}:{proxy['port']}#{name}"
-        except: return None
-
-    def convert_to_singbox_outbound(self, proxy: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        if not proxy: return None
-        t = proxy['type']
-        out = {'type': t if t!='ss' else 'shadowsocks', 'tag': proxy['name'], 'server': proxy['server'], 'server_port': proxy['port']}
-        if t=='vmess': out.update({'uuid': proxy['uuid'], 'alter_id': proxy['alterId'], 'security': proxy['cipher'], 'tls': {'enabled': True, 'server_name': proxy['servername']} if proxy.get('tls') else None})
-        if t=='vless': out.update({'uuid': proxy['uuid'], 'flow': proxy.get('flow',''), 'tls': {'enabled': True, 'server_name': proxy['servername'], 'reality': {'enabled': True, 'public_key': proxy.get('reality-opts',{}).get('public-key'), 'short_id': proxy.get('reality-opts',{}).get('short-id')} if proxy.get('reality-opts') else None} if proxy.get('tls') else None})
-        if t=='trojan': out.update({'password': proxy['password'], 'tls': {'enabled': True, 'server_name': proxy.get('sni')}})
-        if t=='ss': out.update({'method': proxy['cipher'], 'password': proxy['password']})
-        if t in ['hysteria2','tuic']: out.update({'password': proxy.get('password'), 'tls': {'enabled': True, 'server_name': proxy.get('sni'), 'insecure': proxy.get('skip-cert-verify')}})
-        if proxy.get('ws-opts'): out['transport'] = {'type': 'ws', 'path': proxy['ws-opts']['path'], 'headers': proxy['ws-opts']['headers']}
-        return out
-
-    def extract_configs_from_text(self, text: str) -> Set[str]:
-        found = set()
-        for pattern in V2RAY_PATTERNS:
-            found.update(pattern.findall(text))
-        
-        clean_configs = set()
-        for url in found:
-            url = url.strip()
-            if not url.startswith('vmess://') and '#' in url:
-                url = url.split('#')[0]
-            if corrected := self._correct_config_type(url):
-                if self._validate_config_type(corrected):
-                    clean_configs.add(corrected)
-        return clean_configs
-
-    async def find_raw_configs_from_chat(self, chat_id: int, limit: int, retries: int = 3):
-        local_configs = set()
-        try:
-            is_active = False
-            try:
-                async for last_msg in self.client.get_chat_history(chat_id, limit=1):
-                    if last_msg.date > (datetime.datetime.now() - datetime.timedelta(days=CHANNEL_MAX_INACTIVE_DAYS)):
-                        is_active = True
-                    break 
-            except: pass
-
-            if not is_active:
-                print(f"💤 Skipping {chat_id}: Inactive or empty.")
-                return
-
-            async for message in self.client.get_chat_history(chat_id, limit=limit):
-                text_to_check = message.text or message.caption or ""
-                texts_to_scan = [text_to_check]
-                if message.entities:
-                    valid_types = [enums.MessageEntityType.CODE, enums.MessageEntityType.PRE]
-                    for attr in ['BLOCKQUOTE', 'EXPANDABLE_BLOCKQUOTE']:
-                        if hasattr(enums.MessageEntityType, attr):
-                            valid_types.append(getattr(enums.MessageEntityType, attr))
-                    for entity in message.entities:
-                        if entity.type in valid_types:
-                            raw_segment = text_to_check[entity.offset : entity.offset + entity.length]
-                            cleaned_segment = raw_segment.replace('\n', '').replace(' ', '')
-                            texts_to_scan.append(cleaned_segment)
-                for b64_str in BASE64_PATTERN.findall(text_to_check):
-                    try:
-                        decoded = base64.b64decode(b64_str + '=' * 4).decode('utf-8', errors='ignore')
-                        texts_to_scan.append(decoded)
-                    except: continue
-                for text in texts_to_scan:
-                    if text: local_configs.update(self.extract_configs_from_text(text))
-            print(f"   ✅ Fetched {len(local_configs)} configs from {chat_id}")
-            self.raw_configs.update(local_configs)
-        except FloodWait as e:
-            if retries > 0:
-                print(f"⏳ FloodWait {e.value}s in {chat_id}. Sleeping...")
-                await asyncio.sleep(e.value + 2)
-                await self.find_raw_configs_from_chat(chat_id, limit, retries - 1)
-        except Exception as e:
-            print(f"❌ Error scanning {chat_id}: {e}")
-
-    def split_configs_by_country(self, links: List[str]):
-        target_countries = {'US': 'conf-US.txt', 'DE': 'conf-DE.txt', 'NL': 'conf-NL.txt', 'GB': 'conf-UK.txt', 'FR': 'conf-FR.txt'}
-        country_buckets = {code: [] for code in target_countries}
-        for link in links:
-            proxy = self.parse_config_for_clash(link)
-            if not proxy: continue
-            host = proxy.get('server')
-            if not host: continue
-            iso_code = self.get_country_iso_code(host)
-            if iso_code in target_countries:
-                country_buckets[iso_code].append(link)
-        for code, filename in target_countries.items():
-            configs = country_buckets[code]
-            with open(filename, 'w', encoding='utf-8') as f: f.write("\n".join(sorted(configs)))
-
-    def handle_weekly_file(self, new_configs: List[str]):
-        now = datetime.datetime.now()
-        cutoff = now - datetime.timedelta(days=7)
-        history = {}
-        if os.path.exists(HISTORY_FILE):
-            try:
-                with open(HISTORY_FILE, 'r') as f: history = json.load(f)
-            except: history = {}
-        new_history = {}
-        for base_cfg, meta in history.items():
-            try:
-                if datetime.datetime.fromisoformat(meta['date']) > cutoff:
-                    new_history[base_cfg] = meta
-            except: pass
-        for cfg in new_configs:
-            base = cfg.split('#')[0]
-            if base not in new_history:
-                new_history[base] = {"link": cfg, "date": now.isoformat()}
-        with open(HISTORY_FILE, 'w') as f: json.dump(new_history, f, indent=2)
-        final_links = [meta['link'] for meta in new_history.values()]
-        with open(WEEKLY_FILE, 'w', encoding='utf-8') as f: f.write("\n".join(sorted(final_links)))
-        self.split_configs_by_country(final_links)
-
-    def handle_no_cf_retention(self, new_configs: List[str]):
-        now = datetime.datetime.now()
-        cutoff = now - datetime.timedelta(hours=72)
-        history = {}
-        if os.path.exists(NO_CF_HISTORY_FILE):
-            try:
-                with open(NO_CF_HISTORY_FILE, 'r') as f: history = json.load(f)
-            except: history = {}
-        new_history = {} 
-        def get_unique_id(link):
-            try:
-                proxy = self.parse_config_for_clash(link)
-                if proxy:
-                    uid = proxy.get('uuid') or proxy.get('password') or proxy.get('auth')
-                    if uid: return str(uid)
-            except: pass
-            return link.split('#')[0]
-
-        for meta in history.values():
-            try:
-                if datetime.datetime.fromisoformat(meta['date']) > cutoff:
-                    uid = get_unique_id(meta['link'])
-                    if uid not in new_history: new_history[uid] = meta
-            except: pass
-        for cfg in new_configs:
-            uid = get_unique_id(cfg)
-            if uid not in new_history:
-                new_history[uid] = {"link": cfg, "date": now.isoformat()}
-        with open(NO_CF_HISTORY_FILE, 'w') as f: json.dump(new_history, f, indent=2)
-        final_links = [meta['link'] for meta in new_history.values()]
-        with open(OUTPUT_NO_CF, 'w', encoding='utf-8') as f: f.write("\n".join(sorted(final_links)))
-        print(f"⏱️ 72h Retention: Total {len(final_links)} configs.")
-
-    def save_files(self):
-        print(f"\n⚙️ Total Configs: {len(self.raw_configs)}")
-        if not self.raw_configs: return
-        valid_configs = set()
-        for url in self.raw_configs:
-            try:
-                if not url.startswith('ss://'):
-                    if not urlparse(url).hostname: continue 
-                if url.startswith('vless://'):
-                    if parse_qs(urlparse(url).query).get('security', [''])[0] == 'none': continue 
-                valid_configs.add(url)
-            except: continue
-
-        proxies_list_clash, renamed_txt_configs = [], []
-        clean_ip_configs = []
-
-        for i, url in enumerate(sorted(list(valid_configs)), 1):
-            if not (proxy := self.parse_config_for_clash(url)): continue
-            host_to_check = proxy.get('server') or proxy.get('servername') or proxy.get('sni')
-            country_code = self.get_country_iso_code(host_to_check)
-            country_flag = COUNTRY_FLAGS.get(country_code, '🏳️')
-            proxy['name'] = f"{country_code} Config_jo-{i:02d}"
-            proxies_list_clash.append(proxy)
-            name_with_flag = f"{country_flag} Config_jo-{i:02d}"
-            
-            final_link = ""
-            if proxy['type'] == 'ss':
-                ss_p = proxy.copy(); ss_p['name'] = name_with_flag
-                clean = self.generate_sip002_link(ss_p)
-                final_link = clean if clean else f"{url.split('#')[0]}#{name_with_flag}"
-            else:
-                try:
-                    parsed = list(urlparse(url)); parsed[5] = name_with_flag
-                    final_link = urlunparse(parsed)
-                except: final_link = f"{url.split('#')[0]}#{name_with_flag}"
-            
-            renamed_txt_configs.append(final_link)
-            server_address = proxy.get('server')
-            if server_address and is_clean_ip(server_address):
-                clean_ip_configs.append(final_link)
-
-        try:
-            with open(OUTPUT_ORIGINAL_CONFIGS, 'w', encoding='utf-8') as f: f.write("\n".join(sorted(list(self.raw_configs))))
-            with open(OUTPUT_TXT, 'w', encoding='utf-8') as f: f.write("\n".join(sorted(renamed_txt_configs)))
-            self.handle_no_cf_retention(clean_ip_configs)
-            os.makedirs('rules', exist_ok=True)
-            if proxies_list_clash:
-                clash_config = self.build_pro_config(proxies_list_clash)
-                if clash_config:
-                    with open(OUTPUT_YAML_PRO, 'w', encoding='utf-8') as f:
-                        yaml.dump(clash_config, f, allow_unicode=True, sort_keys=False, indent=2, width=120)
-                with open(OUTPUT_JSON_CONFIG_JO, 'w', encoding='utf-8') as f:
-                    json.dump(self.build_sing_box_config(proxies_list_clash), f, ensure_ascii=False, indent=4)
-        except Exception as e: print(f"❌ Error saving files: {e}")
-        self.handle_weekly_file(renamed_txt_configs)
-        print("\n✨ Done.")
-
-    def build_pro_config(self, proxies):
-        clean_proxies = []
-        clean_names = []
-        seen_names = set()
-
-        for p in proxies:
-            # 1. Validation
-            if p.get('type') in ['vless', 'vmess', 'tuic'] and not p.get('uuid'): continue
-            if p.get('type') == 'trojan' and not p.get('password'): continue
-            if p.get('type') == 'ss' and (not p.get('cipher') or not p.get('password')): continue
-            if p.get('type') == 'hysteria2' and not p.get('password'): continue
-            
-            # 2. Server Address Sanity
-            server = p.get('server', '')
-            if not server or len(server) > 50 or re.search(r'[^\w\.\-\:]', server): continue
-
-            # 3. SNI Sanity
-            sni = p.get('servername') or p.get('sni')
-            if sni:
-                if re.search(r'[^\w\.\-]', sni): # If contains invalid chars
-                    p['servername'] = None
-                    p['sni'] = None
-                    if p.get('tls'): p['servername'] = 'google.com' # Fallback for TLS
-
-            # 4. Remove Unsupported Networks
-            if p.get('network') in ['xhttp', 'httpupgrade']: continue
-
-            # 5. REMOVE NULL KEYS (Crucial fix for "sni: null")
-            # Create a clean copy of the dictionary without None values
-            p_clean = {k: v for k, v in p.items() if v is not None and v != ''}
-            
-            # 6. Duplicate Name Handling
-            name = p_clean['name']
-            counter = 1
-            original_name = name
-            while name in seen_names:
-                name = f"{original_name}_{counter}"
-                counter += 1
-            
-            p_clean['name'] = name
-            seen_names.add(name)
-            
-            clean_proxies.append(p_clean)
-            clean_names.append(name)
-
-        if not clean_proxies: return {}
-
-        return {
-            'port': 7890,
-            'socks-port': 7891,
-            'allow-lan': True,
-            'mode': 'rule',
-            'log-level': 'info',
-            'external-controller': '127.0.0.1:9090',
-            'dns': {
-                'enable': True,
-                'listen': '0.0.0.0:53',
-                'default-nameserver': ['8.8.8.8', '1.1.1.1'],
-                'enhanced-mode': 'fake-ip',
-                'fake-ip-range': '198.18.0.1/16',
-                'nameserver': ['https://dns.google/dns-query', 'https://cloudflare-dns.com/dns-query'],
-                'fallback': ['https://dns.google/dns-query', 'https://cloudflare-dns.com/dns-query'],
-                'fallback-filter': {'geoip': True, 'ipcidr': ['240.0.0.0/4', '0.0.0.0/32']}
-            },
-            'proxies': clean_proxies,
-            'proxy-groups': [
-                {'name': 'PROXY', 'type': 'select', 'proxies': ['⚡ Auto-Select', 'DIRECT', *clean_names]},
-                {'name': '⚡ Auto-Select', 'type': 'url-test', 'proxies': clean_names, 'url': 'http://www.gstatic.com/generate_204', 'interval': 300},
-                {'name': '🇮🇷 Iran', 'type': 'select', 'proxies': ['DIRECT', 'PROXY']},
-                {'name': '🛑 Block-Ads', 'type': 'select', 'proxies': ['REJECT', 'DIRECT']}
-            ],
-            'rule-providers': {
-                'iran_domains': {'type': 'http', 'behavior': 'domain', 'url': "https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/iran-domains.txt", 'path': './rules/iran_domains.txt', 'interval': 86400},
-                'blocked_domains': {'type': 'http', 'behavior': 'domain', 'url': "https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/blocked-domains.txt", 'path': './rules/blocked_domains.txt', 'interval': 86400},
-                'ad_domains': {'type': 'http', 'behavior': 'domain', 'url': "https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/ad-domains.txt", 'path': './rules/ad_domains.txt', 'interval': 86400}
-            },
-            'rules': ['RULE-SET,ad_domains,🛑 Block-Ads', 'RULE-SET,blocked_domains,PROXY', 'RULE-SET,iran_domains,🇮🇷 Iran', 'GEOIP,IR,🇮🇷 Iran', 'MATCH,PROXY']
-        }
-
-    def build_sing_box_config(self, proxies_clash: List[Dict[str, Any]]) -> Dict[str, Any]:
-        outbounds = [p for p in (self.convert_to_singbox_outbound(proxy) for proxy in proxies_clash) if p]
-        proxy_tags = [p['tag'] for p in outbounds]
-        return {"log": {"level": "warn", "timestamp": True}, "dns": {"servers": [{"tag": "dns_proxy", "address": "https://dns.google/dns-query", "detour": "PROXY"}, {"tag": "dns_direct", "address": "1.1.1.1"}], "rules": [{"outbound": "PROXY", "server": "dns_proxy"}, {"rule_set": ["geosite-ir", "geoip-ir"], "server": "dns_direct"}, {"domain_suffix": ".ir", "server": "dns_direct"}], "final": "dns_direct", "strategy": "ipv4_only"}, "inbounds": [{"type": "mixed", "listen": "0.0.0.0", "listen_port": 2080, "sniff": True}], "outbounds": [{"type": "direct", "tag": "direct"}, {"type": "block", "tag": "block"}, {"type": "dns", "tag": "dns-out"}, *outbounds, {"type": "selector", "tag": "PROXY", "outbounds": ["auto", *proxy_tags], "default": "auto"}, {"type": "urltest", "tag": "auto", "outbounds": proxy_tags, "url": "http://www.gstatic.com/generate_204", "interval": "5m"}], "route": {"rule_set": [{"tag": "geosite-ir", "type": "remote", "format": "binary", "url": "https://cdn.jsdelivr.net/gh/Chocolate4U/Iran-sing-box-rules@rule-set/geosite-ir.srs", "download_detour": "direct"}, {"tag": "geoip-ir", "type": "remote", "format": "binary", "url": "https://cdn.jsdelivr.net/gh/Chocolate4U/Iran-sing-box-rules@rule-set/geoip-ir.srs", "download_detour": "direct"}], "rules": [{"protocol": "dns", "outbound": "dns-out"}, {"rule_set": ["geosite-ir", "geoip-ir"], "outbound": "direct"}, {"ip_is_private": True, "outbound": "direct"}], "final": "PROXY"}}
-
-async def main():
-    print("🚀 Starting config extractor...")
-    socket.setdefaulttimeout(5)
-    load_ip_data()
-    load_blocked_ips()
-    extractor = V2RayExtractor()
-    async with extractor.client:
-        print("🔄 Refreshing dialogs...")
-        async for d in extractor.client.get_dialogs(): pass
-        tasks = [extractor.find_raw_configs_from_chat(channel, CHANNEL_SEARCH_LIMIT) for channel in CHANNELS]
-        tasks.extend(extractor.find_raw_configs_from_chat(group, GROUP_SEARCH_LIMIT) for group in GROUPS)
-        if tasks: await asyncio.gather(*tasks)
-        else: print("❌ No channels or groups defined for searching.")
-    extractor.save_files()
-
-if __name__ == "__main__":
-    if not all([API_ID, API_HASH, SESSION_STRING]):
-        print("❌ Error: One or more required secrets (API_ID, API_HASH, SESSION_STRING) are not set.")
-    else:
-        asyncio.run(main())
+hysteria2://b4bd0613-ff7c-4f2f-954d-185915e6ddad@5.175.249.174:35000?security=tls&obfs=salamander&obfs-password=%40JavidnamanIran-Javid-SHAH-KingRezaPahlavi&insecure=0&sni=api.kermanshahi.org#🇩🇪 Config_jo-01
+ss://MjAyMi1ibGFrZTMtYWVzLTI1Ni1nY206UGFDWGtnOTdrOWs5YTE4clM3OGtlOXdoZHFNQkNxbVhycFROZkVZTkpZZz0@51.178.85.208:8388#🇫🇷 Config_jo-172
+ss://MjAyMi1ibGFrZTMtYWVzLTI1Ni1nY206ZXRVOC9mdkNWUGFxbUtrWFY2Ylg4djhVTEk0RmNoK0VLdmcxOU1vRVRMaz0@57.131.41.129:8390#🇮🇹 Config_jo-174
+ss://Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNToxNWIwNTczODMwMDgxZDAx@51.89.119.213:11201#🇬🇬 Config_jo-177
+ss://Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTozN2VmNGYwMjlmMWFjMGFj@141.95.105.28:11201#🇩🇪 Config_jo-180
+ss://Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTp5UmR4dkszMmdjS3E4eHhOZ3V3VTk5@62.60.233.226:62763#🇹🇷 Config_jo-181
+ss://Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTpJbnYxMTRkcDJ6azlaYllGUHBkUWY0@31.3.209.106:46551#🇰🇿 Config_jo-182
+ss://Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTpkNmIwOTczNDAxODU4YjI5@57.129.95.198:11201#🇩🇪 Config_jo-186
+ss://Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTpkbFVER1paNUZwY0NhTzBFVG5zNHlJ@92.118.112.101:9483#🇺🇸 Config_jo-187
+ss://Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTpqSUxQVDhuOHA5WVZWbDBvSnp5dWM3@62.133.63.21:65262#🇹🇷 Config_jo-189
+ss://Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTprMWRCT21PQjRvcWk3VW1wMzdhMWJR@82.38.31.184:8080#🇬🇬 Config_jo-190
+ss://Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTprMWRCT21PQjRvcWk3VW1wMzdhMWJR@82.38.31.199:8080#🇬🇬 Config_jo-191
+ss://Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTprMWRCT21PQjRvcWk3VW1wMzdhMWJR@82.38.31.210:8080#🇬🇬 Config_jo-192
+ss://Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTprYVFIM2hHZGNQODBYRURJ@admin.c2.havij.co:443#🇬🇬 Config_jo-193
+ss://Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTpsanFkYWx1MTMuLg@3.1.195.148:8316#🇸🇬 Config_jo-194
+ss://Y2hhY2hhMjAtcG9seTEzMDU6NmUzZTQzZjQtMTJiNy00MmYxLThiOTMtNDFhMTUyZDU2MTJk@78.38.246.150:8446#🇮🇷 Config_jo-197
+ss://YWVzLTI1Ni1nY206OEpDc1Bzc2ZnUzh0aVJ3aU1saEFSZz09@144.217.164.29:12000#🇨🇦 Config_jo-199
+trojan://5fb072e0ddd631cf66cf752b09210480@54.250.24.198:127?security=tls&insecure=0&headerType=none&type=tcp&allowInsecure=0&sni=www.nintendogames.net#🇯🇵 Config_jo-295
+trojan://BxceQaOe@43.198.233.56:381?security=tls&insecure=1&headerType=none&type=tcp&allowInsecure=1&sni=t.me%252Fripaojiedian#🇭🇰 Config_jo-296
+trojan://T9BpZIVMNv@v1.dabache.top:8443?path=%2Famd&security=tls&insecure=0&host=sweden.vmaxpanel.com&type=ws&allowInsecure=0&sni=sweden.vmaxpanel.com#🏳️ Config_jo-297
+trojan://b3a73d16-5d6e-45ad-8a73-314583408ec1@fic.buzzon.shop:443?path=%2FSpB9iu4m7MqdokB1leJ&security=tls&alpn=http%2F1.1&insecure=0&host=fic.buzzon.shop&fp=chrome&type=ws&allowInsecure=0&sni=fic.buzzon.shop#🏳️ Config_jo-298
+trojan://humanity@104.18.32.37:443?allowInsecure=0&fp=chrome&insecure=0&path=%2Fassignment&security=tls&sni=www.gossipglove.com&type=ws#🏳️ Config_jo-299
+trojan://humanity@104.21.40.34:443?path=%2Fassignment&security=tls&insecure=1&host=www.gossipglove.com&type=ws&allowInsecure=1&sni=www.gossipglove.com#🏳️ Config_jo-300
+trojan://humanity@172.64.152.23:443?path=%2Fassignment&security=tls&insecure=0&host=www.calmlunch.com&type=ws&allowInsecure=0&sni=www.calmlunch.com#🏳️ Config_jo-301
+trojan://humanity@172.64.152.23:443?path=%2Fassignment&security=tls&insecure=0&host=www.creationlong.org&type=ws&allowInsecure=0&sni=www.creationlong.org#🏳️ Config_jo-302
+trojan://humanity@172.64.152.23:443?path=%2Fassignment&security=tls&insecure=0&host=www.gossipglove.com&fp=chrome&type=ws&allowInsecure=0&sni=www.gossipglove.com#🏳️ Config_jo-303
+trojan://humanity@v1.dabache.top:443?path=%2Fassignment&security=tls&insecure=1&host=www.creationlong.org&type=ws&allowInsecure=1&sni=www.creationlong.org#🏳️ Config_jo-304
+trojan://humanity@v1.dabache.top:443?path=%2Fassignment&security=tls&insecure=1&host=www.multiplydose.com&type=ws&allowInsecure=1&sni=www.multiplydose.com#🏳️ Config_jo-305
+trojan://humanity@www.multiplydose.com:443?path=%2Fassignment&security=tls&insecure=0&fp=chrome&type=ws&allowInsecure=0&sni=www.multiplydose.com#🏳️ Config_jo-306
+trojan://telegram-id-d#🏳️ Config_jo-307
+trojan://telegram-id-directvpn@35.180.72.19:22223?alpn=http%2F1.1&headerType=none&security=tls&sni=trojan.burgerip.co.uk&type=tcp#🇫🇷 Config_jo-308
+trojan://telegram-id-privatevpns@35.180.72.19:22222?alpn=http%2F1.1&headerType=none&security=tls&sni=trojan.burgerip.co.uk&type=tcp#🇫🇷 Config_jo-309
+vless://00000000-0000-4000-8000-000000000000@13.250.135.82:48223?path=%2F%40Marisa_kristi&security=tls&encryption=none&insecure=1&host=miku.zrf.xx.kg&type=ws&allowInsecure=1&sni=miku.zrf.xx.kg#🇸🇬 Config_jo-310
+vless://00000000-0000-4000-8000-000000000000@91.107.151.136:348?path=%2F%40Marisa_kristi&security=tls&encryption=none&insecure=1&host=miku.zrf.xx.kg&type=ws&allowInsecure=1&sni=miku.zrf.xx.kg#🇩🇪 Config_jo-311
+vless://00000000-0000-4000-8000-000000000000@91.107.151.136:883?path=%2F%40Marisa_kristi&security=tls&encryption=none&insecure=1&host=miku.zrf.xx.kg&type=ws&allowInsecure=1&sni=miku.zrf.xx.kg#🇩🇪 Config_jo-312
+vless://05519058-d2ac-4f28-9e4a#🏳️ Config_jo-313
+vless://05519058-d2ac-4f28-9e4a-2b2a1386749e@35.180.72.19:22224?path=%2Ftelegram-channel-vlessconfig&security=tls&sni=trojan.burgerip.co.uk&type=ws#🇫🇷 Config_jo-314
+vless://05dc09d5-5c56-454b-a34e-6ef743d91e1a@netherland.boot-lee.ru:8443?security=reality&encryption=none&pbk=3JGwSDrfkiCPdU3rvQP5m0z4Ag_UB_2w8Qq3VMXmo28&headerType=none&fp=qq&type=tcp&flow=xtls-rprx-vision&sni=yandex.ru&sid=abc123#🇳🇱 Config_jo-315
+vless://05dc09d5-5c56-454b-a34e-6ef743d91e1a@switzerland.boot-lee.ru:8443?security=reality&encryption=none&pbk=uPi8pw3m5KwGSNE1uHi0y_GbKBJwAD0-b6hrNsJBnh8&headerType=none&fp=chrome&type=tcp&flow=xtls-rprx-vision&sni=m.vk.com&sid=5fe811ec9283ce51#🇩🇪 Config_jo-316
+vless://09748875-9da3-440e-9809-9752e1dda1e4@38.244.137.198:443?security=reality&encryption=none&pbk=QXGsw1KqljvUiarkvFdBs3T1TeUQq4skwHFlsmbj31o&headerType=none&fp=chrome&spx=%2F&type=tcp&sni=google.com&sid=365c07ed#🇫🇮 Config_jo-317
+vless://0b67ba74-239b-4301-a3ed-bca843226b64@v2shop-tr#🏳️ Config_jo-318
+vless://0f1b6d8d-3f8c-4713-b32d-c94947083485@188.114.98.0:443?allowInsecure=0&encryption=none&fp=chrome&host=apexbhao1.qzz.io&insecure=0&path=%2F43.218.77.16%3D1443&security=tls&sni=apexbhao1.qzz.io&type=ws#🏳️ Config_jo-319
+vless://11e9eea1-b1a9-4f02-a1a1-b24f7664b1cf@104.21.75.235:443?path=%2FeyJqdW5rIjoiYW1sczlYWkFHOCIsInByb3RvY29sIjoidmwiLCJtb2RlIjoicHJveHlpcCIsInBhbmVsSVBzIjpbXX0&security=tls&encryption=none&insecure=0&host=ancient-heart-60c5.dpccgizieb.workers.dev&type=ws&allowInsecure=0&sni=ancIEnt-HeaRt-60c5.dPccgIzieB.WoRKers.dEV#🏳️ Config_jo-320
+vless://133d44b7-170e-41cd-a0cc-0b35470823bb@195.201.222.173:32916?encryption=none&fp=firefox&pbk=Vf2gG3NUXw728geRwr-lSqNf1xz8VZwm29FRkimd_WU&security=reality&sid=13cc9dffea&sni=tgju.org&spx=%2FOOKMgpCPhBP8OKJ&type=tcp#🇩🇪 Config_jo-321
+vless://133d44b7-170e-41cd-a0cc-0b35470823bb@195.201.222.173:32916?encryption=none&fp=firefox&pbk=Vf2gG3NUXw728geRwr-lSqNf1xz8VZwm29FRkimd_WU&security=reality&sid=ac636b&sni=tgju.org&spx=%2FstJ8LtHIGR2UxSN&type=tcp#🇩🇪 Config_jo-322
+vless://14c80e0e-f7ce-4991-94fc-99a1db4a9b1e@159.89.87.21:28190?security=reality&encryption=none&pbk=ZJRnFU-1s1JOnO8E9uZ7b00l1fPEh63fGRbdBANFRno&headerType=none&fp=chrome&type=tcp&flow=xtls-rprx-vision&sni=aws.amazon.com#🇺🇸 Config_jo-323
+vless://15fe8e4f-c7c2-47c8-e5b7-81406eae7540@3.70.201.21:49905?note=---Telegram---@NetifyVPN---Telegram---@NetifyVPN---Telegram---@NetifyVPN---Telegram---@NetifyVPN---&encryption=none&type=tcp&headerType=none#🇩🇪 Config_jo-324
+vless://1621caa6-2a23-4364-919b-1276ab6ca81a@no.tan3.ir:2053?mode=auto&security=tls&alpn=h2&encryption=none&extra=%7B%22scMaxEachPostBytes%22%3A%201000000%2C%20%22scMaxConcurrentPosts%22%3A%20100%2C%20%22scMinPostsIntervalMs%22%3A%2030%2C%20%22xPaddingBytes%22%3A%20%22100-1000%22%2C%20%22noGRPCHeader%22%3A%20false%7D&insecure=0&host=ax.tan3.ir&fp=chrome&type=xhttp&allowInsecure=0&sni=ax.tan3.ir#🏳️ Config_jo-325
+vless://192296be-e87d-42fa-9f1a-c689ed65efe8@hhh.h#🏳️ Config_jo-326
+vless://192296be-e87d-42fa-9f1a-c689ed65efe8@hhh.hesamkurd.ir:2083?path=%2F&security=tls&alpn=h2%2Chttp%2F1.1&encryption=none&host=info.burberryshop.shop&fp=randomized&type=ws&sni=info.burberryshop.shop#🏳️ Config_jo-327
+vless://1c7fcc38-e6be-43c5-875f-b8de2516b9f2@5.182.38.91:17267?security=reality&encryption=none&pbk=SnWZg6ORcQepuWLI1EVCTTVc4KyfDiGWR4o_CXCMhgk&headerType=none&fp=chrome&type=tcp&sni=yahoo.com&sid=4ae260#🇭🇺 Config_jo-328
+vless://25577310-a767-4b2c-90c6-9fcf4bb387f0@v3.dabache.top:443?path=%2F%3Fed%3D2560&security=tls&encryption=none&host=fffb57cc.tacgne.pages.dev&fp=chrome&type=ws&sni=fffb57cc.tacgne.pages.dev#🏳️ Config_jo-329
+vless://25577310-a767-4b2c-90c6-9fcf4bb387f0@v3.dabache.top:443?path=%2F%3Fed%3D2560&security=tls&encryption=none&insecure=0&host=fffb57cc.tacgne.pages.dev&fp=chrome&type=ws&allowInsecure=0&sni=fffb57cc.tacgne.pages.dev#🏳️ Config_jo-330
+vless://2637679c-e2fe-45a2-9962-e2ddf8469c29@digitalocean.com:2053?path=%2F&security=tls&encryption=none&insecure=0&host=foucse1.goooooooozoooo.sbs&type=ws&allowInsecure=0&sni=foucse1.goooooooozoooo.sbs#🏳️ Config_jo-331
+vless://2637679c-e2fe-45a2-9962-e2ddf8469c29@medium.com:2053?path=%2F%3FTELEGRAM-MARAMBASHI_MARAMBASHI_MARAMBASHI_MARAMBASHI_MARAMBASHI%3Fed%3D2560&security=tls&encryption=none&insecure=0&host=foucse1.goooooooozoooo.sbs&fp=chrome&type=ws&allowInsecure=0&sni=foucse1.goooooooozoooo.sbs#🏳️ Config_jo-332
+vless://2637679c-e2fe-45a2-9962-e2ddf8469c29@medium.com:2053?path=%2F&security=tls&encryption=none&insecure=0&host=foucse1.goooooooozoooo.sbs&fp=chrome&type=ws&allowInsecure=0&sni=foucse1.goooooooozoooo.sbs#🏳️ Config_jo-333
+vless://2637679c-e2fe-45a2-9962-e2ddf8469c29@medium.com:2053?path=%2F&security=tls&encryption=none&insecure=0&host=foucse1.goooooooozoooo.sbs&type=ws&allowInsecure=0&sni=foucse1.goooooooozoooo.sbs#🏳️ Config_jo-334
+vless://28cdbb46-1309-45fb-92f0-6a761bc30236@195.201.222.173:31232?authority=&encryption=none&fp=firefox&pbk=YMUFe3eUfODM1B0huGgXNxdZLtQczEzSHS3a1TJXyGQ&security=reality&serviceName=%40mahdi_383ir&sid=86c3&sni=tgju.org&spx=%2FgrNMTtIaYKcLKmj&type=grpc#🇩🇪 Config_jo-335
+vless://28f9da30-cd81-4726-86a9-d2e17b14decc@38.244.215.124:443?security=reality&encryption=none&pbk=teH8elrVppRluj9CeSno57ARzAUKRLCu6X9f8yvxvhQ&headerType=none&fp=chrome&spx=%2F&type=tcp&sni=google.com&sid=0ad4430e2c#🇩🇪 Config_jo-336
+vless://2b54583d-2738-40db-9b37-0454886e5744@hi4.afraseda.ir:2053?mode=auto&path=%2F%3Fed%3D2048&security=tls&alpn=h2%2Chttp%2F1.1&encryption=none&insecure=0&fp=chrome&type=xhttp&allowInsecure=0&sni=affipr.afraseda.ir#🇺🇸 Config_jo-337
+vless://2f1b3e09-b867-4211-9113-399f7fde4c3e@Ns3.iran-mehrbu.ir:443?path=%2Famir%3Fed%3D2048&security=tls&alpn=h3%2Ch2%2Chttp%2F1.1&encryption=none&insecure=0&host=amriaisbest.global.ssl.fastly.net&fp=chrome&type=ws&allowInsecure=0&sni=amriaisbest.global.ssl.fastly.net#🏳️ Config_jo-338
+vless://30b72aff-6405-41ed-8de4-76c105d29b1f@s2-d10.hmvpa.ir:2313?security=reality&encryption=none&pbk=Aw656mFJHtib1n4DQCHneFyjNipirK6pRzavNcn6pCY&headerType=none&fp=chrome&type=tcp&sni=play.google.com&sid=55b17c7bd6e57931#🏳️ Config_jo-339
+vless://31701b5d-ca95-92f9-d684-dae3706161ea@dd.openaccessnode.com:504?encryption=none&fp=chrome&mode=gun&pbk=aNLPNNyjIC7QYLe7MpF4nxxHhO421dBSZaQgsDd1szs&security=reality&serviceName=JNIR&sid=1d64e9805b4f9ae3&sni=nobitex.ir&type=grpc#🇸🇪 Config_jo-340
+vless://31701b5d-ca95-92f9-d684-dae3706161ea@dd.openaccessnode.com:504?mode=gun&security=reality&encryption=none&pbk=aNLPNNyjIC7QYLe7MpF4nxxHhO421dBSZaQgsDd1szs&fp=chrome&type=grpc&serviceName=JNIR&sni=nobitex.ir&sid=1d64e9805b4f9ae3#🇸🇪 Config_jo-341
+vless://352f047c-3176-4271-9bc6-3f7d33ee03c7@riali2.carpet-carpet-carped.ir:2017?type=tcp&security=reality&sni=ub.com&path=%2F&fp=firefox&pbk=pY4Vwx68IazGJq4BPHFVAXzmQhOz9DmKjpNM2CSxehc&sid=89dd7fbc#🇮🇷 Config_jo-342
+vless://3dcd6767-ec3e-4eeb-9fa6-c70b8661072f@212.192.246.57:2087?security=reality&encryption=none&pbk=DwNl_pR9JMgEQoq_cdx4HuZRPyapUBn4FkLZs1U3fXQ&headerType=none&fp=chrome&type=tcp&sni=refersion.com&sid=e004#🇩🇪 Config_jo-343
+vless://3e7f67de-648e-4871-b51a-a225214d41ee@47.254.207.127:443?security=reality&encryption=none&pbk=TRP10HqKUXEQ3O-cfsq93DycfBmbJe9KM36yvSa8Mmw&headerType=none&fp=chrome&type=tcp&sni=cdn.userway.org&sid=7266e6#🇲🇾 Config_jo-344
+vless://3f0f36f5-f091-45c5-88c9-4bcc545b922c@clyde.ns.cloudflare.com:2096?path=%2F45.76.183.217%3D49292&security=tls&encryption=none&host=hetz.x-smm.com&fp=chrome&type=ws&sni=hetz.x-smm.com#🏳️ Config_jo-345
+vless://3f0f36f5-f091-45c5-88c9-4bcc545b922c@clyde.ns.cloudflare.com:2096?path=%2F45.76.183.217%3D49292&security=tls&encryption=none&insecure=0&host=hetz.x-smm.com&fp=chrome&type=ws&allowInsecure=0&sni=hetz.x-smm.com#🏳️ Config_jo-346
+vless://3f0f36f5-f091-45c5-88c9-4bcc545b922c@cosmin.ns.cloudflare.com:2096?path=%2F45.76.183.217%3D49292&security=tls&encryption=none&host=hetz.x-smm.com&fp=chrome&type=ws&sni=hetz.x-smm.com#🏳️ Config_jo-347
+vless://3f0f36f5-f091-45c5-88c9-4bcc545b922c@cosmin.ns.cloudflare.com:2096?path=%2F45.76.183.217%3D49292&security=tls&encryption=none&insecure=1&host=hetz.x-smm.com&fp=chrome&type=ws&allowInsecure=1&sni=hetz.x-smm.com#🏳️ Config_jo-348
+vless://3f0f36f5-f091-45c5-88c9-4bcc545b922c@www.speedtest.net:2096?path=%2F45.76.183.217%3D49292&security=tls&encryption=none&host=hetz.x-smm.com&fp=chrome&type=ws&sni=hetz.x-smm.com#🏳️ Config_jo-349
+vless://3f0f36f5-f091-45c5-88c9-4bcc545b922c@www.speedtest.net:2096?path=%2F45.76.183.217%3D49292&security=tls&encryption=none&insecure=1&host=hetz.x-smm.com&fp=chrome&type=ws&allowInsecure=1&sni=hetz.x-smm.com#🏳️ Config_jo-350
+vless://3f0f36f5-f091-45c5-88c9-4bcc545b922c@www.speedtest.net:2096?path=%2F45.76.183.217%3D49292&security=tls&encryption=none&insecure=1&host=hetz.x-smm.com&type=ws&allowInsecure=1&sni=hetz.x-smm.com#🏳️ Config_jo-351
+vless://41c55d8d-44dd-4437-90ff-4c1eb869a67c@172.64.145.38:2087?encryption=none&security=tls&sni=digikala.sorza.ir&fp=chrome&type=ws&host=gamepc.sorza.ir&path=%2F#🏳️ Config_jo-352
+vless://41c55d8d-44dd-4437-90ff-4c1eb869a67c@f1.springpaatogh8.store:2087?encryption=none&security=tls&sni=digikala.sorza.ir&allowInsecure=1&type=ws&host=gamepc.sorza.ir&path=%2F%3Fed%3D2560#🏳️ Config_jo-353
+vless://45eee3c9-ac41-43d5-a03f-b7b298a1d162@45.81.58.159:443?mode=auto&path=%2Fcloudapi&security=tls&alpn=h2&encryption=none&extra=%7B%22scMaxEachPostBytes%22%3A%2B1000000%2C%2B%22scMaxConcurrentPosts%22%3A%2B100%2C%2B%22scMinPostsIntervalMs%22%3A%2B30%2C%2B%22xPaddingBytes%22%3A%2B%22100-1000%22%2C%2B%22noGRPCHeader%22%3A%2Bfalse%7D&fp=chrome&type=xhttp&sni=dl.mobileemdad.top#🏳️ Config_jo-354
+vless://45eee3c9-ac41-43d5-a03f-b7b298a1d162@45.81.58.159:443?mode=auto&path=%2Fcloudapi&security=tls&alpn=h2&encryption=none&extra=%7B%22scMaxEachPostBytes%22%3A%2B1000000%2C%2B%22scMaxConcurrentPosts%22%3A%2B100%2C%2B%22scMinPostsIntervalMs%22%3A%2B30%2C%2B%22xPaddingBytes%22%3A%2B%22100-1000%22%2C%2B%22noGRPCHeader%22%3A%2Bfalse%7D&insecure=0&fp=chrome&type=xhttp&allowInsecure=0&sni=dl.mobileemdad.top#🏳️ Config_jo-355
+vless://463877de-87e1-4188-8b71-e7f5fc56df62@5.10.214.154:443?path=%2Fws&security=tls&encryption=none&insecure=0&type=ws&allowInsecure=0&sni=dl98.primenet3.shop#🏳️ Config_jo-356
+vless://463877de-87e1-4188-8b71-e7f5fc56df62@5.10.214.154:443?path=%2Fws&security=tls&encryption=none&type=ws&sni=dl98.primenet3.shop#🏳️ Config_jo-357
+vless://48198295-b7ba-4b5c-8d85-085d55a6c869@47.76.32.108:2053?security=tls&sni=xing.ylks.link&type=ws&path=/#🇭🇰 Config_jo-358
+vless://48ff2b70-e180-582f-8866-d9a2edeed5f5@51.158.206.103:23576?security=reality&encryption=none&pbk=1y5h2FGWKXTJ9xLPCqPo6Mw7RxoZzh6fGkEQKNxpZ3s&headerType=none&fp=chrome&type=tcp&flow=xtls-rprx-vision&sni=fuck.rkn&sid=01#🇳🇱 Config_jo-359
+vless://48ff2b70-e180-582f-8866-d9a2edeed5f5@51.158.206.103:23576?security=reality&encryption=none&pbk=1y5h2FGWKXTJ9xLPCqPo6Mw7RxoZzh6fGkEQKNxpZ3s&host=Telegram-ICV2RAY-Telegram-ICV2RAY-Telegram-ICV2RAY-Telegram-ICV2RAY-Telegram-ICV2RAY-Telegram-ICV2RAY-Telegram-ICV2RAY&headerType=none&fp=chrome&type=tcp&flow=xtls-rprx-vision&sni=fuck.rkn&sid=01#🇳🇱 Config_jo-360
+vless://48ff2b70-e180-582f-8866-d9a2edeed5f5@51.158.206.93:23576?security=reality&encryption=none&pbk=1y5h2FGWKXTJ9xLPCqPo6Mw7RxoZzh6fGkEQKNxpZ3s&headerType=none&fp=chrome&type=tcp&flow=xtls-rprx-vision&sni=fuck.rkn&sid=01#🇳🇱 Config_jo-361
+vless://48ff2b70-e180-582f-8866-d9a2edeed5f5@51.158.206.98:23576?security=reality&encryption=none&pbk=1y5h2FGWKXTJ9xLPCqPo6Mw7RxoZzh6fGkEQKNxpZ3s&headerType=none&fp=chrome&type=tcp&flow=xtls-rprx-vision&sni=fuck.rkn&sid=01#🇳🇱 Config_jo-362
+vless://48ff2b70-e180-582f-8866-d9a2edeed5f5@57.129.49.1:23576?security=reality&encryption=none&pbk=1y5h2FGWKXTJ9xLPCqPo6Mw7RxoZzh6fGkEQKNxpZ3s&headerType=none&fp=chrome&type=tcp&flow=xtls-rprx-vision&sni=fuck.rkn&sid=01#🇩🇪 Config_jo-363
+vless://48ff2b70-e180-582f-8866-d9a2edeed5f5@57.129.53.181:23576?security=reality&encryption=none&pbk=1y5h2FGWKXTJ9xLPCqPo6Mw7RxoZzh6fGkEQKNxpZ3s&headerType=none&fp=chrome&type=tcp&flow=xtls-rprx-vision&sni=fuck.rkn&sid=01#🇩🇪 Config_jo-364
+vless://4af37467-bf79-4630-98d5-73e7dad60e90@ak2.vpnfreedom.tech:443?security=reality&encryption=none&pbk=l0saUZNgojrR6PjhL_fMHEBZlZ2TJypjRdQyy2mrFFI&headerType=none&fp=firefox&type=tcp&flow=xtls-rprx-vision&sni=google.com&sid=58#🇩🇪 Config_jo-365
+vless://4c26ebc3-7784-46d8-b52a-7b0ccae6f4b4@13.40.209.136:443?security=reality&encryption=none&pbk=TGlPtfVzGIVpMauPRMGJj2Uu6GUiCpu5ZizIIjw-wx4&headerType=&fp=chrome&spx=%2F&type=tcp&flow=xtls-rprx-vision&sni=wikipedia.org&sid=f5#🇬🇬 Config_jo-366
+vless://4c26ebc3-7784-46d8-b52a-7b0ccae6f4b4@13.41.197.181:443?security=reality&encryption=none&pbk=TGlPtfVzGIVpMauPRMGJj2Uu6GUiCpu5ZizIIjw-wx4&headerType=&fp=chrome&spx=%2F&type=tcp&flow=xtls-rprx-vision&sni=wikipedia.org&sid=f5#🇬🇬 Config_jo-367
+vless://4c26ebc3-7784-46d8-b52a-7b0ccae6f4b4@13.42.54.42:443?security=reality&encryption=none&pbk=TGlPt#🇬🇬 Config_jo-368
+vless://4c26ebc3-7784-46d8-b52a-7b0ccae6f4b4@13.42.54.42:443?security=reality&encryption=none&pbk=TGlPtfVzGIVpMauPRMGJj2Uu6GUiCpu5ZizIIjw-wx4&headerType=&fp=chrome&spx=%2F&type=tcp&flow=xtls-rprx-vision&sni=wikipedia.org&sid=f5#🇬🇬 Config_jo-369
+vless://4c26ebc3-7784-46d8-b52a-7b0ccae6f4b4@16.170.205.26:443?security=reality&encryption=none&pbk=TGlPtfVzGIVpMauPRMGJj2Uu6GUiCpu5ZizIIjw-wx4&headerType=none&fp=chrome&spx=%2F&type=tcp&flow=xtls-rprx-vision&sni=chatgpt.com&sid=f5#🇸🇪 Config_jo-370
+vless://4c26ebc3-7784-46d8-b52a-7b0ccae6f4b4@16.171.1.122:443?security=reality&encryption=none&pbk=TGlPtfVzGIVpMauPRMGJj2Uu6GUiCpu5ZizIIjw-wx4&headerType=none&fp=chrome&spx=%2F&type=tcp&flow=xtls-rprx-vision&sni=chatgpt.com&sid=f5#🇸🇪 Config_jo-371
+vless://4c26ebc3-7784-46d8-b52a-7b0ccae6f4b4@18.169.192.74:443?security=reality&encryption=none&pbk=TGlPtfVzGIVpMauPRMGJj2Uu6GUiCpu5ZizIIjw-wx4&headerType=&fp=chrome&spx=%2F&type=tcp&flow=xtls-rprx-vision&sni=wikipedia.org&sid=f5#🇬🇬 Config_jo-372
+vless://4c26ebc3-7784-46d8-b52a-7b0ccae6f4b4@3.127.37.120:443?security=reality&encryption=none&pbk=TGlPtfVzGIVpMauPRMGJj2Uu6GUiCpu5ZizIIjw-wx4&headerType=&fp=chrome&spx=%2F&type=tcp&flow=xtls-rprx-vision&sni=wikipedia.org&sid=f5#🇩🇪 Config_jo-373
+vless://4c26ebc3-7784-46d8-b52a-7b0ccae6f4b4@35.178.202.107:443?security=reality&encryption=none&pbk=TGlPtfVzGIVpMauPRMGJj2Uu6GUiCpu5ZizIIjw-wx4&headerType=&fp=chrome&spx=%2F&type=tcp&flow=xtls-rprx-vision&sni=wikipedia.org&sid=f5#🇬🇬 Config_jo-374
+vless://4c26ebc3-7784-46d8-b52a-7b0ccae6f4b4@54.93.228.38:443?security=reality&encryption=none&pbk=TGlPtfVzGIVpMauPRMGJj2Uu6GUiCpu5ZizIIjw-wx4&headerType=&fp=chrome&spx=%2F&type=tcp&flow=xtls-rprx-vision&sni=wikipedia.org&sid=f5#🇩🇪 Config_jo-375
+vless://4c26ebc3-7784-46d8-b52a-7b0ccae6f4b4@63.176.62.40:443?security=reality&encryption=none&pbk=TGlPtfVzGIVpMauPRMGJj2Uu6GUiCpu5ZizIIjw-wx4&headerType=&fp=chrome&spx=%2F&type=tcp&flow=xtls-rprx-vision&sni=wikipedia.org&sid=f5#🇩🇪 Config_jo-376
+vless://5003ee68-7646-45b1-ada9-27afa4e99fd4@in-yeki-vase-mahsa.global.ssl.fastly.net:443?path=%2Fcontainers%2Ffi&security=tls&alpn=http%2F1.1&encryption=none&host=in-yeki-vase-mahsa.global.ssl.fastly.net&fp=chrome&type=ws&sni=in-yeki-vase-mahsa.global.ssl.fastly.net#🏳️ Config_jo-377
+vless://5003ee68-7646-45b1-ada9-27afa4e99fd4@in-yeki-vase-mahsa.global.ssl.fastly.net:443?path=%2Fcontainers%2Ffi&security=tls&alpn=http%2F1.1&encryption=none&insecure=0&host=in-yeki-vase-mahsa.global.ssl.fastly.net&fp=chrome&type=ws&allowInsecure=0&sni=in-yeki-vase-mahsa.global.ssl.fastly.net#🏳️ Config_jo-378
+vless://5238a315-4427-4915-a1de-4978e3029a1c@www.speedtest.net:2096?path=%2FeyJqdW5rIjoiZjBrTGJtaWQ2MSIsInByb3RvY29sIjoidmwiLCJtb2RlIjoicHJveHlpcCIsInBhbmVsSVBzIjpbXX0&security=tls&encryption=none&insecure=0&host=long-mode-2783.sepna114.workers.dev&fp=chrome&type=ws&allowInsecure=0&sni=loNg-modE-2783.SEpna114.WOrkERs.dEV#🏳️ Config_jo-379
+vless://546e91b5-c33e-4b04-b20c-c0fc8f6d9d7f@104.20.1.252:80?path=%2F%3Fed%3D512&security=&encryption=none&host=bIZARRe-CEntEryZCvddNcfJ.spORtLand.COmPANY.&type=ws#🏳️ Config_jo-380
+vless://57ba2ab1-a283-42eb-82ee-dc3561a805b8@172.67.153.156:8443?allowInsecure=1&encryption=none&host=ovhwuxian.pai50288.uk&path=%2F57ba2ab1&security=tls&sni=ovhwuxian.pai50288.uk&type=ws#🏳️ Config_jo-381
+vless://59edf6dc-b1f7-4017-8107-aae4f61a173c@38.180.27.102:8443/?type=tcp&encryption=none&flow=xtls-rprx-vision&sni=eh.vk.com&fp=chrome&security=reality&pbk=CWeNg8bNNdCHYhjNl01BTevvPnHsXd736dymoBEsbBI&sid=#🇦🇪 Config_jo-382
+vless://59edf6dc-b1f7-4017-8107-aae4f61a173c@srv6.outlinekeys.com:443?security=reality&encryption=none&pbk=WvNaAxI0W__qfUKbtysH4IwF155YENlv3PG6crCmPkA&headerType=none&fp=chrome&type=tcp&flow=xtls-rprx-vision&sni=srv6.outlinekeys.com#🇱🇻 Config_jo-383
+vless://5a923f93-30d2-4f8b-ba28-afc637901e54@cf.mahdi383ir.website:2083?path=%2F&security=tls&alpn=h2%2Chttp%2F1.1&encryption=none&insecure=0&host=kh2tiyozkxybazdibomyhih.mahdi383ir.website&fp=firefox&type=ws&allowInsecure=0&sni=kh2tiyozkxybazdibomyhih.mahdi383ir.website#🏳️ Config_jo-384
+vless://5bfe8543-3e87-4238-94f3-af07f7210812@37.139.33.57:51101?security=reality&encryption=none&pbk=_CjW0Khlrr5z5oc9Oy6-w2ZEanz-zMBktVn5EOX9oTM&headerType=none&fp=chrome&type=tcp&flow=xtls-rprx-vision&sni=m.vk.ru&sid=4ffc99daad0f261f#🇷🇺 Config_jo-385
+vless://5d0e6695-6c63-4168-b5e5-2a73ea86b1b1@51.83.43.151:8080?note=---Telegram---@NetifyVPN---Telegram---@NetifyVPN---Telegram---@NetifyVPN---Telegram---@NetifyVPN---&encryption=none&flow=xtls-rprx-vision&type=tcp&headerType=none&security=reality&fp=firefox&sni=chatgpt.com&allowInsecure=1&pbk=D8uvi--0Aq7Hjc7cYnfcJGY0h4SSBCrPh7wEp1mvFlw&sid=b7b70c104ad267b8#🇫🇷 Config_jo-386
+vless://5d455342-2929-45a0-951a-1b273ec39b7c@104.18.7.36:2086/?type=ws&encryption=none&flow=&host=rayan11-0l5mxs7b-v1.rayan-11.workers.dev&path=%2F#🏳️ Config_jo-387
+vless://5dc15e15-f285-4a9d-959b-0e4fbdd77b63@cf.008500.xyz:443?path=%2F%3Fed%3D2560&security=tls&encryption=none&insecure=0&host=powered-by-surena.configfarsi695fd4636f1c8.workers.dev&fp=firefox&type=ws&allowInsecure=0&sni=powered-by-surena.configfarsi695fd4636f1c8.workers.dev#🏳️ Config_jo-388
+vless://61076cc8-6d63-4dbf-80b9-6c6d70f934ab@wolfb02.serverp1anel.ir:8080?security=reality&encryption=none&pbk=D8uvi--0Aq7Hjc7cYnfcJGY0h4SSBCrPh7wEp1mvFlw&headerType=none&fp=firefox&type=tcp&flow=xtls-rprx-vision&sni=chatgpt.com&sid=b7b70c104ad267b8#🏳️ Config_jo-389
+vless://61076cc8-6d63-4dbf-80b9-6c6d70f934ab@wolfb03.serverp1anel.ir:8080?security=reality&encryption=none&pbk=D8uvi--0Aq7Hjc7cYnfcJGY0h4SSBCrPh7wEp1mvFlw&headerType=none&fp=firefox&type=tcp&flow=xtls-rprx-vision&sni=chatgpt.com&sid=b7b70c104ad267b8#🏳️ Config_jo-390
+vless://61076cc8-6d63-4dbf-80b9-6c6d70f934ab@wolfb04.serverp1anel.ir:8080?security=reality&encryption=none&pbk=D8uvi--0Aq7Hjc7cYnfcJGY0h4SSBCrPh7wEp1mvFlw&headerType=none&fp=firefox&type=tcp&flow=xtls-rprx-vision&sni=chatgpt.com&sid=b7b70c104ad267b8#🏳️ Config_jo-391
+vless://61076cc8-6d63-4dbf-80b9-6c6d70f934ab@wolfb17.serverp1anel.ir:8080?security=reality&encryption=none&pbk=D8uvi--0Aq7Hjc7cYnfcJGY0h4SSBCrPh7wEp1mvFlw&headerType=none&fp=firefox&type=tcp&flow=xtls-rprx-vision&sni=chatgpt.com&sid=b7b70c104ad267b8#🏳️ Config_jo-392
+vless://6202b230-417c-4d8e-b624-0f71afa9c75d@116.203.58.165:443?path=%2F%3Fed%3D2560%26Telegram%F0%9F%87%A8%F0%9F%87%B3%40WangCai2&security=tls&encryption=none&insecure=0&host=sni.111000.indevs.in&fp=chrome&type=ws&allowInsecure=0&sni=sni.111000.indevs.in#🇩🇪 Config_jo-393
+vless://6202b230-417c-4d8e-b624-0f71afa9c75d@139.84.163.149:443?path=%2F%3Fed%3D2560%26Telegram%F0%9F%87%A8%F0%9F%87%B3%2B%40WangCai2&security=tls&encryption=none&insecure=0&host=sni.111000.indevs.in&type=ws&allowInsecure=0&sni=sni.111000.indevs.in#🇮🇳 Config_jo-394
+vless://6202b230-417c-4d8e-b624-0f71afa9c75d@141.95.127.132:2053?path=%2F%3Fed%3D2560%26Telegram%F0%9F%87%A8%F0%9F%87%B3%20%40app_bedal&security=tls&encryption=none&host=sni.111000.indevs.in&fp=chrome&type=ws&sni=sni.111000.indevs.in#🇫🇷 Config_jo-395
+vless://6202b230-417c-4d8e-b624-0f71afa9c75d@146.59.231.117:2053?path=%2FTelegram%40V2rayAlpha%2F%3Fed%3D2560&security=tls&encryption=none&insecure=0&host=sni.111000.indevs.in&type=ws&allowInsecure=0&sni=sni.111000.indevs.in#🇫🇷 Config_jo-396
+vless://6202b230-417c-4d8e-b624-0f71afa9c75d@159.223.24.65:443?path=%2F%3Fed%3D2560&security=tls&encryption=none&host=sni.111000.indevs.in&type=ws&sni=sni.111000.indevs.in#🇩🇪 Config_jo-397
+vless://6202b230-417c-4d8e-b624-0f71afa9c75d@167.99.44.126:443?path=%2F%3Fed%3D2560%26Telegram%40AliXTso&security=tls&encryption=none&insecure=0&host=sni.111000.indevs.in&type=ws&allowInsecure=0&sni=sni.111000.indevs.in#🇳🇱 Config_jo-398
+vless://6202b230-417c-4d8e-b624-0f71afa9c75d@188.166.39.239:443?path=%2F%3Fed%3D2560%26Telegram%F0%9F%87%A8%F0%9F%87%B3%20%40WangCai2&security=tls&encryption=none&insecure=0&host=sni.111000.indevs.in&type=ws&allowInsecure=0&sni=sni.111000.indevs.in#🇳🇱 Config_jo-399
+vless://6202b230-417c-4d8e-b624-0f71afa9c75d@188.253.23.21:443?path=%2F%3Fed%3D2560%26Telegram%F0%9F%87%A8%F0%9F%87%B3%20%40WangCai2&security=tls&encryption=none&insecure=0&host=sni.111000.indevs.in&type=ws&allowInsecure=0&sni=sni.111000.indevs.in#🇱🇻 Config_jo-400
+vless://6202b230-417c-4d8e-b624-0f71afa9c75d@192.248.186.10:8443?path=%2F%3Fed%3D2560%26Telegram%F0%9F%87%A8%F0%9F%87%B3%2B%40app_bedal&security=tls&encryption=none&insecure=0&host=sni.111000.indevs.in&type=ws&allowInsecure=0&sni=sni.111000.indevs.in#🇩🇪 Config_jo-401
+vless://6202b230-417c-4d8e-b624-0f71afa9c75d@199.119.137.95:2053?path=%2F%3Fed&security=tls&encryption=none&insecure=0&host=sni.111000.indevs.in&type=ws&allowInsecure=0&sni=sni.111000.indevs.in#🇺🇸 Config_jo-402
+vless://6202b230-417c-4d8e-b624-0f71afa9c75d@91.84.105.147:8443?path=%2F%3Fed%3D2560%26Telegram%F0%9F%87%A8%F0%9F%87%B3%20%40WangCai2&security=tls&encryption=none&insecure=0&host=sni.111000.indevs.in&type=ws&allowInsecure=0&sni=sni.111000.indevs.in#🇳🇱 Config_jo-403
+vless://6202b230-417c-4d8e-b624-0f71afa9c75d@91.84.111.44:8443?path=%2F%3Fed%3D2560%26Telegram%F0%9F%87%A8%F0%9F%87%B3+%40WangCai2&security=tls&encryption=none&host=sni.111000.indevs.in&type=ws&sni=sni.111000.indevs.in#🇳🇱 Config_jo-404
+vless://620f8560-8e40-4229-a988-970528c0b620@5.253.30.92:443?security=reality&encryption=none&pbk=BhTJ3phnq-Z-10aFKSsj1lzhA8mULR4L6leE4-0WTAs&headerType=none&fp=chrome&spx=%2F&type=tcp&flow=xtls-rprx-vision&sni=www.bing.com#🇳🇱 Config_jo-405
+vless://636728f4-c7b1-47a3-91b0-243b258f997e@91.99.218.107:8443/?encryption=none&flow=&host=alibaba.com&type=tcp&headerType=http#🇩🇪 Config_jo-406
+vless://639355ae-d9ef-4470-aa8a-8154f637cf52@wolfa21.timevip.ir:8080?security=reality&encryption=none&pbk=D8uvi--0Aq7Hjc7cYnfcJGY0h4SSBCrPh7wEp1mvFlw&headerType=none&fp=firefox&type=tcp&flow=xtls-rprx-vision&sni=chatgpt.com&sid=b7b70c104ad267b8#🇫🇷 Config_jo-407
+vless://63f92f3c-447c-4283-80b9-0af8e164cdad@152.53.48.224:22955/?type=grpc&encryption=none&flow=&serviceName=grpc&sni=one-piece.com&fp=chrome&security=reality&pbk=9Mt_Y8J_qDb1khlieWnhDSAq-kGtLHw6aOKgkAzOMms&sid=6ba85179e30d4fc2#🇦🇹 Config_jo-408
+vless://63f92f3c-447c-4283-80b9-0af8e164cdad@152.53.50.126:22955/?type=grpc&encryption=none&flow=&serviceName=grpc&sni=one-piece.com&fp=chrome&security=reality&pbk=9Mt_Y8J_qDb1khlieWnhDSAq-kGtLHw6aOKgkAzOMms&sid=6ba85179e30d4fc2#🇦🇹 Config_jo-409
+vless://6416708c-eaa5-4ec5-b652-a2db2feab875@78.159.131.76:443?security=reality&encryption=none&pbk=su3dq3BDLDkX-jIjq3GyVUXwqzD7CNVYzKtOcO4HQ24&headerType=none&fp=chrome&type=tcp&flow=xtls-rprx-vision&sni=al.cdn.stun.su&sid=9f6a51680da312f6#🇦🇱 Config_jo-410
+vless://65fe56c2-78ec-417a-a666-9f393eac8b61@172.66.128.70:80?type=ws&host=everlASTinG-oFfERC4S5Mg1918.SpoRTLand.COMpaNy.&path=%2F%3Fed#🏳️ Config_jo-411
+vless://686c62d9-17a7-43c9-a40a-f6747df60a9f@104.21.227.134:2096?path=%2F&security=tls&encryption=none&insecure=0&host=ca.adobe-connect.top&fp=chrome&type=ws&allowInsecure=0&sni=ca.adobe-connect.top#🏳️ Config_jo-412
+vless://686c62d9-17a7-43c9-a40a-f6747df60a9f@chatgpt.com:2096?path=%2F&security=tls&alpn=http%2F1.1&encryption=none&insecure=0&host=ca.adobe-connect.top&fp=chrome&type=ws&allowInsecure=0&sni=ca.adobe-connect.top#🏳️ Config_jo-413
+vless://6fd9f786-d974-49d0-b5c4-397678de69a2@nld14.freednet.org:443?security=reality&encryption=none&pbk=BhTJ3phnq-Z-10aFKSsj1lzhA8mULR4L6leE4-0WTAs&headerType=none&fp=chrome&spx=%2F&type=tcp&flow=xtls-rprx-vision&sni=www.cybo.com#🇳🇱 Config_jo-414
+vless://7bc30425-1c2f-4823-b629-90f599a4cbfe@109.120.188.166:443?security=reality&encryption=none&pbk=SbVKOEMjK0sIlbwg4akyBg5mL5KZwwB-ed4eEE7YnRc&headerType=none&fp=qq&type=tcp&flow=xtls-rprx-vision&sni=ads.x5.ru&sid=6ba85179e30d4fc2#🇷🇺 Config_jo-415
+vless://82241d60-2bdf-4de7-9a29-2d57ebc09b76@103.21.244.28:443?path=%2FeyJqdW5rIjoiSWVocjJHeWRvSGxYaThvIiwicHJvdG9jb2wiOiJ2bCIsIm1vZGUiOiJwcm94eWlwIiwicGFuZWxJUHMiOltdfQ&security=tls&alpn=http%2F1.1&encryption=none&insecure=0&host=h18i2jam-v6htjq-f-vwai0pvgltc6on.hghorbani-mc70.workers.dev&fp=chrome&type=ws&allowInsecure=0&sni=h18I2JaM-v6hTJQ-F-vwAI0PvGltC6On.hGhOrBAni-MC70.WoRkErS.dev#🏳️ Config_jo-416
+vless://82241d60-2bdf-4de7-9a29-2d57ebc09b76@103.21.244.69:443?path=%2FeyJqdW5rIjoiSWVocjJHeWRvSGxYaThvIiwicHJvdG9jb2wiOiJ2bCIsIm1vZGUiOiJwcm94eWlwIiwicGFuZWxJUHMiOltdfQ&security=tls&alpn=http%2F1.1&encryption=none&insecure=0&host=h18i2jam-v6htjq-f-vwai0pvgltc6on.hghorbani-mc70.workers.dev&fp=chrome&type=ws&allowInsecure=0&sni=h18I2JaM-v6hTJQ-F-vwAI0PvGltC6On.hGhOrBAni-MC70.WoRkErS.dev#🏳️ Config_jo-417
+vless://82241d60-2bdf-4de7-9a29-2d57ebc09b76@104.18.117.159:443?path=%2FeyJqdW5rIjoiSWVocjJHeWRvSGxYaThvIiwicHJvdG9jb2wiOiJ2bCIsIm1vZGUiOiJwcm94eWlwIiwicGFuZWxJUHMiOltdfQ&security=tls&alpn=http%2F1.1&encryption=none&insecure=0&host=h18i2jam-v6htjq-f-vwai0pvgltc6on.hghorbani-mc70.workers.dev&fp=chrome&type=ws&allowInsecure=0&sni=h18I2JaM-v6hTJQ-F-vwAI0PvGltC6On.hGhOrBAni-MC70.WoRkErS.dev#🏳️ Config_jo-418
+vless://82241d60-2bdf-4de7-9a29-2d57ebc09b76@162.159.9.83:443?path=%2FeyJqdW5rIjoiSWVocjJHeWRvSGxYaThvIiwicHJvdG9jb2wiOiJ2bCIsIm1vZGUiOiJwcm94eWlwIiwicGFuZWxJUHMiOltdfQ&security=tls&alpn=http%2F1.1&encryption=none&insecure=0&host=h18i2jam-v6htjq-f-vwai0pvgltc6on.hghorbani-mc70.workers.dev&fp=chrome&type=ws&allowInsecure=0&sni=h18I2JaM-v6hTJQ-F-vwAI0PvGltC6On.hGhOrBAni-MC70.WoRkErS.dev#🏳️ Config_jo-419
+vless://82241d60-2bdf-4de7-9a29-2d57ebc09b76@188.114.96.6:443?path=%2FeyJqdW5rIjoiSWVocjJHeWRvSGxYaThvIiwicHJvdG9jb2wiOiJ2bCIsIm1vZGUiOiJwcm94eWlwIiwicGFuZWxJUHMiOltdfQ&security=tls&alpn=http%2F1.1&encryption=none&insecure=0&host=h18i2jam-v6htjq-f-vwai0pvgltc6on.hghorbani-mc70.workers.dev&fp=chrome&type=ws&allowInsecure=0&sni=h18I2JaM-v6hTJQ-F-vwAI0PvGltC6On.hGhOrBAni-MC70.WoRkErS.dev#🏳️ Config_jo-420
+vless://86e42553-3576-48ec-bf69-b7e7c33d0ee6@188.114.98.0:443?path=%2FeyJqdW5rIjoiNDBNWGY3Z0NPd0loZ2YiLCJwcm90b2NvbCI6InZsIiwibW9kZSI6InByb3h5aXAiLCJwYW5lbElQcyI6W119%3Fed%3D2560%2FeyJqdW5rIjoiNDBNWGY3Z0NPd0loZ2YiLCJwcm90b2NvbCI6InZsIiwibW9kZSI6InByb3h5aXAiLCJwYW5lbElQcyI6W119%3Fed%3D2560&security=tls&alpn=http%2F1.1&encryption=none&host=digi.zconnection.top&fp=chrome&type=ws&sni=DigI.ZcOnNECtiOn.ToP#🏳️ Config_jo-421
+vless://87ef00b5-818a-47da-8e1b-dce7ba748aae@104.18.32.47:8443?type=ws&encryption=none&path=%2Ftest%3Fed%3D%3F2096&host=s.stepson.ir&security=tls&fp=chrome&alpn=h2%2Chttp%2F1.1&allowInsecure=1&sni=ham.stepson.ir#🏳️ Config_jo-422
+vless://885d8e08-49f5-4b8f-b9cd-63d743f1c54d@v2tr.imesaagetext.ir:2081?security=tls&alpn=h2%2Chttp%2F1.1&encryption=none&headerType=none&fp=chrome&type=tcp&sni=client.imesaagetext.ir#🏳️ Config_jo-423
+vless://8910cbb3-33b1-4266-a243-ac780ac63394@pq-albania1.09vpn.com:80?path=%2Fvless%2F&security=&encryption=none&type=ws#🇦🇱 Config_jo-424
+vless://8a3a1d6f-1ecb-92f6-fb69-fc44b4b69739@animallzoo-love-zoo-nect.giggoopanel.ir:9091?security=&encryption=none&host=p30afzar.com&headerType=http&type=tcp#🇩🇪 Config_jo-425
+vless://8dc7722c-2767-4eea-a28b-2f8daacc07e3@yesok42v2.ip4exordir.shop:8880?mode=gun&security=&encryption=none&type=grpc#🇨🇾 Config_jo-426
+vless://95ef4771-f4e2-45cb-c2b6-e91cc1eb097c@213.176.7.44:57820?path=%2F95ef4771-f4e2-45cb-c2b6-e91cc1eb097c&security=&encryption=none&type=ws#🇮🇷 Config_jo-427
+vless://9b05e77f-e81f-4d5b-a2dc-7463a154b241@M6.FASTSPEEDS.IR:2083?path=%2F&security=tls&encryption=none&type=ws&sni=arvan-fr2.ip-venzo.com#🏳️ Config_jo-428
+vless://a08141af-6dcc-415f-bb86-b90455cc3ab8@v2shop-tr1.bing-net.com:3040?security=&encryption=none&host=www.varzesh3.com&headerType=http&type=tcp#🇹🇷 Config_jo-429
+vless://a44e0875-210f-4941-9062-89b6361a14c6@94.131.123.167:443?security=reality&encryption=none&pbk=i5a8i2AWUSMZ-rYA6hGBRCBBoe7W5ah33SCdF5JkMk4&headerType=none&type=tcp&flow=xtls-rprx-vision&sni=apple.com&sid=8bcfe256cf216fd8#🇹🇷 Config_jo-430
+vless://a77aa668-8201-452a-82fa-72126fe05594@82.22.174.61:1574?path=%2F&security=&encryption=none&type=ws#🇩🇪 Config_jo-431
+vless://a861157a-e465-44bf-8a81-338cf1aa030b@162.159.152.4:2083?path=%2Fpath&security=tls&encryption=none&host=panel.captainsparo.ir&type=ws&sni=panel.captainsparo.ir#🏳️ Config_jo-432
+vless://b42f7955-3741-406f-b95a-ed7b051ae5aa@95.85.245.114:443?security=reality&encryption=none&pbk=SbVKOEMjK0sIlbwg4akyBg5mL5KZwwB-ed4eEE7YnRc&headerType=none&fp=chrome&type=tcp&flow=xtls-rprx-vision&sni=google.com#🇪🇪 Config_jo-433
+vless://bf3e8944-8d26-47de-8748-b9aa74cce974@64.188.104.168:40721?security=reality&encryption=none&pbk=TUZgwzcTvoROSbgnqMh3WorXVMxQNIF2zsEM39FQbyk&headerType=none&fp=chrome&spx=%2FGozargahAzadi&type=tcp&sni=yahoo.com&sid=df8611c07d#🇩🇪 Config_jo-434
+vless://bf3e8944-8d26-47de-8748-b9aa74cce974@64.188.104.168:40721?security=reality&encryption=none&pbk=TUZgwzcTvoROSbgnqMh3WorXVMxQNIF2zsEM39FQbyk&headerType=none&fp=chrome&type=tcp&sni=yahoo.com&sid=df8611c07d#🇩🇪 Config_jo-435
+vless://bf9931be-a7fd-46b3-9919-b858299e9f65@meow-msc.nethcloud.top:8443?security=reality&encryption=none&pbk=1HeKf_8KDjfzXfUi9P7WBaGStMvr96TKdUbofpkwBzQ&host=m.ok.ru&headerType=none&fp=chrome&type=tcp&sni=wikihow.com&sid=8bd29483ded126b4#🇷🇺 Config_jo-436
+vless://c22a48ae-9954-45f9-9bf4-5093c655f25e@91.98.91.239:54382?security=reality&encryption=none&pbk=ND4rW86TrsFd08jBWMVswXusm47oqWn8bmnEgUsZTWM&headerType=none&fp=firefox&type=tcp&sni=www.filimo.com&sid=f4#🇩🇪 Config_jo-437
+vless://c583e7f8-9807-43b6-dac7-ca7ae5623546@195.201.222.173:9090?encryption=none&fp=firefox&pbk=tQwZ96ULPZim00dZUVBxCl1wRkVjULRVbho7_Z2FQFw&security=reality&sid=c3033d&sni=tgju.org&spx=%2FohmQt0RmIi5LEg0&type=tcp#🇩🇪 Config_jo-438
+vless://c659ce22-0a02-4d75-8c89-58d99916b846@cdn.halazzon.ir:2053?path=%2F&security=tls&encryption=none&insecure=0&host=ir6.hnbyme.online&fp=chrome&type=ws&allowInsecure=0&sni=ir6.hnbyme.online#🏳️ Config_jo-439
+vless://ca911bd2-e08f-42d8-aefb-3117494d3367@77.239.124.88:443?security=reality&encryption=none&pbk=3zn513ilYXOJngXLRP0MUnK23HuB9TKLjQ7YG20dzTQ&headerType=none&fp=chrome&type=tcp&flow=xtls-rprx-vision&sni=mskhost.outlinekeys.net#🇳🇱 Config_jo-440
+vless://cede58e4-091f-4eb7-b9d5-9b892e85b291@146.185.208.206:8443?security=reality&encryption=none&pbk=do22ES2nDjO0EggET4H9Gf8_tEY7PwZv76zVXPrDojQ&headerType=none&fp=chrome&type=tcp&sni=max.ru&sid=5f22#🇬🇬 Config_jo-441
+vless://d89d6641-3b1a-4f51-a194-9c9109fd21b6@108.162.198.154:443?path=%2FTel-%40V2rayAlpha&security=tls&encryption=none&host=diprox.pages.dev&fp=chrome&type=ws&sni=DiprOX.pages.DEV#🏳️ Config_jo-442
+vless://d89d6641-3b1a-4f51-a194-9c9109fd21b6@108.162.198.154:443?path=%2Ffp%3Dchrome&security=tls&encryption=none&host=DiprOX.pages.DEV&fp=chrome&type=ws&sni=DiprOX.pages.DEV#🏳️ Config_jo-443
+vless://d89d6641-3b1a-4f51-a194-9c9109fd21b6@108.162.198.154:443?path=%2Ffp%3Dchrome&security=tls&encryption=none&insecure=0&host=DiprOX.pages.DEV&fp=chrome&type=ws&allowInsecure=0&sni=DiprOX.pages.DEV#🏳️ Config_jo-444
+vless://d89d6641-3b1a-4f51-a194-9c9109fd21b6@creativecommons.org:443?allowInsecure=0&encryption=none&host=diprox.pages.dev&insecure=0&path=%2Fassets&security=tls&sni=DiprOX.pages.DEV&type=ws#🏳️ Config_jo-445
+vless://d89d6641-3b1a-4f51-a194-9c9109fd21b6@creativecommons.org:443?path=%2FTel-%40V2rayAlpha&security=tls&encryption=none&host=DiprOX.pages.DEV&fp=chrome&type=ws&sni=DiprOX.pages.DEV#🏳️ Config_jo-446
+vless://d89d6641-3b1a-4f51-a194-9c9109fd21b6@creativecommons.org:443?path=%2Fassets&security=tls&encryption=none&host=diprox.pages.dev&fp=chrome&type=ws&sni=DiprOX.pages.DEV#🏳️ Config_jo-447
+vless://d89d6641-3b1a-4f51-a194-9c9109fd21b6@creativecommons.org:443?path=%2Fassets&security=tls&encryption=none&insecure=0&host=diprox.pages.dev&fp=chrome&type=ws&allowInsecure=0&sni=DiprOX.pages.DEV#🏳️ Config_jo-448
+vless://d89d6641-3b1a-4f51-a194-9c9109fd21b6@creativecommons.org:443?path=%2Fassets&security=tls&encryption=none&insecure=0&host=diprox.pages.dev&type=ws&allowInsecure=0&sni=DiprOX.pages.DEV#🏳️ Config_jo-449
+vless://d89d6641-3b1a-4f51-a194-9c9109fd21b6@v1.dabache.top:443?path=%2FTel-%40V2rayAlpha&security=tls&encryption=none&insecure=0&host=DiprOX.pages.DEV&fp=chrome&type=ws&allowInsecure=0&sni=DiprOX.pages.DEV#🏳️ Config_jo-450
+vless://d89d6641-3b1a-4f51-a194-9c9109fd21b6@v1.dabache.top:443?path=%2Fassetsfp%3Dchrome&security=tls&encryption=none&host=DiprOX.pages.DEV&fp=chrome&type=ws&sni=DiprOX.pages.DEV#🏳️ Config_jo-451
+vless://da406588-095f-4683-acc2-a3aa3aab68d6@ipbaz.ping-box.com:2096?mode=auto&path=%2F&security=tls&alpn=h2&encryption=none&insecure=0&host=fr1.itscdn.ir&fp=chrome&type=xhttp&allowInsecure=0&sni=fr1.itscdn.ir#🏳️ Config_jo-452
+vless://db444bee-8212-5ff5-be40-47e1a7509eb8@195.26.224.112:8443?mode=auto&path=%2F&security=reality&encryption=none&pbk=HE-fVd73NsTheypCLSyeNxgkg2EJOfXWGxjUOcvPZyQ&fp=chrome&type=xhttp&sni=vk.com&sid=938f14cf6757a249#🇳🇱 Config_jo-453
+vless://dd0cfef0-fda9-47ec-8a65-49d7bc004f82@172.67.180.92:443?encryption=none&security=tls&sni=cdn.abcallcenter.com&fp=chrome&type=ws&host=cdn.abcallcenter.com&path=%2F--Telegram---%40MiTiVPN%2F---%40MiTiVPN%2F---MiTiVPN%2F---%40MiTiVPN#🏳️ Config_jo-454
+vless://dd0cfef0-fda9-47ec-8a65-49d7bc004f82@172.67.180.92:443?encryption=none&security=tls&sni=ns.2.iranpoems.ir&alpn=http%2F1.1&fp=chrome&type=ws&host=ns.2.iranpoems.ir&path=%2F--Telegram---%40MiTiVPN%2F---%40MiTiVPN%2F---MiTiVPN%2F---%40MiTiVPN#🏳️ Config_jo-455
+vless://dd0cfef0-fda9-47ec-8a65-49d7bc004f82@172.67.180.92:443?encryption=none&security=tls&sni=web.abcallcenter.com&alpn=http%2F1.1&fp=chrome&type=ws&host=web.abcallcenter.com&path=%2F#🏳️ Config_jo-456
+vless://dd0cfef0-fda9-47ec-8a65-49d7bc004f82@172.67.180.92:443?encryption=none&security=tls&sni=web.abcallcenter.com&alpn=http%2F1.1&fp=chrome&type=ws&host=web.abcallcenter.com&path=%2F--Telegram---%40MiTiVPN%2F---%40MiTiVPN%2F---%40MiTiVPN%2F---%40MiTiVPN%3Fed%3D2560#🏳️ Config_jo-457
+vless://dd0cfef0-fda9-47ec-8a65-49d7bc004f82@172.67.180.92:443?encryption=none&security=tls&sni=web.abcallcenter.com&alpn=http%2F1.1&fp=chrome&type=ws&host=web.abcallcenter.com&path=%2FTelegram%40V2ynpv-Telegram%40V2ynpv-Telegram%40V2ynpv-Telegram%40V2ynpv-Telegram%40V2ynpv-Telegram%40V2ynpv-Telegram%40V2ynpv#🏳️ Config_jo-458
+vless://dd0cfef0-fda9-47ec-8a65-49d7bc004f82@172.67.180.92:443?path=%2F%3FTELEGRAM-MARAMBASHI_MARAMBASHI_MARAMBASHI_MARAMBASHI_MARAMBASHI%3Fed%3D2560&security=tls&alpn=http%2F1.1&encryption=none&insecure=0&host=web.abcallcenter.com&fp=chrome&type=ws&allowInsecure=0&sni=web.abcallcenter.com#🏳️ Config_jo-459
+vless://dd0cfef0-fda9-47ec-8a65-49d7bc004f82@172.67.180.92:443?path=%2F--Telegram---%40MiTiVPN%2F---%40MiTiVPN%2F---%40MiTiVPN%2F---%40MiTiVPN%3Fed%3D2560&security=tls&alpn=http%2F1.1&encryption=none&host=web.abcallcenter.com&fp=chrome&type=ws&sni=web.abcallcenter.com#🏳️ Config_jo-460
+vless://dd0cfef0-fda9-47ec-8a65-49d7bc004f82@172.67.180.92:443?path=%2F--Telegram---%40MiTiVPN%2F---%40MiTiVPN%2F---%40MiTiVPN%2F---%40MiTiVPN%3Fed%3D2560&security=tls&alpn=http%2F1.1&encryption=none&insecure=0&host=web.abcallcenter.com&fp=chrome&type=ws&allowInsecure=0&sni=web.abcallcenter.com#🏳️ Config_jo-461
+vless://dd0cfef0-fda9-47ec-8a65-49d7bc004f82@172.67.180.92:443?path=%2F--Telegram---%40MiTiVPN%2F---%40MiTiVPN%2F---MiTiVPN%2F---%40MiTiVPN&security=tls&alpn=http%2F1.1&encryption=none&insecure=0&host=ns.2.iranpoems.ir&fp=chrome&type=ws&allowInsecure=0&sni=ns.2.iranpoems.ir#🏳️ Config_jo-462
+vless://dd0cfef0-fda9-47ec-8a65-49d7bc004f82@dash.getasa.ir:443?encryption=none&security=tls&sni=dash.getasa.ir&alpn=h2%2Chttp%2F1.1&fp=chrome&type=ws&host=dash.getasa.ir&path=%2Fvpnowl-vpnowl-vpnowl-vpnowl-vpnowl-vpnowl-vpnowl-vpnowl-vpnowl-vpnowl-vpnowl-vpnowl-vpnowl-vpnowl-vpnowl-vpnowl-vpnowl-vpnowl-vpnowl-vpnowl-vpnowl-vpnowl-vpnowl-vpnowl-vpnowl-vpnowl-vpnowl-vpnowl-vpnowl-vpnowl-vpnowl-vpnowl#🏳️ Config_jo-463
+vless://dd0cfef0-fda9-47ec-8a65-49d7bc004f82@dash.getasa.ir:443?path=%2F&security=tls&alpn=h2%2Chttp%2F1.1&encryption=none&insecure=0&host=dash.getasa.ir&fp=chrome&type=ws&allowInsecure=0&sni=dash.getasa.ir#🏳️ Config_jo-464
+vless://dd0cfef0-fda9-47ec-8a65-49d7bc004f82@dash.getasa.ir:443?path=%2FTelegr#🏳️ Config_jo-465
+vless://dd0cfef0-fda9-47ec-8a65-49d7bc004f82@dash.getasa.ir:443?path=%2FTelegram%40V2ynpv-Telegram%40V2ynpv-Telegram%40V2ynpv-Telegram%40V2ynpv-Telegram%40V2ynpv-Telegram%40V2ynp#🏳️ Config_jo-466
+vless://dd0cfef0-fda9-47ec-8a65-49d7bc004f82@dash.getasa.ir:443?path=%2FTelegram%40V2ynpv-Telegram%40V2ynpv-Telegram%40V2ynpv-Telegram%40V2ynpv-Telegram%40V2ynpv-Telegram%40V2ynpv-Telegram%40V2ynpv&security=tls&alpn=h2%2Chttp%2F1.1&encryption=none&host=dash.getasa.ir&fp=chrome&type=ws&sni=dash.getasa.ir#🏳️ Config_jo-467
+vless://dd0cfef0-fda9-47ec-8a65-49d7bc004f82@dash.getasa.ir:443?path=%2FTelegram%40V2ynpv-Telegram%40V2ynpv-Telegram%40V2ynpv-Telegram%40V2ynpv-Telegram%40V2ynpv-Telegram%40V2ynpv-Telegram%40V2ynpv&security=tls&alpn=h2%2Chttp%2F1.1&encryption=none&insecure=0#🏳️ Config_jo-468
+vless://dd0cfef0-fda9-47ec-8a65-49d7bc004f82@dash.getasa.ir:443?path=%2FTelegram%40V2ynpv-Telegram%40V2ynpv-Telegram%40V2ynpv-Telegram%40V2ynpv-Telegram%40V2ynpv-Telegram%40V2ynpv-Telegram%40V2ynpv&security=tls&alpn=h2%2Chttp%2F1.1&encryption=none&insecure=0&host=dash.getasa.ir&fp=chrome&type=ws&allowInsecure=0&sni=dash.getasa.ir#🏳️ Config_jo-469
+vless://dd58082b-0967-4669-ae31-3667ffcd5508@pay.golnar-clod.ir:44823?security=reality&encryption=none&pbk=GjzZBXOPF__64q-iiVAgj6S3DgCYNOGkdY5M4smyfGg&headerType=none&fp=firefox&type=tcp&sni=tgju.org&sid=5b2025e2ba3f22#🏳️ Config_jo-470
+vless://dd58082b-0967-4669-ae31-3667ffcd5508@tun5.golnar-clod.ir:18419?security=reality&encryption=none&pbk=pWTqnxx9H96bCcegm3REXczLjMhhwDQD47YQvvv8dBo&headerType=none&fp=firefox&type=tcp&sni=tgju.org&sid=83c40b#🇩🇪 Config_jo-471
+vless://e2a78d9c-6636-4daa-8e18-d7c74bf5ec9a@omrimisihdizamin.global.ssl.fastly.net:443?path=%2Fsite&security=tls&alpn=h3&encryption=none&fp=firefox&type=ws&sni=omrimisihdizamin.global.ssl.fastly.net#🏳️ Config_jo-472
+vless://e3682df7-e8ec-4705-b5ef-3bbaa7007c94@va04.serverh1ub.ir:8080?security=reality&encryption=none&pbk=D8uvi--0Aq7Hjc7cYnfcJGY0h4SSBCrPh7wEp1mvFlw&headerType=none&fp=firefox&type=tcp&flow=xtls-rprx-vision&sni=chatgpt.com&sid=b7b70c104ad267b8#🇫🇷 Config_jo-473
+vless://e59083aa-d933-4952-8cf0-eec74f718705@fr.locations-service.com:3032?security=reality&encryption=none&pbk=21V_VkMUD2XRbyRDg7hjpblUAwxHvlLmbarATdhhJQI&headerType=none&fp=firefox&type=tcp&sni=refersion.com#🇫🇷 Config_jo-474
+vless://e5f8a9f6-f164-479b-b3b5-b90f213c7145@104.21.224.5:2053?path=%2F&security=tls&encryption=none&host=ir1.airpanel.top&type=ws&sni=ir1.airpanel.top#🏳️ Config_jo-475
+vless://e765eb5b-8442-40e3-9532-857ba5ececa7@104.18.4.130:443?mode=gun&security=tls&alpn=h2%2Chttp%2F1.1&encryption=none&insecure=0&type=grpc&allowInsecure=0&sni=vbox.ping-box.com#🏳️ Config_jo-476
+vless://e8b1500b-e9e8-5492-8312-f4eadf7d0767@162.19.10.94:443?security=tls&encryption=none&insecure=1&headerType=none&type=tcp&allowInsecure=1&flow=xtls-rprx-vision&sni=nasnet-162191094-direct.sharghdaily.co#🇫🇷 Config_jo-477
+vless://e929f51d-5a95-5432-b66f-cfe725ea1f61@188.253.26.39:442?security=reality&encryption=none&pbk=T_gyZwngrYUe24q6-mieGT9WJfzja0PQad_y_SnhBk0&headerType=none&fp=chrome&type=tcp&flow=xtls-rprx-vision&sni=yahoo.com&sid=6ac998b514#🇳🇱 Config_jo-478
+vless://ed431499-7850-459f-babf-e6cab60c92d1@103.231.73.157:443?security=reality&alpn=h2&encryption=none&pbk=ckRcueERkPqqjZABwxqni_J_Nbb70Q6k5fEEUAjoImw&headerType=none&fp=chrome&type=tcp&flow=xtls-rprx-vision&sni=wikimedia.org#🇲🇩 Config_jo-479
+vless://eea43#🏳️ Config_jo-480
+vless://eea43b1a-441#🏳️ Config_jo-481
+vless://eea43b1a-4411-4ff7-f5b4-a860a81cad63@3.123.128.216:28706?security=&encryption=none&headerType=none&type=tcp#🇩🇪 Config_jo-482
+vless://f6a07f24-4059-4593-9feb-044a8760f46c@144.31.100.32:443?security=reality&encryption=none&pbk=zjv3djnsCKDqP7zZFIrJ9ImzgdPE3zFMCYrOvdWqkEE&headerType=none&fp=chrome&type=tcp&sni=vpnspacev.com&sid=06bf5b24acb9#🇳🇱 Config_jo-483
+vless://feaf1d64-b44c-4cc8-b114-4001478c1fd0@65.108.108.151:443?security=reality&encryption=none&pbk=u26A516I3BCfUMPOo6rw0-XYt0C2sCWaPNP2pNdtxzw&headerType=none&fp=chrome&type=tcp&flow=xtls-rprx-vision&sni=fit.jojack.ru&sid=f8865ecbb9bc11a3#🇫🇮 Config_jo-484
+vless://fef4a93d-eb4f-4657-b56b-32a0dc060045@104.21.40.34:443?path=%2F&security=tls&encryption=none&host=dev.twistsparrow.xyz&type=ws&sni=dev.twistsparrow.xyz#🏳️ Config_jo-485
+vless://fef4a93d-eb4f-4657-b56b-32a0dc060045@104.21.40.34:443?path=%2F&security=tls&encryption=none&insecure=0&host=dev.twistsparrow.xyz&type=ws&allowInsecure=0&sni=dev.twistsparrow.xyz#🏳️ Config_jo-486
+vless://fef4a93d-eb4f-4657-b56b-32a0dc060045@188.114.98.0:443?path=%2F%3FTELEGRAM-YamYamProxy_YamYamProxy_YamYamProxy_YamYamProxy_YamYamProxy%3Fed%3D512&security=tls&encryption=none&insecure=1&host=dev.twistsparrow.xyz&type=ws&allowInsecure=1&sni=dev.twistsparrow.xyz#🏳️ Config_jo-487
+vless://fef4a93d-eb4f-4657-b56b-32a0dc060045@188.114.98.0:443?path=%2F&security=tls&encryption=none&fp=chrome&type=ws&sni=dev.twistsparrow.xyz#🏳️ Config_jo-488
+vless://fef4a93d-eb4f-4657-b56b-32a0dc060045@188.114.98.0:443?path=%2F&security=tls&encryption=none&insecure=0&fp=chrome&type=ws&allowInsecure=0&sni=dev.twistsparrow.xyz#🏳️ Config_jo-489
+vless://fef4a93d-eb4f-4657-b56b-32a0dc060045@188.114.98.0:443?path=%2F&security=tls&encryption=none&insecure=0&type=ws&allowInsecure=0&sni=dev.twistsparrow.xyz#🏳️ Config_jo-490
+vless://fef4a93d-eb4f-4657-b56b-32a0dc060045@188.114.98.0:443?path=%2F&security=tls&encryption=none&type=ws&sni=dev.twistsparrow.xyz#🏳️ Config_jo-491
+vless://fef4a93d-eb4f-4657-b56b-32a0dc060045@188.114.98.2:443?path=%2F&security=tls&encryption=none&insecure=0&fp=chrome&type=ws&allowInsecure=0&sni=dev.twistsparrow.xyz#🏳️ Config_jo-492
+vless://fef4a93d-eb4f-4657-b56b-32a0dc060045@188.114.98.2:443?path=%2F&security=tls&encryption=none&insecure=0&type=ws&allowInsecure=0&sni=dev.twistsparrow.xyz#🏳️ Config_jo-493
+vless://fef4a93d-eb4f-4657-b56b-32a0dc060045@nodejs.org:443?path=%2F&security=tls&encryption=none&insecure=0&host=dev.nestandneighbours.com&type=ws&allowInsecure=0&sni=dev.nestandneighbours.com#🏳️ Config_jo-494
+vmess://ewogICJ2IjogIjIiLAogICJwcyI6ICLYrNmI24zZhiDYqNin2LQg2YjYtdmEINio2YXZiNmGIEBWMnJheU5HX3Njb3JwIiwKICAiYWRkIjogIjE5NC4yOS43OS4xNzEiLAogICJwb3J0IjogNDA1NTMsCiAgImlkIjogIjQ5Y2Y0YzFkLTA4N2QtNGJlNi1hZGI3LTJmNjkzOTIxNDIwMyIsCiAgIm5ldCI6ICJ0Y3AiLAogICJ0eXBlIjogIm5vbmUiLAogICJ0bHMiOiAibm9uZSIKfQ==#🇳🇱 Config_jo-495
+vmess://eyJhZGQiOiAiMTcyLjIzMy4yMjkuOTEiLCAiYWlkIjogIjAiLCAiYWxwbiI6ICIiLCAiZnAiOiAiIiwgImhvc3QiOiAiIiwgImlkIjogIjI3YmE4N2ZjLTU4M2YtNDc2My05MDYwLTgzY2YwYjkyNjRkYiIsICJpbnNlY3VyZSI6ICIwIiwgIm5ldCI6ICJ0Y3AiLCAicGF0aCI6ICIiLCAicG9ydCI6ICIxNDEwMiIsICJzY3kiOiAiYXV0byIsICJzbmkiOiAiIiwgInRscyI6ICIiLCAidHlwZSI6ICJub25lIiwgInYiOiAiMiIsICJwcyI6ICLimqHvuI9UZWxlZ3JhbSA9IEBTT1NrZXlORVQifQ==#🇺🇸 Config_jo-496
+vmess://eyJhZGQiOiAiMTcyLjY0LjE0OS4xODIiLCAiYWlkIjogIjAiLCAiYWxwbiI6ICIiLCAiZnAiOiAiIiwgImhvc3QiOiAibmFzbmV0LTU3MTI5NjQxMDIuc2hhcmdoZGFpbHkuY28iLCAiaWQiOiAibmFzbmV0IiwgImluc2VjdXJlIjogIjAiLCAibmV0IjogIndzIiwgInBhdGgiOiAiL25hc25ldC9jZG4/ZWQ9MjU2MCIsICJwb3J0IjogIjgwODAiLCAic2N5IjogImF1dG8iLCAic25pIjogIiIsICJ0bHMiOiAiIiwgInR5cGUiOiAiLS0tIiwgInYiOiAiMiIsICJwcyI6ICLimqHvuI9UZWxlZ3JhbSA9IEBTT1NrZXlORVQifQ==#🏳️ Config_jo-497
+vmess://eyJhZGQiOiAiZGUyYy5idXp6b24uc2hvcCIsICJhaWQiOiAiMCIsICJhbHBuIjogImh0dHAvMS4xIiwgImZwIjogImNocm9tZSIsICJob3N0IjogImRlMmMuYnV6em9uLnNob3AiLCAiaWQiOiAiYWNhZGQ4N2MtYzhiNC00YjZiLTk4OWItNjQyNjNlNGQwMzI5IiwgImluc2VjdXJlIjogIjAiLCAibmV0IjogImh0dHB1cGdyYWRlIiwgInBhdGgiOiAiL3E0c21LUWxqMDhOTXYwQndOSGMiLCAicG9ydCI6ICI0NDMiLCAic2N5IjogImF1dG8iLCAic25pIjogImRlMmMuYnV6em9uLnNob3AiLCAidGxzIjogInRscyIsICJ0eXBlIjogIi0tLSIsICJ2IjogIjIiLCAicHMiOiAi4pqh77iPVGVsZWdyYW0gPSBAU09Ta2V5TkVUIn0=#🏳️ Config_jo-498
+vmess://eyJhZGQiOiAiaWQtbGIudmhheC5uZXQiLCAiYWlkIjogIjAiLCAiaG9zdCI6ICJ6b29tLnVzIiwgImlkIjogIjZmZWExNjQ5LTQyNWItNDA5Mi1iZjUzLTI5NzkyMTUyYzkyNSIsICJuZXQiOiAid3MiLCAicGF0aCI6ICIvc3Noa2l0L0Fyc2hhbTg1MjMxLzYzNDdkMDgwMjJiOTEvIiwgInBvcnQiOiAiODAiLCAic2N5IjogImF1dG8iLCAic25pIjogIiIsICJ0bHMiOiAiIiwgInR5cGUiOiAiIiwgInYiOiAiMiIsICJwcyI6ICLimqHvuI9UZWxlZ3JhbSA9IEBTT1NrZXlORVQifQ==#🏳️ Config_jo-499
+vmess://eyJhZGQiOiI0LmNkbi5pci5uZW1hdmEuY29tIiwiYWlkIjoiMCIsImFscG4iOiIiLCJmcCI6IiIsImhvc3QiOiJhbnRlbi5pciIsImlkIjoiMjY4M2E5ZDUtMjg4Zi00ODgyLWI3ZGEtMTA1MTU1ZjM4NDg1IiwibmV0Ijoid3MiLCJwYXRoIjoiL3MyQlNwUDZ1VU9QUTQ5OXBocFlIODdUc1hsIiwicG9ydCI6IjQ0MyIsInBzIjoiQEdvbGVzdGFuX1ZQTiAtIHR1bm5lbCIsInNjeSI6ImF1dG8iLCJzbmkiOiIiLCJ0bHMiOiIiLCJ0eXBlIjoiLS0tIiwidiI6IjIifQ==#🇮🇷 Config_jo-500
+vmess://eyJhZGQiOiI1Ny4xMjguMTg5LjIxMSIsImFpZCI6IjAiLCJhbHBuIjoiIiwiZnAiOiIiLCJob3N0IjoieWljaHVlbmcub3JnIiwiaWQiOiIwM2ZjYzYxOC1iOTNkLTY3OTYtNmFlZC04YTM4Yzk3NWQ1ODEiLCJpbnNlY3VyZSI6IjEiLCJuZXQiOiJ3cyIsInBhdGgiOiJsaW5rdndzIiwicG9ydCI6IjQ0MyIsInBzIjoiQFJhaGluX3ZwbiDwn4ey8J+HqyIsInNjeSI6ImF1dG8iLCJzbmkiOiJ5aWNodWVuZy5vcmciLCJ0bHMiOiJ0bHMiLCJ0eXBlIjoiLS0tIiwidiI6IjIifQ==#🇫🇷 Config_jo-501
+vmess://eyJhZGQiOiI4LjIxMC43OS4yMTIiLCJhaWQiOiIwIiwiYWxwbiI6IiIsImZwIjoiIiwiaG9zdCI6IiIsImlkIjoiYWEzYzMwMTgtMjg4Yi00NmYzLWFmMWMtOTA0NGUxOGQ2ZTViIiwiaW5zZWN1cmUiOiIwIiwibmV0Ijoid3MiLCJwYXRoIjoiL05vdGlmX0NoYXQiLCJwb3J0IjoiNTUxODUiLCJwcyI6IvCfh63wn4ewQEZyZWFrQ29uZmlnIiwic2N5IjoiYXV0byIsInNuaSI6IiIsInRscyI6IiIsInR5cGUiOiItLS0iLCJ2IjoiMiJ9#🇭🇰 Config_jo-502
+vmess://eyJhZGQiOiI5NC4xODMuMTQ5LjEwMCIsImFpZCI6IjAiLCJhbHBuIjoiIiwiZnAiOiIiLCJob3N0IjoieWFzZGwuY29tIiwiaWQiOiIwNTY1YjlhNC0xOTdkLTRmNTItOThhZC04ZDgwZGExYTVlNDMiLCJuZXQiOiJ0Y3AiLCJwYXRoIjoiLyIsInBvcnQiOiIzOTExIiwicHMiOiLwn4ez8J+HsUBzYW1pbl9hY2NvdW50Iiwic2N5IjoiYXV0byIsInNuaSI6IiIsInRscyI6IiIsInR5cGUiOiJodHRwIiwidiI6IjIifQ==#🇮🇷 Config_jo-503
+vmess://eyJhZGQiOiI6OmZmZmY6YWM0MDo5YmQxIiwiYWlkIjoiMCIsImFscG4iOiJoMiIsImZwIjoiY2hyb21lIiwiaG9zdCI6ImJlZHJpZC5kZW5pemhvc3RpbmcubWUiLCJpZCI6ImZmZWNlMmE5LTAyOTYtNDZhOS04ZGI4LTc0MmQyOWQyNDBmZiIsImluc2VjdXJlIjoiMCIsIm5ldCI6IndzIiwicGF0aCI6IklTd3BZVlI4U2p4WGNVWkVVelZmTlVSVFVDOGxWMjlEWFNnc0tIMVNOMGcxSlZwREhVMWNXaWdLQUM4UVJsdE1DaTg2QUJ3NEpWMTRIVk1uIiwicG9ydCI6IjQ0MyIsInBzIjoiMzAwINqv24zaryAzOSDYqtmI2YXYp9mGISDYqtiz2KrigIzYsdin24zar9in2YZUaWNrdjJib3RA8J+HrvCfh7ciLCJzY3kiOiJhdXRvIiwic25pIjoiYmVkcmlkLmRlbml6aG9zdGluZy5tZSIsInRscyI6InRscyIsInR5cGUiOiItLS0iLCJ2IjoiMiJ9#🏳️ Config_jo-504
+vmess://eyJhZGQiOiIxNS4yMzUuNDEuMjAwIiwiYWlkIjoiMCIsImFscG4iOiIiLCJmcCI6IiIsImhvc3QiOiJnb29nbGUuY29tIiwiaWQiOiI1OGZlMTU0Mi01MjkwLTQwYWQtODE1YS03NzcwN2E4MWFmZTUiLCJpbnNlY3VyZSI6IjAiLCJuZXQiOiJ3cyIsInBhdGgiOiIvSU9lYmhMTWhsMUNUYkZIYkw5NW15ZlJYMiIsInBvcnQiOiI4MCIsInBzIjoiQGZpbGVtYmFkIiwic2N5IjoiYXV0byIsInNuaSI6IiIsInRscyI6IiIsInR5cGUiOiJub25lIiwidiI6IjIifQ==#🇨🇦 Config_jo-505
+vmess://eyJhZGQiOiIyMC4xOTMuMTUzLjE5IiwiYWlkIjoiMCIsImFscG4iOiIiLCJmcCI6IiIsImhvc3QiOiIiLCJpZCI6IjM5YThjMzc0LTc2YjEtNGU5MC1hYjg1LTg1Y2Q5YTQyZGVkMiIsImluc2VjdXJlIjoiMCIsIm5ldCI6InRjcCIsInBhdGgiOiIiLCJwb3J0IjoiMTU4MzQiLCJwcyI6IkB2MnJheTMxMyDaqdin2YbYp9mE2YXZiNmGIPCfmIwiLCJzY3kiOiJhdXRvIiwic25pIjoiIiwidGxzIjoiIiwidHlwZSI6Im5vbmUiLCJ2IjoiMiJ9#🇮🇳 Config_jo-506
+vmess://eyJhZGQiOiJ0cjEtc21hcnQuYWRlbHBpbmcuY29tIiwiYWlkIjoiMCIsImFscG4iOiIiLCJmcCI6IiIsImhvc3QiOiIiLCJpZCI6IjQzZGNkY2UxLTNjZWEtNDE5My1iYzhkLTkwYjkyMDcxZDc3OSIsImluc2VjdXJlIjoiMCIsIm5ldCI6IndzIiwicGF0aCI6IiIsInBvcnQiOiI4MCIsInBzIjoi8J+HufCfh7dARnJlYWtDb25maWciLCJzY3kiOiJhdXRvIiwic25pIjoiIiwidGxzIjoiIiwidHlwZSI6Ii0tLSIsInYiOiIyIn0=#🇹🇷 Config_jo-507
+vmess://eyJhZGQiOiJ0cjEtc21hcnQuYWRlbHBpbmcuY29tIiwiYWlkIjoiMCIsImFscG4iOiIiLCJmcCI6IiIsImhvc3QiOiIiLCJpZCI6IjQzZGNkY2UxLTNjZWEtNDE5My1iYzhkLTkwYjkyMDcxZDc3OSIsImluc2VjdXJlIjoiMCIsIm5ldCI6IndzIiwicGF0aCI6IiIsInBvcnQiOiI4MCIsInBzIjoi8J+HufCfh7dARnJlYWtDb25maWciLCJzY3kiOiJhdXRvIiwic25pIjoiIiwidGxzIjoiIiwidHlwZSI6Ii0tLSIsInYiOiIyIn0=vless://6fd9f786-d974-49d0-b5c4-397678de69a2@nld14.freednet.org:443?security=reality&encryption=none&pbk=BhTJ3phnq-Z-10aFKSsj1lzhA8mULR4L6leE4-0WTAs&headerType=none&fp=chrome&spx=%2F&type=tcp&flow=xtls-rprx-vision&sni=www.cybo.com#🇹🇷 Config_jo-508
+vmess://eyJhZGQiOiJjZi44Nzc3NzQueHl6IiwiYWlkIjoiMCIsImFscG4iOiIiLCJmcCI6IiIsImhvc3QiOiJmb29sLXRoZWh1bi1wb3RhdG8tcXVlYmVjLnRyeWNsb3VkZmxhcmUuY29tIiwiaWQiOiIxNDIzZmE1NC0xMjU2LTRjYmItOTY2My1lMGNjYWI0NmYwMmEiLCJpbnNlY3VyZSI6IjAiLCJuZXQiOiJ3cyIsInBhdGgiOiIvdm1lc3MtYXJnbz9lZFx1MDAzZDIwNDgiLCJwb3J0IjoiNDQzIiwicHMiOiJAUmFoaW5fdnBuIPCfpI0g2LHYptin2YQg2YXYp9iv2LHbjNivIiwic2N5Ijoibm9uZSIsInNuaSI6ImZvb2wtdGhlaHVuLXBvdGF0by1xdWViZWMudHJ5Y2xvdWRmbGFyZS5jb20iLCJ0bHMiOiJ0bHMiLCJ0eXBlIjoiLS0tIiwidiI6IjIifQ==#🏳️ Config_jo-509
+vmess://eyJhZGQiOiJjaGF0Z3B0LmNvbSIsImFpZCI6IjAiLCJhbHBuIjoiIiwiZnAiOiJjaHJvbWUiLCJob3N0Ijoiei5sb29sb29sb29sb28uY29tIiwiaWQiOiJmODU2YjFiOS1iMTAwLTRmYmEtODVmYi1lZWMwODFhOGYyYTAiLCJpbnNlY3VyZSI6IjEiLCJuZXQiOiJ3cyIsInBhdGgiOiIvdGVsZWdyYW0tQExvb2tpd2hhbCx0ZWxlZ3JhbS1Mb29raXdoYWwsdGVsZWdyYW0tTG9va2l3aGFsLHRlbGVncmFtLUxvb2tpd2hhbCx0ZWxlZ3JhbS1Mb29raXdoYWwsdGVsZWdyYW0tTG9va2l3aGFsLHRlbGVncmFtLUxvb2tpd2hhbCx0ZWxlZ3JhbS1Mb29raXdoYWwsdGVsZWdyYW0tTG9va2l3aGFsLHRlbGVncmFtLUxvb2tpd2hhbCx0ZWxlZ3JhbS1Mb29raXdoYWwsdGVsZWdyYW0tTG9va2l3aGFsLHRlbGVncmFtLUxvb2tpd2hhbCx0ZWxlZ3JhbS1Mb29raXdoYWwsdGVsZWdyYW0tTG9va2l3aGFsLE1tZHYycmF5bmctVjJyYXluZ21tZC10ZWxlZ3JhbS1oYWppLXYycmF5P2VkXHUwMDNkODE5MiIsInBvcnQiOiIyMDUzIiwicHMiOiLwn5GJ8J+PvEB2MmJveF92MvCfkYjwn4+8INio24zYpyDaqdin2YbYp9mE8J+agPCfh7Lwn4erIiwic2N5IjoiYXV0byIsInNuaSI6InoubG9vbG9vbG9vbG9vLmNvbSIsInRscyI6InRscyIsInR5cGUiOiItLS0iLCJ2IjoiMiJ9#🏳️ Config_jo-510
+vmess://eyJhZGQiOiJjaGF0Z3B0LmNvbSIsImFpZCI6IjAiLCJhbHBuIjoiaDIsaHR0cC8xLjEiLCJmcCI6ImZpcmVmb3giLCJob3N0Ijoiei5sb29sb29sb29sb28uY29tIiwiaWQiOiI0NWQ3N2MwYy1lOGU3LTRmNDgtYmFmNy01NjU4ZGM0ZmM2ZjAiLCJpbnNlY3VyZSI6IjEiLCJuZXQiOiJ3cyIsInBhdGgiOiIvd3Mtc2l0ZT9lZFx1MDAzZDIwNTYiLCJwb3J0IjoiMjA1MyIsInBzIjoi8J+RifCfj7xAdjJib3hfdjLwn5GI8J+PvCDYqNuM2Kcg2qnYp9mG2KfZhPCfmoDwn4eu8J+HqSIsInNjeSI6ImF1dG8iLCJzbmkiOiJ6Lmxvb2xvb2xvb2xvby5jb20iLCJ0bHMiOiJ0bHMiLCJ0eXBlIjoiLS0tIiwidiI6IjIifQ==#🏳️ Config_jo-511
+vmess://eyJhZGQiOiJpcm5ldC5ncmVlbmV0cGx1cy5pciIsImFpZCI6IjAiLCJhbHBuIjoiIiwiZnAiOiIiLCJob3N0IjoiIiwiaWQiOiI3MzY5ZTQ5NC00YmMxLTQwN2QtYTU0Yy0xMzk0ZDE2ODU4MWEiLCJpbnNlY3VyZSI6IjAiLCJuZXQiOiJ3cyIsInBhdGgiOiIvIiwicG9ydCI6IjExMCIsInBzIjoiaHR0cHM6Ly90Lm1lLytHLWhoX2JWYjMyRTBZVEEwIiwic2N5IjoiYXV0byIsInNuaSI6IiIsInRscyI6IiIsInR5cGUiOiItLS0iLCJ2IjoiMiJ9#🏳️ Config_jo-512
