@@ -1,4 +1,5 @@
 # 🍁 Config Jo 
+# 🍁 کانفیگ جو
 
 [![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)](https://www.python.org/)
 [![Auto Update](https://img.shields.io/badge/Update-every%202h-brightgreen)](#)
