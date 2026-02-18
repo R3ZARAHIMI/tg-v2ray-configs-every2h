@@ -41,7 +41,7 @@ BLOCKED_IPS_FILE = "blocked_ips.txt"
 CHANNEL_MAX_INACTIVE_DAYS = 4
 MAX_CONFIGS_PER_SOURCE = 20
 
-# ریجکس بهبود یافته برای جلوگیری از جذب کاراکترهای مزاحم انتهای لینک
+# ریجکس دقیق برای استخراج لینک‌ها بدون جذب کاراکترهای مزاحم انتهای پیام
 V2RAY_PATTERNS = [
     re.compile(r'(vless:\/\/[^\s\'\"<>`|()\[\]{}]+)'), 
     re.compile(r'(vmess:\/\/[^\s\'\"<>`|()\[\]{}]+)'),
@@ -62,12 +62,10 @@ BLOCKED_NETWORKS = []
 
 def load_ip_data():
     global GEOIP_READER
-    print("Attempting to load GeoIP database...")
     try:
         GEOIP_READER = geoip2.database.Reader(GEOIP_DATABASE_PATH)
         print(f"✅ Successfully loaded GeoIP database.")
-    except Exception as e:
-        print(f"❌ Failed to load GeoIP database: {e}")
+    except Exception: pass
 
 def load_blocked_ips():
     global BLOCKED_NETWORKS
@@ -77,30 +75,24 @@ def load_blocked_ips():
                 for line in f:
                     line = line.strip()
                     if line and not line.startswith('#'):
-                        try:
-                            BLOCKED_NETWORKS.append(ipaddress.ip_network(line, strict=False))
+                        try: BLOCKED_NETWORKS.append(ipaddress.ip_network(line, strict=False))
                         except ValueError: pass
-            print(f"🚫 Loaded {len(BLOCKED_NETWORKS)} blocked IP ranges.")
-        except Exception as e: pass
+        except Exception: pass
 
 def is_clean_ip(host: str) -> bool:
     try:
         ip = ipaddress.ip_address(host)
-        if ip.is_loopback or ip.is_link_local or ip.is_multicast or ip.is_unspecified:
-            return False
+        if ip.is_loopback or ip.is_link_local or ip.is_multicast or ip.is_unspecified: return False
         for network in BLOCKED_NETWORKS:
-            if ip in network:
-                return False 
+            if ip in network: return False 
         return True 
-    except ValueError:
-        return False 
+    except ValueError: return False 
 
 def process_lists():
     channels = [ch.strip() for ch in CHANNELS_STR.split(',')] if CHANNELS_STR else []
     groups = []
     if GROUPS_STR:
-        try:
-            groups = [int(g.strip()) for g in GROUPS_STR.split(',')]
+        try: groups = [int(g.strip()) for g in GROUPS_STR.split(',')]
         except ValueError: pass
     return channels, groups
 
@@ -116,236 +108,197 @@ class V2RayExtractor:
         if not hostname or not GEOIP_READER: return "N/A"
         if hostname in self._country_cache: return self._country_cache[hostname]
         try:
-            ip_address = hostname
+            ip_addr = hostname
             try: socket.inet_aton(hostname)
             except:
-                try: ip_address = socket.gethostbyname(hostname)
-                except:
-                    self._country_cache[hostname] = "N/A"
-                    return "N/A"
-            response = GEOIP_READER.country(ip_address)
-            result = response.country.iso_code or "N/A"
-            self._country_cache[hostname] = result
-            return result
-        except:
-            self._country_cache[hostname] = "N/A"
-            return "N/A"
+                try: ip_addr = socket.gethostbyname(hostname)
+                except: return "N/A"
+            res = GEOIP_READER.country(ip_addr)
+            iso = res.country.iso_code or "N/A"
+            self._country_cache[hostname] = iso
+            return iso
+        except: return "N/A"
 
-    def _correct_config_type(self, config_url: str) -> str:
-        if config_url.startswith('ss://') and 'v=2' in config_url: return config_url.replace('ss://', 'vmess://', 1)
-        return config_url
-
-    def _validate_config_type(self, config_url: str) -> bool:
-        try:
-            if config_url.startswith('vless://'): return True
-            elif config_url.startswith('vmess://'):
-                decoded_str = base64.b64decode(config_url[8:] + '=' * 4).decode('utf-8')
-                config = json.loads(decoded_str)
-                return bool(config.get('add') and config.get('id'))
-            elif config_url.startswith('trojan://'): return True
-            elif config_url.startswith('ss://'): return '@' in config_url
-            return True
-        except: return False
-
-    def parse_config_for_clash(self, config_url: str) -> Optional[Dict[str, Any]]:
+    def parse_config_for_clash(self, url: str) -> Optional[Dict[str, Any]]:
         parsers = {'vmess://': self.parse_vmess, 'vless://': self.parse_vless, 'trojan://': self.parse_trojan, 'ss://': self.parse_shadowsocks, 'hysteria2://': self.parse_hysteria2, 'hy2://': self.parse_hysteria2, 'tuic://': self.parse_tuic}
         for prefix, parser in parsers.items():
-            if config_url.startswith(prefix):
-                try: return parser(config_url)
+            if url.startswith(prefix):
+                try: return parser(url)
                 except: return None
         return None
 
-    def parse_vmess(self, vmess_url: str) -> Optional[Dict[str, Any]]:
-        decoded_str = base64.b64decode(vmess_url[8:] + '=' * 4).decode('utf-8')
-        c = json.loads(decoded_str)
-        ws_opts = None
-        if c.get('net') == 'ws':
-            ws_opts = {'path': c.get('path', '/'), 'headers': {'Host': c.get('host', c.get('add'))}}
+    def parse_vmess(self, url: str) -> Optional[Dict[str, Any]]:
+        c = json.loads(base64.b64decode(url[8:] + '=' * 4).decode('utf-8'))
+        ws_opts = {'path': c.get('path', '/'), 'headers': {'Host': c.get('host', c.get('add'))}} if c.get('net') == 'ws' else None
         return {'name': c.get('ps', ''), 'type': 'vmess', 'server': c.get('add'), 'port': int(c.get('port', 443)), 'uuid': c.get('id'), 'alterId': int(c.get('aid', 0)), 'cipher': c.get('scy', 'auto'), 'tls': c.get('tls')=='tls', 'network': c.get('net', 'tcp'), 'udp': True, 'ws-opts': ws_opts, 'servername': c.get('sni', c.get('host'))}
 
-    def parse_vless(self, vless_url: str) -> Optional[Dict[str, Any]]:
-        p = urlparse(vless_url)
+    def parse_vless(self, url: str) -> Optional[Dict[str, Any]]:
+        p = urlparse(url)
         q = {k: v[0] for k, v in parse_qs(p.query).items()}
-        def fix_base64(s): return s.replace(' ', '+') if s else s
-        pbk = fix_base64(q.get('pbk') or q.get('pk'))
-        reality_opts = None
-        if q.get('security') == 'reality' and pbk:
-            reality_opts = {'public-key': pbk}
-            if q.get('sid'): reality_opts['short-id'] = q.get('sid')
-        ws_host = q.get('host') or q.get('sni') or p.hostname
+        def fix_b64(s): return s.replace(' ', '+') if s else s
+        pbk = fix_b64(q.get('pbk') or q.get('pk'))
+        reality_opts = {'public-key': pbk} if q.get('security') == 'reality' and pbk else None
+        if reality_opts and q.get('sid'): reality_opts['short-id'] = q.get('sid')
+        # اصلاح هدر Host (فقط اولین آدرس را نگه می‌دارد)
+        raw_host = q.get('host') or q.get('sni') or p.hostname
+        ws_host = raw_host.split(',')[0].strip() if raw_host else None
         ws_opts = {'path': q.get('path', '/'), 'headers': {'Host': ws_host}} if q.get('type') == 'ws' else None
         return {'name': unquote(p.fragment or ''), 'type': 'vless', 'server': p.hostname, 'port': p.port or 443, 'uuid': p.username, 'udp': True, 'tls': q.get('security') in ['tls', 'reality'], 'flow': q.get('flow'), 'client-fingerprint': q.get('fp'), 'network': q.get('type', 'tcp'), 'servername': q.get('sni'), 'ws-opts': ws_opts, 'reality-opts': reality_opts}
 
-    def parse_trojan(self, trojan_url: str) -> Optional[Dict[str, Any]]:
-        p = urlparse(trojan_url)
+    def parse_trojan(self, url: str) -> Optional[Dict[str, Any]]:
+        p = urlparse(url)
         q = {k: v[0] for k, v in parse_qs(p.query).items()}
-        ws_host = q.get('host') or q.get('sni') or p.hostname
+        raw_host = q.get('host') or q.get('sni') or p.hostname
+        ws_host = raw_host.split(',')[0].strip() if raw_host else None
         ws_opts = {'path': q.get('path', '/'), 'headers': {'Host': ws_host}} if q.get('type')=='ws' else None
         return {'name': unquote(p.fragment or ''), 'type': 'trojan', 'server': p.hostname, 'port': p.port or 443, 'password': p.username, 'udp': True, 'sni': q.get('sni'), 'network': q.get('type', 'tcp'), 'ws-opts': ws_opts, 'client-fingerprint': q.get('fp')}
 
-    def parse_shadowsocks(self, ss_url: str) -> Optional[Dict[str, Any]]:
+    def parse_shadowsocks(self, url: str) -> Optional[Dict[str, Any]]:
         try:
-            content = ss_url[5:]
+            content = url[5:]
             name = unquote(content.split('#', 1)[1]) if '#' in content else ''
             content = content.split('#', 1)[0]
-            if '@' not in content: return None
             userinfo_b64, server_part = content.rsplit('@', 1)
             server_host, server_port = server_part.rsplit(':', 1)
             userinfo = base64.b64decode(userinfo_b64 + '=' * (-len(userinfo_b64) % 4)).decode('utf-8')
             cipher, password = userinfo.split(':', 1)
+            
+            # اصلاح الگوریتم chacha20-poly1305 به نسخه استاندارد کلش
+            if cipher == 'chacha20-poly1305': cipher = 'chacha20-ietf-poly1305'
+            
             return {'name': name, 'type': 'ss', 'server': server_host, 'port': int(server_port), 'cipher': cipher, 'password': password, 'udp': True}
         except: return None
 
-    def parse_hysteria2(self, hy2_url: str) -> Optional[Dict[str, Any]]:
-        p = urlparse(hy2_url)
+    def parse_hysteria2(self, url: str) -> Optional[Dict[str, Any]]:
+        p = urlparse(url)
         q = {k: v[0] for k, v in parse_qs(p.query).items()}
         return {'name': unquote(p.fragment or ''), 'type': 'hysteria2', 'server': p.hostname, 'port': p.port or 443, 'password': p.username or p.password, 'sni': q.get('sni', [p.hostname])[0], 'skip-cert-verify': q.get('insecure')=='1'}
 
-    def parse_tuic(self, tuic_url: str) -> Optional[Dict[str, Any]]:
-        p = urlparse(tuic_url)
-        q = {k: v[0] for k, v in parse_qs(p.query).items()}
+    def parse_tuic(self, url: str) -> Optional[Dict[str, Any]]:
+        p = urlparse(url); q = {k: v[0] for k, v in parse_qs(p.query).items()}
         return {'name': unquote(p.fragment or ''), 'type': 'tuic', 'server': p.hostname, 'port': p.port or 443, 'uuid': p.username, 'password': q.get('password'), 'sni': q.get('sni', [p.hostname])[0]}
 
     def generate_sip002_link(self, proxy: Dict[str, Any]) -> str:
         try:
-            userinfo = f"{proxy['cipher']}:{proxy['password']}"
-            userinfo_b64 = base64.urlsafe_b64encode(userinfo.encode('utf-8')).decode('utf-8').rstrip('=')
-            return f"ss://{userinfo_b64}@{proxy['server']}:{proxy['port']}#{proxy.get('name', 'Shadowsocks')}"
+            uinfo = base64.urlsafe_b64encode(f"{proxy['cipher']}:{proxy['password']}".encode()).decode().rstrip('=')
+            return f"ss://{uinfo}@{proxy['server']}:{proxy['port']}#{proxy.get('name', 'Shadowsocks')}"
         except: return None
 
-    def convert_to_singbox_outbound(self, proxy: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        if not proxy: return None
-        t = proxy['type']
-        out = {'type': t if t!='ss' else 'shadowsocks', 'tag': proxy['name'], 'server': proxy['server'], 'server_port': proxy['port']}
-        if t=='vmess': out.update({'uuid': proxy['uuid'], 'alter_id': proxy['alterId'], 'security': proxy['cipher'], 'tls': {'enabled': True, 'server_name': proxy['servername']} if proxy.get('tls') else None})
-        if t=='vless': out.update({'uuid': proxy['uuid'], 'flow': proxy.get('flow',''), 'tls': {'enabled': True, 'server_name': proxy['servername'], 'reality': {'enabled': True, 'public_key': proxy.get('reality-opts',{}).get('public-key'), 'short_id': proxy.get('reality-opts',{}).get('short-id')} if proxy.get('reality-opts') else None} if proxy.get('tls') else None})
-        if t=='trojan': out.update({'password': proxy['password'], 'tls': {'enabled': True, 'server_name': proxy.get('sni')}})
-        if t=='ss': out.update({'method': proxy['cipher'], 'password': proxy['password']})
-        if t in ['hysteria2','tuic']: out.update({'password': proxy.get('password'), 'tls': {'enabled': True, 'server_name': proxy.get('sni'), 'insecure': proxy.get('skip-cert-verify')}})
-        if proxy.get('ws-opts'): out['transport'] = {'type': 'ws', 'path': proxy['ws-opts']['path'], 'headers': proxy['ws-opts']['headers']}
-        return out
-
-    def extract_configs_from_text(self, text: str) -> Set[str]:
-        found = set()
-        for pattern in V2RAY_PATTERNS: found.update(pattern.findall(text))
-        clean_configs = set()
-        for url in found:
-            url = url.strip()
-            if not url.startswith('vmess://') and '#' in url: url = url.split('#')[0]
-            if corrected := self._correct_config_type(url):
-                if self._validate_config_type(corrected): clean_configs.add(corrected)
-        return clean_configs
-
-    async def find_raw_configs_from_chat(self, chat_id: int, limit: int, retries: int = 3):
+    async def find_raw_configs_from_chat(self, chat_id: int, limit: int):
         local_configs = set()
         try:
             is_active = False
             async for last_msg in self.client.get_chat_history(chat_id, limit=1):
-                if last_msg.date > (datetime.datetime.now() - datetime.timedelta(days=CHANNEL_MAX_INACTIVE_DAYS)):
-                    is_active = True
+                if last_msg.date > (datetime.datetime.now() - datetime.timedelta(days=CHANNEL_MAX_INACTIVE_DAYS)): is_active = True
                 break 
             if not is_active: return
             async for message in self.client.get_chat_history(chat_id, limit=limit):
                 if len(local_configs) >= MAX_CONFIGS_PER_SOURCE: break
-                text_to_check = message.text or message.caption or ""
-                texts_to_scan = [text_to_check]
+                text = (message.text or message.caption or "")
+                texts_to_scan = [text]
                 if message.entities:
-                    valid_types = [enums.MessageEntityType.CODE, enums.MessageEntityType.PRE]
-                    for entity in message.entities:
-                        if entity.type in valid_types:
-                            texts_to_scan.append(text_to_check[entity.offset : entity.offset + entity.length].replace('\n', '').replace(' ', ''))
-                for b64_str in BASE64_PATTERN.findall(text_to_check):
-                    try: texts_to_scan.append(base64.b64decode(b64_str + '=' * 4).decode('utf-8', errors='ignore'))
-                    except: continue
-                for text in texts_to_scan:
-                    if text:
-                        extracted = self.extract_configs_from_text(text)
-                        local_configs.update(extracted)
+                    for ent in message.entities:
+                        if ent.type in [enums.MessageEntityType.CODE, enums.MessageEntityType.PRE]:
+                            texts_to_scan.append(text[ent.offset : ent.offset + ent.length].replace('\n', '').replace(' ', ''))
+                for b64 in BASE64_PATTERN.findall(text):
+                    try: texts_to_scan.append(base64.b64decode(b64 + '=' * 4).decode('utf-8', errors='ignore'))
+                    except: pass
+                for t in texts_to_scan:
+                    found = set()
+                    for pattern in V2RAY_PATTERNS: found.update(pattern.findall(t))
+                    for url in found:
+                        url = url.strip()
+                        if not url.startswith('vmess://') and '#' in url: url = url.split('#')[0]
+                        local_configs.add(url)
                         if len(local_configs) >= MAX_CONFIGS_PER_SOURCE: break
-            final_configs = list(local_configs)[:MAX_CONFIGS_PER_SOURCE]
-            print(f"   ✅ Fetched {len(final_configs)} configs from {chat_id}")
-            self.raw_configs.update(final_configs)
+            final = list(local_configs)[:MAX_CONFIGS_PER_SOURCE]
+            print(f"   ✅ Fetched {len(final)} configs from {chat_id}")
+            self.raw_configs.update(final)
         except FloodWait as e:
-            if retries > 0:
-                await asyncio.sleep(e.value + 2)
-                await self.find_raw_configs_from_chat(chat_id, limit, retries - 1)
+            await asyncio.sleep(e.value + 2); await self.find_raw_configs_from_chat(chat_id, limit)
 
     def handle_weekly_file(self, new_configs: List[str]):
         now = datetime.datetime.now()
         history = {}
         if os.path.exists(HISTORY_FILE):
-            try:
-                with open(HISTORY_FILE, 'r') as f: history = json.load(f)
-            except: pass
+            with open(HISTORY_FILE, 'r') as f: history = json.load(f)
         new_history = {k: v for k, v in history.items() if datetime.datetime.fromisoformat(v['date']) > (now - datetime.timedelta(days=7))}
         for cfg in new_configs:
             base = cfg.split('#')[0]
             if base not in new_history: new_history[base] = {"link": cfg, "date": now.isoformat()}
         with open(HISTORY_FILE, 'w') as f: json.dump(new_history, f, indent=2)
-        final_links = [v['link'] for v in new_history.values()]
-        with open(WEEKLY_FILE, 'w', encoding='utf-8') as f: f.write("\n".join(sorted(final_links)))
-        print(f"📅 7-Day Weekly: Total {len(final_links)} configs.")
+        links = [v['link'] for v in new_history.values()]
+        with open(WEEKLY_FILE, 'w', encoding='utf-8') as f: f.write("\n".join(sorted(links)))
+        print(f"📅 7-Day Weekly: Total {len(links)} configs.")
 
     def handle_no_cf_retention(self, new_configs: List[str]):
         now = datetime.datetime.now()
         history = {}
         if os.path.exists(NO_CF_HISTORY_FILE):
-            try:
-                with open(NO_CF_HISTORY_FILE, 'r') as f: history = json.load(f)
-            except: pass
+            with open(NO_CF_HISTORY_FILE, 'r') as f: history = json.load(f)
         new_history = {k: v for k, v in history.items() if datetime.datetime.fromisoformat(v['date']) > (now - datetime.timedelta(hours=72))}
         for cfg in new_configs:
-            try:
-                p = self.parse_config_for_clash(cfg)
+            p = self.parse_config_for_clash(cfg)
+            if p:
                 uid = str(p.get('uuid') or p.get('password') or cfg.split('#')[0])
                 if uid not in new_history: new_history[uid] = {"link": cfg, "date": now.isoformat()}
-            except: pass
         with open(NO_CF_HISTORY_FILE, 'w') as f: json.dump(new_history, f, indent=2)
-        final_links = [v['link'] for v in new_history.values()]
-        with open(OUTPUT_NO_CF, 'w', encoding='utf-8') as f: f.write("\n".join(sorted(final_links)))
-        print(f"⏱️ 72h Retention: Total {len(final_links)} configs.")
+        links = [v['link'] for v in new_history.values()]
+        with open(OUTPUT_NO_CF, 'w', encoding='utf-8') as f: f.write("\n".join(sorted(links)))
+        print(f"⏱️ 72h Retention: Total {len(links)} configs.")
 
     def build_pro_config(self, proxies):
         clean_proxies, clean_names, seen_names = [], [], set()
         for p in proxies:
             if p.get('type') in ['vless', 'vmess', 'tuic'] and not p.get('uuid'): continue
             if p.get('type') == 'trojan' and not p.get('password'): continue
+            # فیلتر تبلیغات و آدرس‌های طولانی
             server = p.get('server', '').lower()
             if not server or any(x in server for x in ['update', 'subscription', 'dayyyy']) or len(server) > 60: continue
+            # اصلاح SNI (حذف اموجی و کاراکتر غیرمجاز)
             sni = p.get('servername') or p.get('sni')
-            if sni and re.search(r'[^\w\.\-]', sni):
-                p['servername'] = p['sni'] = p['server']
-            if p.get('reality-opts'):
-                if len(p['reality-opts'].get('public-key', '')) < 43: continue
+            if sni and re.search(r'[^\w\.\-]', sni): p['servername'] = p['sni'] = p['server']
+            # فیلتر Reality ناقص (زیر ۴۳ کاراکتر)
+            if p.get('reality-opts') and len(p['reality-opts'].get('public-key', '')) < 43: continue
+            # فیلتر شبکه‌های ناسازگار با کلش معمولی
+            if p.get('network') in ['xhttp', 'httpupgrade']: continue
+            
             name = p['name']
-            counter = 1
-            original_name = name
+            counter = 1; original_name = name
             while name in seen_names:
-                name = f"{original_name}_{counter}"
-                counter += 1
-            p['name'] = name
-            seen_names.add(name)
+                name = f"{original_name}_{counter}"; counter += 1
+            p['name'] = name; seen_names.add(name)
             clean_proxies.append({k: v for k, v in p.items() if v is not None and v != ''})
             clean_names.append(name)
         if not clean_proxies: return {}
         return {'port': 7890, 'socks-port': 7891, 'allow-lan': True, 'mode': 'rule', 'log-level': 'info', 'external-controller': '127.0.0.1:9090', 'dns': {'enable': True, 'listen': '0.0.0.0:53', 'default-nameserver': ['8.8.8.8', '1.1.1.1'], 'enhanced-mode': 'fake-ip', 'fake-ip-range': '198.18.0.1/16', 'nameserver': ['https://dns.google/dns-query', 'https://cloudflare-dns.com/dns-query'], 'fallback': ['https://dns.google/dns-query', 'https://cloudflare-dns.com/dns-query'], 'fallback-filter': {'geoip': True, 'ipcidr': ['240.0.0.0/4', '0.0.0.0/32']}}, 'proxies': clean_proxies, 'proxy-groups': [{'name': 'PROXY', 'type': 'select', 'proxies': ['⚡ Auto-Select', 'DIRECT', *clean_names]}, {'name': '⚡ Auto-Select', 'type': 'url-test', 'proxies': clean_names, 'url': 'http://www.gstatic.com/generate_204', 'interval': 300}, {'name': '🇮🇷 Iran', 'type': 'select', 'proxies': ['DIRECT', 'PROXY']}, {'name': '🛑 Block-Ads', 'type': 'select', 'proxies': ['REJECT', 'DIRECT']}], 'rule-providers': {'iran_domains': {'type': 'http', 'behavior': 'domain', 'url': "https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/iran-domains.txt", 'path': './rules/iran_domains.txt', 'interval': 86400}, 'blocked_domains': {'type': 'http', 'behavior': 'domain', 'url': "https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/blocked-domains.txt", 'path': './rules/blocked_domains.txt', 'interval': 86400}, 'ad_domains': {'type': 'http', 'behavior': 'domain', 'url': "https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/ad-domains.txt", 'path': './rules/ad_domains.txt', 'interval': 86400}}, 'rules': ['RULE-SET,ad_domains,🛑 Block-Ads', 'RULE-SET,blocked_domains,PROXY', 'RULE-SET,iran_domains,🇮🇷 Iran', 'GEOIP,IR,🇮🇷 Iran', 'MATCH,PROXY']}
 
-    def build_sing_box_config(self, proxies_clash: List[Dict[str, Any]]) -> Dict[str, Any]:
-        outbounds = [p for p in (self.convert_to_singbox_outbound(proxy) for proxy in proxies_clash) if p]
-        proxy_tags = [p['tag'] for p in outbounds]
-        return {"log": {"level": "warn", "timestamp": True}, "dns": {"servers": [{"tag": "dns_proxy", "address": "https://dns.google/dns-query", "detour": "PROXY"}, {"tag": "dns_direct", "address": "1.1.1.1"}], "rules": [{"outbound": "PROXY", "server": "dns_proxy"}, {"rule_set": ["geosite-ir", "geoip-ir"], "server": "dns_direct"}, {"domain_suffix": ".ir", "server": "dns_direct"}], "final": "dns_direct", "strategy": "ipv4_only"}, "inbounds": [{"type": "mixed", "listen": "0.0.0.0", "listen_port": 2080, "sniff": True}], "outbounds": [{"type": "direct", "tag": "direct"}, {"type": "block", "tag": "block"}, {"type": "dns", "tag": "dns-out"}, *outbounds, {"type": "selector", "tag": "PROXY", "outbounds": ["auto", *proxy_tags], "default": "auto"}, {"type": "urltest", "tag": "auto", "outbounds": proxy_tags, "url": "http://www.gstatic.com/generate_204", "interval": "5m"}], "route": {"rule_set": [{"tag": "geosite-ir", "type": "remote", "format": "binary", "url": "https://cdn.jsdelivr.net/gh/Chocolate4U/Iran-sing-box-rules@rule-set/geosite-ir.srs", "download_detour": "direct"}, {"tag": "geoip-ir", "type": "remote", "format": "binary", "url": "https://cdn.jsdelivr.net/gh/Chocolate4U/Iran-sing-box-rules@rule-set/geoip-ir.srs", "download_detour": "direct"}], "rules": [{"protocol": "dns", "outbound": "dns-out"}, {"rule_set": ["geosite-ir", "geoip-ir"], "outbound": "direct"}, {"ip_is_private": True, "outbound": "direct"}], "final": "PROXY"}}
+    def build_sing_box_config(self, proxies: List[Dict[str, Any]]) -> Dict[str, Any]:
+        from copy import deepcopy
+        outbounds = []
+        for p in proxies:
+            sb_out = {'type': p['type'] if p['type']!='ss' else 'shadowsocks', 'tag': p['name'], 'server': p['server'], 'server_port': p['port']}
+            if p['type']=='vmess': sb_out.update({'uuid': p['uuid'], 'alter_id': p['alterId'], 'security': p['cipher'], 'tls': {'enabled': True, 'server_name': p['servername']} if p.get('tls') else None})
+            if p['type']=='vless': sb_out.update({'uuid': p['uuid'], 'flow': p.get('flow',''), 'tls': {'enabled': True, 'server_name': p['servername'], 'reality': {'enabled': True, 'public_key': p.get('reality-opts',{}).get('public-key'), 'short_id': p.get('reality-opts',{}).get('short-id')} if p.get('reality-opts') else None} if p.get('tls') else None})
+            if p['type']=='trojan': sb_out.update({'password': p['password'], 'tls': {'enabled': True, 'server_name': p.get('sni')}})
+            if p['type']=='ss': sb_out.update({'method': p['cipher'], 'password': p['password']})
+            if p['type'] in ['hysteria2','tuic']: sb_out.update({'password': p.get('password'), 'tls': {'enabled': True, 'server_name': p.get('sni'), 'insecure': p.get('skip-cert-verify')}})
+            if p.get('ws-opts'): sb_out['transport'] = {'type': 'ws', 'path': p['ws-opts']['path'], 'headers': p['ws-opts']['headers']}
+            outbounds.append(sb_out)
+        tags = [o['tag'] for o in outbounds]
+        return {"log": {"level": "warn"}, "dns": {"servers": [{"tag": "dns_proxy", "address": "https://dns.google/dns-query", "detour": "PROXY"}, {"tag": "dns_direct", "address": "1.1.1.1"}], "rules": [{"outbound": "PROXY", "server": "dns_proxy"}, {"rule_set": ["geosite-ir", "geoip-ir"], "server": "dns_direct"}], "final": "dns_direct"}, "inbounds": [{"type": "mixed", "listen": "0.0.0.0", "listen_port": 2080}], "outbounds": [{"type": "direct", "tag": "direct"}, {"type": "block", "tag": "block"}, {"type": "dns", "tag": "dns-out"}, *outbounds, {"type": "selector", "tag": "PROXY", "outbounds": ["auto", *tags]}, {"type": "urltest", "tag": "auto", "outbounds": tags, "url": "http://www.gstatic.com/generate_204", "interval": "5m"}], "route": {"rule_set": [{"tag": "geosite-ir", "type": "remote", "format": "binary", "url": "https://cdn.jsdelivr.net/gh/Chocolate4U/Iran-sing-box-rules@rule-set/geosite-ir.srs", "download_detour": "direct"}, {"tag": "geoip-ir", "type": "remote", "format": "binary", "url": "https://cdn.jsdelivr.net/gh/Chocolate4U/Iran-sing-box-rules@rule-set/geoip-ir.srs", "download_detour": "direct"}], "rules": [{"protocol": "dns", "outbound": "dns-out"}, {"rule_set": ["geosite-ir", "geoip-ir"], "outbound": "direct"}], "final": "PROXY"}}
 
     def save_files(self):
         if not self.raw_configs: return
-        valid_configs = set()
+        valid_urls = set()
         for url in self.raw_configs:
             try:
                 p = urlparse(url)
                 if p.hostname in ['127.0.0.1', 'localhost', '0.0.0.0']: continue
-                valid_configs.add(url)
+                valid_urls.add(url)
             except: continue
         proxies_list, renamed_txt, clean_ip_configs = [], [], []
-        for i, url in enumerate(sorted(list(valid_configs)), 1):
+        for i, url in enumerate(sorted(list(valid_urls)), 1):
             if not (proxy := self.parse_config_for_clash(url)): continue
             server_host = proxy.get('server')
             if not server_host or server_host in ['127.0.0.1', 'localhost', '0.0.0.0']: continue
@@ -353,10 +306,11 @@ class V2RayExtractor:
                 if ipaddress.ip_address(server_host).is_loopback: continue
             except: pass
             country_code = self.get_country_iso_code(server_host)
-            country_flag = COUNTRY_FLAGS.get(country_code, '🏳️')
+            flag = COUNTRY_FLAGS.get(country_code, '🏳️')
             proxy['name'] = f"{country_code} Config_jo-{i:02d}"
             proxies_list.append(proxy)
-            name_with_flag = f"{country_flag} Config_jo-{i:02d}"
+            name_with_flag = f"{flag} Config_jo-{i:02d}"
+            
             if proxy['type'] == 'ss':
                 p_copy = proxy.copy(); p_copy['name'] = name_with_flag
                 final_link = self.generate_sip002_link(p_copy) or f"{url.split('#')[0]}#{name_with_flag}"
@@ -367,25 +321,23 @@ class V2RayExtractor:
                 except: final_link = f"{url.split('#')[0]}#{name_with_flag}"
             renamed_txt.append(final_link)
             if is_clean_ip(server_host): clean_ip_configs.append(final_link)
+
         with open(OUTPUT_ORIGINAL_CONFIGS, 'w', encoding='utf-8') as f: f.write("\n".join(sorted(list(self.raw_configs))))
         with open(OUTPUT_TXT, 'w', encoding='utf-8') as f: f.write("\n".join(sorted(renamed_txt)))
-        self.handle_no_cf_retention(clean_ip_configs)
-        self.handle_weekly_file(renamed_txt)
+        self.handle_no_cf_retention(clean_ip_configs); self.handle_weekly_file(renamed_txt)
         os.makedirs('rules', exist_ok=True)
         if proxies_list:
             clash_cfg = self.build_pro_config(proxies_list)
             if clash_cfg:
                 with open(OUTPUT_YAML_PRO, 'w', encoding='utf-8') as f: yaml.dump(clash_cfg, f, allow_unicode=True, sort_keys=False, indent=2)
-            with open(OUTPUT_JSON_CONFIG_JO, 'w', encoding='utf-8') as f: json.dump(self.build_sing_box_config(proxies_list), f, ensure_ascii=False, indent=4)
-        print(f"⚙️ Total Configs: {len(renamed_txt)}")
+            with open(OUTPUT_JSON_CONFIG_JO, 'w', encoding='utf-8') as f:
+                json.dump(self.build_sing_box_config(proxies_list), f, ensure_ascii=False, indent=4)
+        print(f"⚙️ Total Configs Saved: {len(renamed_txt)}")
 
 async def main():
-    print("🚀 Starting config extractor...")
-    load_ip_data()
-    load_blocked_ips()
+    print("🚀 Starting config extractor..."); load_ip_data(); load_blocked_ips()
     extractor = V2RayExtractor()
     async with extractor.client:
-        print("🔄 Refreshing dialogs...")
         async for d in extractor.client.get_dialogs(): pass
         tasks = [extractor.find_raw_configs_from_chat(ch, CHANNEL_SEARCH_LIMIT) for ch in CHANNELS]
         tasks.extend(extractor.find_raw_configs_from_chat(g, GROUP_SEARCH_LIMIT) for g in GROUPS)
