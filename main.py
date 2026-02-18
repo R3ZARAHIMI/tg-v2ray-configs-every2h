@@ -283,6 +283,8 @@ class V2RayExtractor:
 
     async def find_raw_configs_from_chat(self, chat_id: int, limit: int, retries: int = 3):
         local_configs = set()
+        MAX_CONFIGS_PER_SOURCE = 20 # محدودیت تعداد کانفیگ از هر منبع
+
         try:
             is_active = False
             try:
@@ -297,6 +299,9 @@ class V2RayExtractor:
                 return
 
             async for message in self.client.get_chat_history(chat_id, limit=limit):
+                if len(local_configs) >= MAX_CONFIGS_PER_SOURCE:
+                    break
+
                 text_to_check = message.text or message.caption or ""
                 texts_to_scan = [text_to_check]
                 if message.entities:
@@ -315,9 +320,17 @@ class V2RayExtractor:
                         texts_to_scan.append(decoded)
                     except: continue
                 for text in texts_to_scan:
-                    if text: local_configs.update(self.extract_configs_from_text(text))
-            print(f"   ✅ Fetched {len(local_configs)} configs from {chat_id}")
-            self.raw_configs.update(local_configs)
+                    if text:
+                        extracted = self.extract_configs_from_text(text)
+                        local_configs.update(extracted)
+                        if len(local_configs) >= MAX_CONFIGS_PER_SOURCE:
+                            break
+            
+            # گلچین کردن فقط ۲۰ مورد اول برای اطمینان
+            final_configs = list(local_configs)[:MAX_CONFIGS_PER_SOURCE]
+            print(f"   ✅ Fetched {len(final_configs)} configs from {chat_id}")
+            self.raw_configs.update(final_configs)
+
         except FloodWait as e:
             if retries > 0:
                 print(f"⏳ FloodWait {e.value}s in {chat_id}. Sleeping...")
@@ -460,32 +473,25 @@ class V2RayExtractor:
         seen_names = set()
 
         for p in proxies:
-            # 1. Validation
             if p.get('type') in ['vless', 'vmess', 'tuic'] and not p.get('uuid'): continue
             if p.get('type') == 'trojan' and not p.get('password'): continue
             if p.get('type') == 'ss' and (not p.get('cipher') or not p.get('password')): continue
             if p.get('type') == 'hysteria2' and not p.get('password'): continue
             
-            # 2. Server Address Sanity
             server = p.get('server', '')
             if not server or len(server) > 50 or re.search(r'[^\w\.\-\:]', server): continue
 
-            # 3. SNI Sanity
             sni = p.get('servername') or p.get('sni')
             if sni:
-                if re.search(r'[^\w\.\-]', sni): # If contains invalid chars
+                if re.search(r'[^\w\.\-]', sni):
                     p['servername'] = None
                     p['sni'] = None
-                    if p.get('tls'): p['servername'] = 'google.com' # Fallback for TLS
+                    if p.get('tls'): p['servername'] = 'google.com'
 
-            # 4. Remove Unsupported Networks
             if p.get('network') in ['xhttp', 'httpupgrade']: continue
 
-            # 5. REMOVE NULL KEYS (Crucial fix for "sni: null")
-            # Create a clean copy of the dictionary without None values
             p_clean = {k: v for k, v in p.items() if v is not None and v != ''}
             
-            # 6. Duplicate Name Handling
             name = p_clean['name']
             counter = 1
             original_name = name
