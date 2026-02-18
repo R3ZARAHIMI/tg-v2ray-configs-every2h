@@ -243,7 +243,7 @@ class V2RayExtractor:
             sni = p.get('servername') or p.get('sni')
             if sni and re.search(r'[^\w\.\-]', sni): p['servername'] = p['sni'] = p['server']
             
-            # اصلاح Host (Single Domain)
+            # اصلاح Host
             if p.get('ws-opts') and not p['ws-opts']['headers'].get('Host'):
                 p['ws-opts']['headers']['Host'] = p['server']
             
@@ -349,7 +349,7 @@ class V2RayExtractor:
             if is_clean_ip(srv): clean_ip.append(final)
         with open(OUTPUT_ORIGINAL_CONFIGS, 'w', encoding='utf-8') as f: f.write("\n".join(sorted(list(self.raw_configs))))
         with open(OUTPUT_TXT, 'w', encoding='utf-8') as f: f.write("\n".join(sorted(ren_txt)))
-        self.handle_no_cf_retention(clean_ip); self.handle_weekly_file(renamed_txt=ren_txt)
+        self.handle_no_cf_retention(clean_ip); self.handle_weekly_file(ren_txt)
         os.makedirs('ruleset', exist_ok=True)
         if p_list:
             c_cfg = self.build_pro_config(p_list)
