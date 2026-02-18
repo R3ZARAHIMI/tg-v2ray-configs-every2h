@@ -40,7 +40,6 @@ BLOCKED_IPS_FILE = "blocked_ips.txt"
 
 CHANNEL_MAX_INACTIVE_DAYS = 4
 
-# ریجکس بهبود یافته برای جلوگیری از جذب کاراکترهای مزاحم انتهای لینک (مثل پرانتز یا نقطه)
 V2RAY_PATTERNS = [
     re.compile(r'(vless:\/\/[^\s\'\"<>`|()\[\]{}]+)'), 
     re.compile(r'(vmess:\/\/[^\s\'\"<>`|()\[\]{}]+)'),
@@ -169,59 +168,23 @@ class V2RayExtractor:
     def parse_vless(self, vless_url: str) -> Optional[Dict[str, Any]]:
         p = urlparse(vless_url)
         q = {k: v[0] for k, v in parse_qs(p.query).items()}
-        
-        # اصلاح کلیدهای Reality: تبدیل فاصله به + که توسط parse_qs ایجاد می‌شود
         def fix_base64(s): return s.replace(' ', '+') if s else s
-        
         pbk = fix_base64(q.get('pbk') or q.get('pk'))
         sid = q.get('sid')
-        
         reality_opts = None
         if q.get('security') == 'reality' and pbk:
             reality_opts = {'public-key': pbk}
-            if sid: # فقط اگر مقدار داشت اضافه شود تا ارور مقدار خالی ندهد
-                reality_opts['short-id'] = sid
-
-        # اصلاح Host در WebSocket: اگر خالی بود از SNI یا Hostname استفاده کند
+            if sid: reality_opts['short-id'] = sid
         ws_host = q.get('host') or q.get('sni') or p.hostname
-        ws_opts = None
-        if q.get('type') == 'ws':
-            ws_opts = {'path': q.get('path', '/'), 'headers': {'Host': ws_host}}
-
-        return {
-            'name': unquote(p.fragment or ''),
-            'type': 'vless',
-            'server': p.hostname,
-            'port': p.port or 443,
-            'uuid': p.username,
-            'udp': True,
-            'tls': q.get('security') in ['tls', 'reality'],
-            'flow': q.get('flow'),
-            'client-fingerprint': q.get('fp'),
-            'network': q.get('type', 'tcp'),
-            'servername': q.get('sni'),
-            'ws-opts': ws_opts,
-            'reality-opts': reality_opts
-        }
+        ws_opts = {'path': q.get('path', '/'), 'headers': {'Host': ws_host}} if q.get('type') == 'ws' else None
+        return {'name': unquote(p.fragment or ''), 'type': 'vless', 'server': p.hostname, 'port': p.port or 443, 'uuid': p.username, 'udp': True, 'tls': q.get('security') in ['tls', 'reality'], 'flow': q.get('flow'), 'client-fingerprint': q.get('fp'), 'network': q.get('type', 'tcp'), 'servername': q.get('sni'), 'ws-opts': ws_opts, 'reality-opts': reality_opts}
 
     def parse_trojan(self, trojan_url: str) -> Optional[Dict[str, Any]]:
         p = urlparse(trojan_url)
         q = {k: v[0] for k, v in parse_qs(p.query).items()}
         ws_host = q.get('host') or q.get('sni') or p.hostname
         ws_opts = {'path': q.get('path', '/'), 'headers': {'Host': ws_host}} if q.get('type')=='ws' else None
-        
-        return {
-            'name': unquote(p.fragment or ''), 
-            'type': 'trojan', 
-            'server': p.hostname, 
-            'port': p.port or 443, 
-            'password': p.username, 
-            'udp': True, 
-            'sni': q.get('sni'), 
-            'network': q.get('type', 'tcp'), 
-            'ws-opts': ws_opts, 
-            'client-fingerprint': q.get('fp')
-        }
+        return {'name': unquote(p.fragment or ''), 'type': 'trojan', 'server': p.hostname, 'port': p.port or 443, 'password': p.username, 'udp': True, 'sni': q.get('sni'), 'network': q.get('type', 'tcp'), 'ws-opts': ws_opts, 'client-fingerprint': q.get('fp')}
 
     def parse_shadowsocks(self, ss_url: str) -> Optional[Dict[str, Any]]:
         try:
@@ -286,7 +249,6 @@ class V2RayExtractor:
                     is_active = True
                 break 
             if not is_active: return
-
             async for message in self.client.get_chat_history(chat_id, limit=limit):
                 if len(local_configs) >= MAX_CONFIGS_PER_SOURCE: break
                 text_to_check = message.text or message.caption or ""
@@ -304,7 +266,6 @@ class V2RayExtractor:
                         extracted = self.extract_configs_from_text(text)
                         local_configs.update(extracted)
                         if len(local_configs) >= MAX_CONFIGS_PER_SOURCE: break
-            
             final_configs = list(local_configs)[:MAX_CONFIGS_PER_SOURCE]
             print(f"   ✅ Fetched {len(final_configs)} configs from {chat_id}")
             self.raw_configs.update(final_configs)
@@ -348,6 +309,31 @@ class V2RayExtractor:
         with open(OUTPUT_NO_CF, 'w', encoding='utf-8') as f: f.write("\n".join(sorted(final_links)))
         print(f"⏱️ 72h Retention: Total {len(final_links)} configs.")
 
+    def build_pro_config(self, proxies):
+        clean_proxies = []
+        clean_names = []
+        seen_names = set()
+        for p in proxies:
+            if p.get('type') in ['vless', 'vmess', 'tuic'] and not p.get('uuid'): continue
+            if p.get('type') == 'trojan' and not p.get('password'): continue
+            name = p['name']
+            counter = 1
+            original_name = name
+            while name in seen_names:
+                name = f"{original_name}_{counter}"
+                counter += 1
+            p['name'] = name
+            seen_names.add(name)
+            clean_proxies.append({k: v for k, v in p.items() if v is not None})
+            clean_names.append(name)
+        if not clean_proxies: return {}
+        return {'port': 7890, 'socks-port': 7891, 'allow-lan': True, 'mode': 'rule', 'log-level': 'info', 'external-controller': '127.0.0.1:9090', 'dns': {'enable': True, 'listen': '0.0.0.0:53', 'default-nameserver': ['8.8.8.8', '1.1.1.1'], 'enhanced-mode': 'fake-ip', 'fake-ip-range': '198.18.0.1/16', 'nameserver': ['https://dns.google/dns-query', 'https://cloudflare-dns.com/dns-query'], 'fallback': ['https://dns.google/dns-query', 'https://cloudflare-dns.com/dns-query'], 'fallback-filter': {'geoip': True, 'ipcidr': ['240.0.0.0/4', '0.0.0.0/32']}}, 'proxies': clean_proxies, 'proxy-groups': [{'name': 'PROXY', 'type': 'select', 'proxies': ['⚡ Auto-Select', 'DIRECT', *clean_names]}, {'name': '⚡ Auto-Select', 'type': 'url-test', 'proxies': clean_names, 'url': 'http://www.gstatic.com/generate_204', 'interval': 300}, {'name': '🇮🇷 Iran', 'type': 'select', 'proxies': ['DIRECT', 'PROXY']}, {'name': '🛑 Block-Ads', 'type': 'select', 'proxies': ['REJECT', 'DIRECT']}], 'rule-providers': {'iran_domains': {'type': 'http', 'behavior': 'domain', 'url': "https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/iran-domains.txt", 'path': './rules/iran_domains.txt', 'interval': 86400}, 'blocked_domains': {'type': 'http', 'behavior': 'domain', 'url': "https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/blocked-domains.txt", 'path': './rules/blocked_domains.txt', 'interval': 86400}, 'ad_domains': {'type': 'http', 'behavior': 'domain', 'url': "https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/ad-domains.txt", 'path': './rules/ad_domains.txt', 'interval': 86400}}, 'rules': ['RULE-SET,ad_domains,🛑 Block-Ads', 'RULE-SET,blocked_domains,PROXY', 'RULE-SET,iran_domains,🇮🇷 Iran', 'GEOIP,IR,🇮🇷 Iran', 'MATCH,PROXY']}
+
+    def build_sing_box_config(self, proxies_clash: List[Dict[str, Any]]) -> Dict[str, Any]:
+        outbounds = [p for p in (self.convert_to_singbox_outbound(proxy) for proxy in proxies_clash) if p]
+        proxy_tags = [p['tag'] for p in outbounds]
+        return {"log": {"level": "warn", "timestamp": True}, "dns": {"servers": [{"tag": "dns_proxy", "address": "https://dns.google/dns-query", "detour": "PROXY"}, {"tag": "dns_direct", "address": "1.1.1.1"}], "rules": [{"outbound": "PROXY", "server": "dns_proxy"}, {"rule_set": ["geosite-ir", "geoip-ir"], "server": "dns_direct"}, {"domain_suffix": ".ir", "server": "dns_direct"}], "final": "dns_direct", "strategy": "ipv4_only"}, "inbounds": [{"type": "mixed", "listen": "0.0.0.0", "listen_port": 2080, "sniff": True}], "outbounds": [{"type": "direct", "tag": "direct"}, {"type": "block", "tag": "block"}, {"type": "dns", "tag": "dns-out"}, *outbounds, {"type": "selector", "tag": "PROXY", "outbounds": ["auto", *proxy_tags], "default": "auto"}, {"type": "urltest", "tag": "auto", "outbounds": proxy_tags, "url": "http://www.gstatic.com/generate_204", "interval": "5m"}], "route": {"rule_set": [{"tag": "geosite-ir", "type": "remote", "format": "binary", "url": "https://cdn.jsdelivr.net/gh/Chocolate4U/Iran-sing-box-rules@rule-set/geosite-ir.srs", "download_detour": "direct"}, {"tag": "geoip-ir", "type": "remote", "format": "binary", "url": "https://cdn.jsdelivr.net/gh/Chocolate4U/Iran-sing-box-rules@rule-set/geoip-ir.srs", "download_detour": "direct"}], "rules": [{"protocol": "dns", "outbound": "dns-out"}, {"rule_set": ["geosite-ir", "geoip-ir"], "outbound": "direct"}, {"ip_is_private": True, "outbound": "direct"}], "final": "PROXY"}}
+
     def save_files(self):
         if not self.raw_configs: return
         valid_configs = set()
@@ -357,7 +343,6 @@ class V2RayExtractor:
                 if parsed.hostname in ['127.0.0.1', 'localhost', '0.0.0.0']: continue
                 valid_configs.add(url)
             except: continue
-
         proxies_list, renamed_txt, clean_ip_configs = [], [], []
         for i, url in enumerate(sorted(list(valid_configs)), 1):
             if not (proxy := self.parse_config_for_clash(url)): continue
@@ -366,13 +351,11 @@ class V2RayExtractor:
             try:
                 if ipaddress.ip_address(server_host).is_loopback: continue
             except: pass
-
             country_code = self.get_country_iso_code(server_host)
             country_flag = COUNTRY_FLAGS.get(country_code, '🏳️')
             proxy['name'] = f"{country_code} Config_jo-{i:02d}"
             proxies_list.append(proxy)
             name_with_flag = f"{country_flag} Config_jo-{i:02d}"
-            
             if proxy['type'] == 'ss':
                 p_copy = proxy.copy(); p_copy['name'] = name_with_flag
                 final_link = self.generate_sip002_link(p_copy) or f"{url.split('#')[0]}#{name_with_flag}"
@@ -381,14 +364,18 @@ class V2RayExtractor:
                     p_url = list(urlparse(url)); p_url[5] = name_with_flag
                     final_link = urlunparse(p_url)
                 except: final_link = f"{url.split('#')[0]}#{name_with_flag}"
-            
             renamed_txt.append(final_link)
             if is_clean_ip(server_host): clean_ip_configs.append(final_link)
-
         with open(OUTPUT_ORIGINAL_CONFIGS, 'w', encoding='utf-8') as f: f.write("\n".join(sorted(list(self.raw_configs))))
         with open(OUTPUT_TXT, 'w', encoding='utf-8') as f: f.write("\n".join(sorted(renamed_txt)))
         self.handle_no_cf_retention(clean_ip_configs)
         self.handle_weekly_file(renamed_txt)
+        os.makedirs('rules', exist_ok=True)
+        if proxies_list:
+            with open(OUTPUT_YAML_PRO, 'w', encoding='utf-8') as f:
+                yaml.dump(self.build_pro_config(proxies_list), f, allow_unicode=True, sort_keys=False, indent=2)
+            with open(OUTPUT_JSON_CONFIG_JO, 'w', encoding='utf-8') as f:
+                json.dump(self.build_sing_box_config(proxies_list), f, ensure_ascii=False, indent=4)
         print(f"⚙️ Total Configs: {len(renamed_txt)}")
 
 async def main():
