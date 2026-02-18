@@ -39,7 +39,9 @@ NO_CF_HISTORY_FILE = "no_cf_history.json"
 BLOCKED_IPS_FILE = "blocked_ips.txt"
 
 CHANNEL_MAX_INACTIVE_DAYS = 4
+MAX_CONFIGS_PER_SOURCE = 20
 
+# ریجکس بهبود یافته برای جلوگیری از جذب کاراکترهای مزاحم انتهای لینک
 V2RAY_PATTERNS = [
     re.compile(r'(vless:\/\/[^\s\'\"<>`|()\[\]{}]+)'), 
     re.compile(r'(vmess:\/\/[^\s\'\"<>`|()\[\]{}]+)'),
@@ -156,25 +158,20 @@ class V2RayExtractor:
     def parse_vmess(self, vmess_url: str) -> Optional[Dict[str, Any]]:
         decoded_str = base64.b64decode(vmess_url[8:] + '=' * 4).decode('utf-8')
         c = json.loads(decoded_str)
-        ws_opts, grpc_opts, h2_opts = None, None, None
+        ws_opts = None
         if c.get('net') == 'ws':
-            ws_opts = {'path': c.get('path', '/'), 'headers': {'Host': c.get('host', '')}}
-        elif c.get('net') == 'grpc':
-            grpc_opts = {'grpc-service-name': c.get('path', '')}
-        elif c.get('net') == 'h2':
-            h2_opts = {'path': c.get('path', '/'), 'host': [h.strip() for h in c.get('host', '').split(',') if h.strip()]}
-        return {'name': c.get('ps', ''), 'type': 'vmess', 'server': c.get('add'), 'port': int(c.get('port', 443)), 'uuid': c.get('id'), 'alterId': int(c.get('aid', 0)), 'cipher': c.get('scy', 'auto'), 'tls': c.get('tls')=='tls', 'network': c.get('net', 'tcp'), 'udp': True, 'ws-opts': ws_opts, 'grpc-opts': grpc_opts, 'h2-opts': h2_opts, 'servername': c.get('sni', c.get('host'))}
+            ws_opts = {'path': c.get('path', '/'), 'headers': {'Host': c.get('host', c.get('add'))}}
+        return {'name': c.get('ps', ''), 'type': 'vmess', 'server': c.get('add'), 'port': int(c.get('port', 443)), 'uuid': c.get('id'), 'alterId': int(c.get('aid', 0)), 'cipher': c.get('scy', 'auto'), 'tls': c.get('tls')=='tls', 'network': c.get('net', 'tcp'), 'udp': True, 'ws-opts': ws_opts, 'servername': c.get('sni', c.get('host'))}
 
     def parse_vless(self, vless_url: str) -> Optional[Dict[str, Any]]:
         p = urlparse(vless_url)
         q = {k: v[0] for k, v in parse_qs(p.query).items()}
         def fix_base64(s): return s.replace(' ', '+') if s else s
         pbk = fix_base64(q.get('pbk') or q.get('pk'))
-        sid = q.get('sid')
         reality_opts = None
         if q.get('security') == 'reality' and pbk:
             reality_opts = {'public-key': pbk}
-            if sid: reality_opts['short-id'] = sid
+            if q.get('sid'): reality_opts['short-id'] = q.get('sid')
         ws_host = q.get('host') or q.get('sni') or p.hostname
         ws_opts = {'path': q.get('path', '/'), 'headers': {'Host': ws_host}} if q.get('type') == 'ws' else None
         return {'name': unquote(p.fragment or ''), 'type': 'vless', 'server': p.hostname, 'port': p.port or 443, 'uuid': p.username, 'udp': True, 'tls': q.get('security') in ['tls', 'reality'], 'flow': q.get('flow'), 'client-fingerprint': q.get('fp'), 'network': q.get('type', 'tcp'), 'servername': q.get('sni'), 'ws-opts': ws_opts, 'reality-opts': reality_opts}
@@ -241,7 +238,6 @@ class V2RayExtractor:
 
     async def find_raw_configs_from_chat(self, chat_id: int, limit: int, retries: int = 3):
         local_configs = set()
-        MAX_CONFIGS_PER_SOURCE = 20
         try:
             is_active = False
             async for last_msg in self.client.get_chat_history(chat_id, limit=1):
@@ -310,12 +306,17 @@ class V2RayExtractor:
         print(f"⏱️ 72h Retention: Total {len(final_links)} configs.")
 
     def build_pro_config(self, proxies):
-        clean_proxies = []
-        clean_names = []
-        seen_names = set()
+        clean_proxies, clean_names, seen_names = [], [], set()
         for p in proxies:
             if p.get('type') in ['vless', 'vmess', 'tuic'] and not p.get('uuid'): continue
             if p.get('type') == 'trojan' and not p.get('password'): continue
+            server = p.get('server', '').lower()
+            if not server or any(x in server for x in ['update', 'subscription', 'dayyyy']) or len(server) > 60: continue
+            sni = p.get('servername') or p.get('sni')
+            if sni and re.search(r'[^\w\.\-]', sni):
+                p['servername'] = p['sni'] = p['server']
+            if p.get('reality-opts'):
+                if len(p['reality-opts'].get('public-key', '')) < 43: continue
             name = p['name']
             counter = 1
             original_name = name
@@ -324,7 +325,7 @@ class V2RayExtractor:
                 counter += 1
             p['name'] = name
             seen_names.add(name)
-            clean_proxies.append({k: v for k, v in p.items() if v is not None})
+            clean_proxies.append({k: v for k, v in p.items() if v is not None and v != ''})
             clean_names.append(name)
         if not clean_proxies: return {}
         return {'port': 7890, 'socks-port': 7891, 'allow-lan': True, 'mode': 'rule', 'log-level': 'info', 'external-controller': '127.0.0.1:9090', 'dns': {'enable': True, 'listen': '0.0.0.0:53', 'default-nameserver': ['8.8.8.8', '1.1.1.1'], 'enhanced-mode': 'fake-ip', 'fake-ip-range': '198.18.0.1/16', 'nameserver': ['https://dns.google/dns-query', 'https://cloudflare-dns.com/dns-query'], 'fallback': ['https://dns.google/dns-query', 'https://cloudflare-dns.com/dns-query'], 'fallback-filter': {'geoip': True, 'ipcidr': ['240.0.0.0/4', '0.0.0.0/32']}}, 'proxies': clean_proxies, 'proxy-groups': [{'name': 'PROXY', 'type': 'select', 'proxies': ['⚡ Auto-Select', 'DIRECT', *clean_names]}, {'name': '⚡ Auto-Select', 'type': 'url-test', 'proxies': clean_names, 'url': 'http://www.gstatic.com/generate_204', 'interval': 300}, {'name': '🇮🇷 Iran', 'type': 'select', 'proxies': ['DIRECT', 'PROXY']}, {'name': '🛑 Block-Ads', 'type': 'select', 'proxies': ['REJECT', 'DIRECT']}], 'rule-providers': {'iran_domains': {'type': 'http', 'behavior': 'domain', 'url': "https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/iran-domains.txt", 'path': './rules/iran_domains.txt', 'interval': 86400}, 'blocked_domains': {'type': 'http', 'behavior': 'domain', 'url': "https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/blocked-domains.txt", 'path': './rules/blocked_domains.txt', 'interval': 86400}, 'ad_domains': {'type': 'http', 'behavior': 'domain', 'url': "https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/ad-domains.txt", 'path': './rules/ad_domains.txt', 'interval': 86400}}, 'rules': ['RULE-SET,ad_domains,🛑 Block-Ads', 'RULE-SET,blocked_domains,PROXY', 'RULE-SET,iran_domains,🇮🇷 Iran', 'GEOIP,IR,🇮🇷 Iran', 'MATCH,PROXY']}
@@ -339,8 +340,8 @@ class V2RayExtractor:
         valid_configs = set()
         for url in self.raw_configs:
             try:
-                parsed = urlparse(url)
-                if parsed.hostname in ['127.0.0.1', 'localhost', '0.0.0.0']: continue
+                p = urlparse(url)
+                if p.hostname in ['127.0.0.1', 'localhost', '0.0.0.0']: continue
                 valid_configs.add(url)
             except: continue
         proxies_list, renamed_txt, clean_ip_configs = [], [], []
@@ -372,10 +373,10 @@ class V2RayExtractor:
         self.handle_weekly_file(renamed_txt)
         os.makedirs('rules', exist_ok=True)
         if proxies_list:
-            with open(OUTPUT_YAML_PRO, 'w', encoding='utf-8') as f:
-                yaml.dump(self.build_pro_config(proxies_list), f, allow_unicode=True, sort_keys=False, indent=2)
-            with open(OUTPUT_JSON_CONFIG_JO, 'w', encoding='utf-8') as f:
-                json.dump(self.build_sing_box_config(proxies_list), f, ensure_ascii=False, indent=4)
+            clash_cfg = self.build_pro_config(proxies_list)
+            if clash_cfg:
+                with open(OUTPUT_YAML_PRO, 'w', encoding='utf-8') as f: yaml.dump(clash_cfg, f, allow_unicode=True, sort_keys=False, indent=2)
+            with open(OUTPUT_JSON_CONFIG_JO, 'w', encoding='utf-8') as f: json.dump(self.build_sing_box_config(proxies_list), f, ensure_ascii=False, indent=4)
         print(f"⚙️ Total Configs: {len(renamed_txt)}")
 
 async def main():
