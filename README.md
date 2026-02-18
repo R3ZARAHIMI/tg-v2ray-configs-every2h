@@ -1,4 +1,4 @@
-# 🎒 Config Jo — کانفیگ جو
+# 🍁 Config Jo — 🍁انفیگ جو
 
 [![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)](https://www.python.org/)
 [![Auto Update](https://img.shields.io/badge/Update-every%202h-brightgreen)](#)
@@ -20,6 +20,18 @@ https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/Confi
 ```
 
 
+
+### ⚙️ فرمت سایر کلاینت‌ها
+
+**Clash (YAML):**
+```text
+https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/Config-jo.yaml
+```
+
+**Sing-box (JSON):**
+```text
+https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/Config_jo.json
+```
 
 ---
 
