@@ -1,4 +1,13 @@
-import re, asyncio, base64, json, yaml, os, datetime, ipaddress, socket, geoip2.database
+import re
+import asyncio
+import base64
+import json
+import yaml
+import os
+import datetime
+import ipaddress
+import socket
+import geoip2.database
 from urllib.parse import urlparse, parse_qs, unquote, urlunparse
 from pyrogram import Client, enums
 from pyrogram.errors import FloodWait
@@ -228,17 +237,17 @@ class V2RayExtractor:
             srv = p.get('server', '').lower()
             if not srv or any(x in srv for x in ['update', 'subscription', 'dayyyy']) or len(srv) > 60: continue
             
-            # اصلاح فیلد Network (پاکسازی کاراکترهای غیرمجاز)
+            # اصلاح شبکه و SNI
             net = p.get('network', 'tcp')
             if net not in ['tcp', 'ws', 'grpc', 'h2']: p['network'] = 'tcp'
-            
-            # اصلاح SNI خراب و Host خالی
             sni = p.get('servername') or p.get('sni')
             if sni and re.search(r'[^\w\.\-]', sni): p['servername'] = p['sni'] = p['server']
+            
+            # اصلاح Host (Single Domain)
             if p.get('ws-opts') and not p['ws-opts']['headers'].get('Host'):
                 p['ws-opts']['headers']['Host'] = p['server']
             
-            # فیلتر Reality ناقص (حتماً بالای ۴۲ کاراکتر)
+            # فیلتر Reality ناقص و شبکه‌های ناهماهنگ
             if p.get('reality-opts') and len(p['reality-opts'].get('public-key', '')) < 43: continue
             if p.get('network') in ['xhttp', 'httpupgrade']: continue
             
@@ -248,8 +257,66 @@ class V2RayExtractor:
             p['name'] = name; seen.add(name)
             clean_p.append({k: v for k, v in p.items() if v is not None and v != ''})
             clean_n.append(name)
+
         if not clean_p: return {}
-        return {'port': 7890, 'socks-port': 7891, 'allow-lan': True, 'mode': 'rule', 'log-level': 'info', 'external-controller': '127.0.0.1:9090', 'dns': {'enable': True, 'listen': '0.0.0.0:53', 'default-nameserver': ['8.8.8.8', '1.1.1.1'], 'enhanced-mode': 'fake-ip', 'fake-ip-range': '198.18.0.1/16', 'nameserver': ['https://dns.google/dns-query', 'https://cloudflare-dns.com/dns-query'], 'fallback': ['https://dns.google/dns-query', 'https://cloudflare-dns.com/dns-query'], 'fallback-filter': {'geoip': True, 'ipcidr': ['240.0.0.0/4', '0.0.0.0/32']}}, 'proxies': clean_p, 'proxy-groups': [{'name': 'PROXY', 'type': 'select', 'proxies': ['⚡ Auto-Select', 'DIRECT', *clean_n]}, {'name': '⚡ Auto-Select', 'type': 'url-test', 'proxies': clean_n, 'url': 'http://www.gstatic.com/generate_204', 'interval': 300}, {'name': '🇮🇷 Iran', 'type': 'select', 'proxies': ['DIRECT', 'PROXY']}, {'name': '🛑 Block-Ads', 'type': 'select', 'proxies': ['REJECT', 'DIRECT']}], 'rule-providers': {'iran_domains': {'type': 'http', 'behavior': 'domain', 'url': "https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/iran-domains.txt", 'path': './rules/iran_domains.txt', 'interval': 86400}, 'blocked_domains': {'type': 'http', 'behavior': 'domain', 'url': "https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/blocked-domains.txt", 'path': './rules/blocked_domains.txt', 'interval': 86400}, 'ad_domains': {'type': 'http', 'behavior': 'domain', 'url': "https://raw.githubusercontent.com/bootmortis/iran-clash-rules/main/ad-domains.txt", 'path': './rules/ad_domains.txt', 'interval': 86400}}, 'rules': ['RULE-SET,ad_domains,🛑 Block-Ads', 'RULE-SET,blocked_domains,PROXY', 'RULE-SET,iran_domains,🇮🇷 Iran', 'GEOIP,IR,🇮🇷 Iran', 'MATCH,PROXY']}
+
+        return {
+            'mixed-port': 7890, 'ipv6': True, 'allow-lan': False, 'tcp-concurrent': True,
+            'log-level': 'warning', 'mode': 'rule', 'external-controller': '127.0.0.1:9090',
+            'dns': {
+                'enable': True, 'ipv6': True, 'listen': '127.0.0.1:1053', 'enhanced-mode': 'redir-host',
+                'nameserver': ['https://8.8.8.8/dns-query#✅ Selector'],
+                'proxy-server-nameserver': ['8.8.8.8#DIRECT'], 'direct-nameserver': ['8.8.8.8#DIRECT'],
+                'nameserver-policy': {
+                    'rule-set:openai': '178.22.122.100#DIRECT',
+                    'rule-set:googleai': '178.22.122.100#DIRECT',
+                    'rule-set:microsoft': '178.22.122.100#DIRECT',
+                    'rule-set:ir': '8.8.8.8#DIRECT'
+                }
+            },
+            'tun': {
+                'enable': True, 'stack': 'mixed', 'auto-route': True, 'strict-route': True,
+                'auto-detect-interface': True, 'dns-hijack': ['any:53', 'tcp://any:53'], 'mtu': 9000
+            },
+            'sniffer': {
+                'enable': True, 'force-dns-mapping': True, 'parse-pure-ip': True, 'override-destination': True,
+                'sniff': {
+                    'HTTP': {'ports': [80, 8080, 8880, 2052, 2082, 2086, 2095]},
+                    'TLS': {'ports': [443, 8443, 2053, 2083, 2087, 2096]}
+                }
+            },
+            'proxies': clean_p,
+            'proxy-groups': [
+                {'name': '✅ Selector', 'type': 'select', 'proxies': ['💦 Best Ping 🚀', 'DIRECT', *clean_n]},
+                {'name': '💦 Best Ping 🚀', 'type': 'url-test', 'proxies': clean_n, 'url': 'https://www.gstatic.com/generate_204', 'interval': 30, 'tolerance': 50}
+            ],
+            'rule-providers': {
+                'ir': {'type': 'http', 'behavior': 'domain', 'format': 'text', 'url': "https://raw.githubusercontent.com/Chocolate4U/Iran-clash-rules/release/ir.txt", 'path': './ruleset/ir.txt', 'interval': 86400},
+                'ir-cidr': {'type': 'http', 'behavior': 'ipcidr', 'format': 'text', 'url': "https://raw.githubusercontent.com/Chocolate4U/Iran-clash-rules/release/ircidr.txt", 'path': './ruleset/ir-cidr.txt', 'interval': 86400},
+                'openai': {'type': 'http', 'behavior': 'domain', 'format': 'yaml', 'url': "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/openai.yaml", 'path': './ruleset/openai.yaml', 'interval': 86400},
+                'googleai': {'type': 'http', 'behavior': 'domain', 'format': 'yaml', 'url': "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/google-deepmind.yaml", 'path': './ruleset/googleai.yaml', 'interval': 86400},
+                'microsoft': {'type': 'http', 'behavior': 'domain', 'format': 'yaml', 'url': "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/microsoft.yaml", 'path': './ruleset/microsoft.yaml', 'interval': 86400}
+            },
+            'rules': [
+                'GEOIP,lan,DIRECT,no-resolve', 'NETWORK,udp,REJECT',
+                'RULE-SET,ir,DIRECT', 'RULE-SET,openai,DIRECT', 'RULE-SET,googleai,DIRECT',
+                'RULE-SET,microsoft,DIRECT', 'RULE-SET,ir-cidr,DIRECT', 'MATCH,✅ Selector'
+            ]
+        }
+
+    def build_sing_box_config(self, proxies: List[Dict[str, Any]]) -> Dict[str, Any]:
+        outbounds = []
+        for p in proxies:
+            sb_out = {'type': p['type'] if p['type']!='ss' else 'shadowsocks', 'tag': p['name'], 'server': p['server'], 'server_port': p['port']}
+            if p['type']=='vmess': sb_out.update({'uuid': p['uuid'], 'alter_id': p['alterId'], 'security': p['cipher'], 'tls': {'enabled': True, 'server_name': p['servername']} if p.get('tls') else None})
+            if p['type']=='vless': sb_out.update({'uuid': p['uuid'], 'flow': p.get('flow',''), 'tls': {'enabled': True, 'server_name': p['servername'], 'reality': {'enabled': True, 'public_key': p.get('reality-opts',{}).get('public-key'), 'short_id': p.get('reality-opts',{}).get('short-id')} if p.get('reality-opts') else None} if p.get('tls') else None})
+            if p['type']=='trojan': sb_out.update({'password': p['password'], 'tls': {'enabled': True, 'server_name': p.get('sni')}})
+            if p['type']=='ss': sb_out.update({'method': p['cipher'], 'password': p['password']})
+            if p['type'] in ['hysteria2','tuic']: sb_out.update({'password': p.get('password'), 'tls': {'enabled': True, 'server_name': p.get('sni'), 'insecure': p.get('skip-cert-verify')}})
+            if p.get('ws-opts'): sb_out['transport'] = {'type': 'ws', 'path': p['ws-opts']['path'], 'headers': p['ws-opts']['headers']}
+            outbounds.append(sb_out)
+        tags = [o['tag'] for o in outbounds]
+        return {"log": {"level": "warn"}, "dns": {"servers": [{"tag": "dns_proxy", "address": "https://dns.google/dns-query", "detour": "PROXY"}, {"tag": "dns_direct", "address": "1.1.1.1"}], "rules": [{"outbound": "PROXY", "server": "dns_proxy"}, {"rule_set": ["geosite-ir", "geoip-ir"], "server": "dns_direct"}], "final": "dns_direct"}, "inbounds": [{"type": "mixed", "listen": "0.0.0.0", "listen_port": 2080}], "outbounds": [{"type": "direct", "tag": "direct"}, {"type": "block", "tag": "block"}, {"type": "dns", "tag": "dns-out"}, *outbounds, {"type": "selector", "tag": "PROXY", "outbounds": ["auto", *tags]}, {"type": "urltest", "tag": "auto", "outbounds": tags, "url": "http://www.gstatic.com/generate_204", "interval": "5m"}], "route": {"rule_set": [{"tag": "geosite-ir", "type": "remote", "format": "binary", "url": "https://cdn.jsdelivr.net/gh/Chocolate4U/Iran-sing-box-rules@rule-set/geosite-ir.srs", "download_detour": "direct"}, {"tag": "geoip-ir", "type": "remote", "format": "binary", "url": "https://cdn.jsdelivr.net/gh/Chocolate4U/Iran-sing-box-rules@rule-set/geoip-ir.srs", "download_detour": "direct"}], "rules": [{"protocol": "dns", "outbound": "dns-out"}, {"rule_set": ["geosite-ir", "geoip-ir"], "outbound": "direct"}], "final": "PROXY"}}
 
     def save_files(self):
         if not self.raw_configs: return
@@ -282,12 +349,14 @@ class V2RayExtractor:
             if is_clean_ip(srv): clean_ip.append(final)
         with open(OUTPUT_ORIGINAL_CONFIGS, 'w', encoding='utf-8') as f: f.write("\n".join(sorted(list(self.raw_configs))))
         with open(OUTPUT_TXT, 'w', encoding='utf-8') as f: f.write("\n".join(sorted(ren_txt)))
-        self.handle_no_cf_retention(clean_ip); self.handle_weekly_file(ren_txt)
-        os.makedirs('rules', exist_ok=True)
+        self.handle_no_cf_retention(clean_ip); self.handle_weekly_file(renamed_txt=ren_txt)
+        os.makedirs('ruleset', exist_ok=True)
         if p_list:
             c_cfg = self.build_pro_config(p_list)
             if c_cfg:
                 with open(OUTPUT_YAML_PRO, 'w', encoding='utf-8') as f: yaml.dump(c_cfg, f, allow_unicode=True, sort_keys=False, indent=2)
+            with open(OUTPUT_JSON_CONFIG_JO, 'w', encoding='utf-8') as f:
+                json.dump(self.build_sing_box_config(p_list), f, ensure_ascii=False, indent=4)
         print(f"⚙️ Total Configs Saved: {len(ren_txt)}")
 
 async def main():
