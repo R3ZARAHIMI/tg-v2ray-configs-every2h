@@ -57,6 +57,7 @@ BLOCKED_NETWORKS = []
 
 def load_ip_data():
     global GEOIP_READER
+    print("Attempting to load GeoIP database...")
     try:
         GEOIP_READER = geoip2.database.Reader(GEOIP_DATABASE_PATH)
         print(f"✅ Successfully loaded GeoIP database.")
@@ -78,10 +79,8 @@ def load_blocked_ips():
         except Exception as e: pass
 
 def is_clean_ip(host: str) -> bool:
-    """بررسی اینکه آیا آی‌پی معتبر و غیر فیلتر شده است."""
     try:
         ip = ipaddress.ip_address(host)
-        # حذف آی‌پی‌های داخلی و لوکال
         if ip.is_loopback or ip.is_link_local or ip.is_multicast or ip.is_unspecified:
             return False
         for network in BLOCKED_NETWORKS:
@@ -287,6 +286,7 @@ class V2RayExtractor:
         with open(HISTORY_FILE, 'w') as f: json.dump(new_history, f, indent=2)
         final_links = [v['link'] for v in new_history.values()]
         with open(WEEKLY_FILE, 'w', encoding='utf-8') as f: f.write("\n".join(sorted(final_links)))
+        print(f"📅 7-Day Weekly: Total {len(final_links)} configs.")
 
     def handle_no_cf_retention(self, new_configs: List[str]):
         now = datetime.datetime.now()
@@ -303,7 +303,9 @@ class V2RayExtractor:
                 if uid not in new_history: new_history[uid] = {"link": cfg, "date": now.isoformat()}
             except: pass
         with open(NO_CF_HISTORY_FILE, 'w') as f: json.dump(new_history, f, indent=2)
-        with open(OUTPUT_NO_CF, 'w', encoding='utf-8') as f: f.write("\n".join(sorted([v['link'] for v in new_history.values()])))
+        final_links = [v['link'] for v in new_history.values()]
+        with open(OUTPUT_NO_CF, 'w', encoding='utf-8') as f: f.write("\n".join(sorted(final_links)))
+        print(f"⏱️ 72h Retention: Total {len(final_links)} configs.")
 
     def save_files(self):
         if not self.raw_configs: return
@@ -311,7 +313,6 @@ class V2RayExtractor:
         for url in self.raw_configs:
             try:
                 parsed = urlparse(url)
-                # فیلتر کردن ۱۲۷.۰.۰.۱ و لوکال‌هاست در سطح URL
                 if parsed.hostname in ['127.0.0.1', 'localhost', '0.0.0.0']: continue
                 valid_configs.add(url)
             except: continue
@@ -319,12 +320,8 @@ class V2RayExtractor:
         proxies_list, renamed_txt, clean_ip_configs = [], [], []
         for i, url in enumerate(sorted(list(valid_configs)), 1):
             if not (proxy := self.parse_config_for_clash(url)): continue
-            
-            # فیلتر نهایی بر اساس آی‌پی سرور (جلوگیری از ۱۲۷.۰.۰.۱)
             server_host = proxy.get('server')
             if not server_host or server_host in ['127.0.0.1', 'localhost', '0.0.0.0']: continue
-            
-            # بررسی با ipaddress برای موارد مشابه مثل 127.0.1.1
             try:
                 if ipaddress.ip_address(server_host).is_loopback: continue
             except: pass
@@ -351,13 +348,15 @@ class V2RayExtractor:
         with open(OUTPUT_TXT, 'w', encoding='utf-8') as f: f.write("\n".join(sorted(renamed_txt)))
         self.handle_no_cf_retention(clean_ip_configs)
         self.handle_weekly_file(renamed_txt)
-        print(f"⚙️ Done. Total Valid: {len(renamed_txt)}")
+        print(f"⚙️ Total Configs: {len(renamed_txt)}")
 
 async def main():
+    print("🚀 Starting config extractor...")
     load_ip_data()
     load_blocked_ips()
     extractor = V2RayExtractor()
     async with extractor.client:
+        print("🔄 Refreshing dialogs...")
         async for d in extractor.client.get_dialogs(): pass
         tasks = [extractor.find_raw_configs_from_chat(ch, CHANNEL_SEARCH_LIMIT) for ch in CHANNELS]
         tasks.extend(extractor.find_raw_configs_from_chat(g, GROUP_SEARCH_LIMIT) for g in GROUPS)
