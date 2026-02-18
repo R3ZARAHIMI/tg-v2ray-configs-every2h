@@ -237,17 +237,14 @@ class V2RayExtractor:
             srv = p.get('server', '').lower()
             if not srv or any(x in srv for x in ['update', 'subscription', 'dayyyy']) or len(srv) > 60: continue
             
-            # اصلاح شبکه و SNI
             net = p.get('network', 'tcp')
             if net not in ['tcp', 'ws', 'grpc', 'h2']: p['network'] = 'tcp'
+            
             sni = p.get('servername') or p.get('sni')
             if sni and re.search(r'[^\w\.\-]', sni): p['servername'] = p['sni'] = p['server']
-            
-            # اصلاح Host
             if p.get('ws-opts') and not p['ws-opts']['headers'].get('Host'):
                 p['ws-opts']['headers']['Host'] = p['server']
             
-            # فیلتر Reality ناقص و شبکه‌های ناهماهنگ
             if p.get('reality-opts') and len(p['reality-opts'].get('public-key', '')) < 43: continue
             if p.get('network') in ['xhttp', 'httpupgrade']: continue
             
@@ -257,9 +254,7 @@ class V2RayExtractor:
             p['name'] = name; seen.add(name)
             clean_p.append({k: v for k, v in p.items() if v is not None and v != ''})
             clean_n.append(name)
-
         if not clean_p: return {}
-
         return {
             'mixed-port': 7890, 'ipv6': True, 'allow-lan': False, 'tcp-concurrent': True,
             'log-level': 'warning', 'mode': 'rule', 'external-controller': '127.0.0.1:9090',
@@ -287,8 +282,8 @@ class V2RayExtractor:
             },
             'proxies': clean_p,
             'proxy-groups': [
-                {'name': '✅ Selector', 'type': 'select', 'proxies': ['💦 Best Ping 🚀', 'DIRECT', *clean_n]},
-                {'name': '💦 Best Ping 🚀', 'type': 'url-test', 'proxies': clean_n, 'url': 'https://www.gstatic.com/generate_204', 'interval': 30, 'tolerance': 50}
+                {'name': '✅ Selector', 'type': 'select', 'proxies': ['💥 Best Ping 🚀', 'DIRECT', *clean_n]},
+                {'name': '💥 Best Ping 🚀', 'type': 'url-test', 'proxies': clean_n, 'url': 'https://www.gstatic.com/generate_204', 'interval': 30, 'tolerance': 50}
             ],
             'rule-providers': {
                 'ir': {'type': 'http', 'behavior': 'domain', 'format': 'text', 'url': "https://raw.githubusercontent.com/Chocolate4U/Iran-clash-rules/release/ir.txt", 'path': './ruleset/ir.txt', 'interval': 86400},
@@ -336,8 +331,8 @@ class V2RayExtractor:
                 if ipaddress.ip_address(srv).is_loopback: continue
             except: pass
             iso = self.get_country_iso_code(srv); flag = COUNTRY_FLAGS.get(iso, '🏳️')
-            proxy['name'] = f"{iso} Config_jo-{i:02d}"
-            p_list.append(proxy); name_f = f"{flag} Config_jo-{i:02d}"
+            proxy['name'] = f"{iso} 🍁Config_jo-{i:02d}"
+            p_list.append(proxy); name_f = f"{flag} 🍁Config_jo-{i:02d}"
             if proxy['type'] == 'ss':
                 cp = proxy.copy(); cp['name'] = name_f
                 final = self.generate_sip002_link(cp) or f"{u.split('#')[0]}#{name_f}"
