@@ -55,35 +55,53 @@ sniffer:
       - 2087
       - 2096
 proxies:
-- name: CLOUDFLARE 🍁Config_jo-22
-  type: trojan
-  server: 172.67.191.189
-  port: 443
-  password: OVsFRZT5jG
+- name: IR 🍁Config_jo-15
+  type: ss
+  server: 92.42.207.84
+  port: 33342
+  cipher: 2022-blake3-aes-256-gcm
+  password: uFpeCWbOncecNPea57duCPEOB1lwGRejzBEfziPms1c=:5zbwUCUkXlWvcRr+CwEd63gNGdeWabGweyu+xQuPx4U=
   udp: true
-  sni: web.teama.tk
-  network: ws
-  ws-opts:
-    path: /
-    headers:
-      Host: web.teama.tk
-- name: FR 🍁Config_jo-23
+- name: ZA 🍁Config_jo-17
+  type: ss
+  server: 102.37.156.224
+  port: 443
+  cipher: chacha20-ietf-poly1305
+  password: aduB9HGxQHjA2SBMRjkHX6
+  udp: true
+- name: DE 🍁Config_jo-26
   type: trojan
-  server: 13.38.195.57
+  server: 18.159.140.89
   port: 22223
   password: telegram-id-directvpn
   udp: true
   sni: trojan.burgerip.co.uk
   network: tcp
-- name: FR 🍁Config_jo-24
+- name: FR 🍁Config_jo-27
   type: trojan
-  server: 13.38.195.57
+  server: 13.37.186.179
   port: 22222
   password: telegram-id-privatevpns
   udp: true
   sni: trojan.burgerip.co.uk
   network: tcp
-- name: FR 🍁Config_jo-25
+- name: DE 🍁Config_jo-28
+  type: trojan
+  server: 18.159.140.89
+  port: 22222
+  password: telegram-id-privatevpns
+  udp: true
+  sni: trojan.burgerip.co.uk
+  network: tcp
+- name: DE 🍁Config_jo-29
+  type: trojan
+  server: 18.159.140.89
+  port: 22222
+  password: telegram-id-privatevpns
+  udp: true
+  sni: trojan.burgerip.co.uk
+  network: tcp
+- name: FR 🍁Config_jo-30
   type: vless
   server: 147.45.68.252
   port: 8082
@@ -96,9 +114,9 @@ proxies:
     path: /@Marisa_kristi
     headers:
       Host: jmc9f8ao6n5xq.saghv.filegear-sg.me
-- name: FR 🍁Config_jo-26
+- name: FR 🍁Config_jo-31
   type: vless
-  server: 13.38.195.57
+  server: 13.37.186.179
   port: 22224
   uuid: 05519058-d2ac-4f28-9e4a-2b2a1386749e
   udp: true
@@ -109,9 +127,9 @@ proxies:
     path: /telegram-channel-vlessconfig
     headers:
       Host: trojan.burgerip.co.uk
-- name: FR 🍁Config_jo-27
+- name: DE 🍁Config_jo-32
   type: vless
-  server: 15.224.0.245
+  server: 18.159.140.89
   port: 22224
   uuid: 05519058-d2ac-4f28-9e4a-2b2a1386749e
   udp: true
@@ -122,7 +140,7 @@ proxies:
     path: /telegram-channel-vlessconfig
     headers:
       Host: trojan.burgerip.co.uk
-- name: N/A 🍁Config_jo-28
+- name: N/A 🍁Config_jo-33
   type: vless
   server: nl-amst-node.genadata.online
   port: 2040
@@ -135,7 +153,7 @@ proxies:
   reality-opts:
     public-key: 1RJ2ulM9UyAC8PFy194dV0RTZI6xF6U4CGClhNz9fTg
     short-id: 50ed6f6007515d63
-- name: IR 🍁Config_jo-29
+- name: IR 🍁Config_jo-34
   type: vless
   server: uas.blackhoster.com
   port: 991
@@ -143,15 +161,7 @@ proxies:
   udp: true
   tls: false
   network: tcp
-- name: PL 🍁Config_jo-30
-  type: vless
-  server: 45.144.51.164
-  port: 443
-  uuid: 2292ece4-fccf-42af-9673-61e60eb79c51
-  udp: true
-  tls: false
-  network: tcp
-- name: IR 🍁Config_jo-31
+- name: IR 🍁Config_jo-35
   type: vless
   server: meow.panbe.mom
   port: 443
@@ -159,101 +169,42 @@ proxies:
   udp: true
   tls: false
   network: tcp
-- name: ES 🍁Config_jo-32
-  type: vless
-  server: 212.227.95.106
-  port: 443
-  uuid: 438f81f8-aa18-4261-820a-87ee42122d0e
-  udp: true
-  tls: true
-  client-fingerprint: chrome
-  network: tcp
-  servername: yahoo.com
-  reality-opts:
-    public-key: XxphGtGbyJegOM0QIy65eyC8g3dzlKOMY0tWFBnTCWc
-    short-id: a0cb
-- name: CLOUDFLARE 🍁Config_jo-33
-  type: vless
-  server: 190.93.244.138
-  port: 2096
-  uuid: 6202b230-417c-4d8e-b624-0f71afa9c75d
-  udp: true
-  tls: true
-  network: ws
-  servername: sni.111000.indevs.in
-  ws-opts:
-    path: /
-    headers:
-      Host: sni.111000.indevs.in
-- name: IR 🍁Config_jo-34
-  type: vless
-  server: trailers.sv1.cdn.yoozmovie.com
-  port: 16771
-  uuid: 682f13ec-421f-4a71-b116-60c45d6dc1ed
-  udp: true
-  tls: false
-  network: tcp
-- name: IR 🍁Config_jo-35
-  type: vless
-  server: trailers.sv1.cdn.yoozmovie.com
-  port: 16771
-  uuid: 682f13ec-421f-4a71-b116-60c45d6dc1ed
-  udp: true
-  tls: false
-  network: tcp
 - name: IR 🍁Config_jo-36
   type: vless
-  server: mail.tomandjery.eu
-  port: 1001
-  uuid: 6a3ad064-be7c-40be-9a48-171885a359b7
+  server: 79.175.136.84
+  port: 47266
+  uuid: 5c57e733-06fb-4ac5-d672-b6823f782577
   udp: true
-  tls: true
-  client-fingerprint: firefox
+  tls: false
   network: tcp
-  servername: play.google.com
-  reality-opts:
-    public-key: xrZlXeuTYmAC97-RbRi-aM7U67TOBMGCHVu3DovZihw
-    short-id: 6ba85179e30d4fc2
 - name: IR 🍁Config_jo-37
   type: vless
-  server: 185.143.233.5
-  port: 80
-  uuid: 6aec6650-0200-4368-b4b1-ff6c146cdd7c
+  server: trailers.sv1.cdn.yoozmovie.com
+  port: 16771
+  uuid: 682f13ec-421f-4a71-b116-60c45d6dc1ed
   udp: true
   tls: false
-  network: ws
-  ws-opts:
-    path: /graphql?ed=30
-    headers:
-      Host: dulphin111-90331252af-viv.apps.ir-central1.arvancaas.ir
+  network: tcp
 - name: IR 🍁Config_jo-38
   type: vless
-  server: 185.143.233.5
-  port: 80
-  uuid: 6aec6650-0200-4368-b4b1-ff6c146cdd7c
+  server: trailers.sv1.cdn.yoozmovie.com
+  port: 16771
+  uuid: 682f13ec-421f-4a71-b116-60c45d6dc1ed
   udp: true
   tls: false
-  network: ws
-  ws-opts:
-    path: /graphql?ed=30
-    headers:
-      Host: dulphin222-90331252af-viv.apps.ir-central1.arvancaas.ir
+  network: tcp
 - name: IR 🍁Config_jo-39
   type: vless
-  server: 185.143.233.5
-  port: 80
-  uuid: 6aec6650-0200-4368-b4b1-ff6c146cdd7c
+  server: emg4.saipasamandemg4.sbs
+  port: 2004
+  uuid: 6b79d1b5-6b19-4948-a012-f5bd29746511
   udp: true
   tls: false
-  network: ws
-  ws-opts:
-    path: /graphql?ed=30
-    headers:
-      Host: dulphin333-90331252af-viv.apps.ir-central1.arvancaas.ir
+  network: tcp
 - name: IR 🍁Config_jo-40
   type: vless
   server: tunn.vpsino.com
-  port: 2092
+  port: 2087
   uuid: 705f96ea-9a3f-9d89-4ed9-c1b8b6e802da
   udp: true
   tls: false
@@ -295,6 +246,22 @@ proxies:
   network: tcp
 - name: IR 🍁Config_jo-44
   type: vless
+  server: jsbsh_jsjsbdixsjsvsjvdj_dhdjdjdkjbsj_b.d2centeerr.sbs
+  port: 27208
+  uuid: 94986991-74c7-4c8b-acf2-90992059e7f1
+  udp: true
+  tls: false
+  network: tcp
+- name: IR 🍁Config_jo-45
+  type: vless
+  server: 193.242.125.155
+  port: 53646
+  uuid: b74cd0fd-fb4c-4cda-9efe-ef383f88af7c
+  udp: true
+  tls: false
+  network: tcp
+- name: IR 🍁Config_jo-46
+  type: vless
   server: 92.114.24.195
   port: 443
   uuid: b9233171-b534-4bdd-8826-7921c3ac59ac
@@ -307,7 +274,7 @@ proxies:
     path: /XIXVPN?ed=2560
     headers:
       Host: api.meibourse.com
-- name: CLOUDFLARE 🍁Config_jo-45
+- name: CLOUDFLARE 🍁Config_jo-47
   type: vless
   server: 198.41.202.5
   port: 443
@@ -315,31 +282,31 @@ proxies:
   udp: true
   tls: false
   network: tcp
-- name: GB 🍁Config_jo-46
-  type: vless
-  server: 8tf3qy.by-api-yandex.com
-  port: 10121
-  uuid: d1209ffb-c159-48d5-b40d-542ce11fc768
-  udp: true
-  tls: true
-  flow: xtls-rprx-vision
-  client-fingerprint: qq
-  network: tcp
-  servername: apple.com
-  reality-opts:
-    public-key: 4DdA8dBVn5zB_UTbgBY45YqM0HU8zrjXYdzg3-wz5Rg
-    short-id: 9c2a7d4e5f18b6a3
-- name: CLOUDFLARE 🍁Config_jo-47
-  type: vless
-  server: www.speedtest.net
-  port: 443
-  uuid: f1eb7fed-bc91-4285-9e7f-23d941a0204a
-  udp: true
-  tls: true
-  client-fingerprint: chrome
-  network: grpc
-  servername: www.felafel.org
 - name: IR 🍁Config_jo-48
+  type: vless
+  server: n4.zeneco.ir
+  port: 4090
+  uuid: c1e4b6e9-71ac-4e41-992a-c1bdb0d0654a
+  udp: true
+  tls: false
+  network: tcp
+- name: IR 🍁Config_jo-49
+  type: vless
+  server: tunn.vpsino.com
+  port: 2087
+  uuid: e4e3cf77-6545-57ce-7d7d-31128c5c2b4b
+  udp: true
+  tls: false
+  network: tcp
+- name: IR 🍁Config_jo-50
+  type: vless
+  server: mellat.vhuma.com
+  port: 443
+  uuid: ec7a1b53-cf81-416a-93b7-ef91fd02b9f4
+  udp: true
+  tls: false
+  network: tcp
+- name: IR 🍁Config_jo-51
   type: vmess
   server: gsmvpn.gsmvx.com
   port: 5006
@@ -355,18 +322,16 @@ proxy-groups:
   proxies:
   - 💥 Best Ping 🚀
   - DIRECT
-  - CLOUDFLARE 🍁Config_jo-22
-  - FR 🍁Config_jo-23
-  - FR 🍁Config_jo-24
-  - FR 🍁Config_jo-25
-  - FR 🍁Config_jo-26
+  - IR 🍁Config_jo-15
+  - ZA 🍁Config_jo-17
+  - DE 🍁Config_jo-26
   - FR 🍁Config_jo-27
-  - N/A 🍁Config_jo-28
-  - IR 🍁Config_jo-29
-  - PL 🍁Config_jo-30
-  - IR 🍁Config_jo-31
-  - ES 🍁Config_jo-32
-  - CLOUDFLARE 🍁Config_jo-33
+  - DE 🍁Config_jo-28
+  - DE 🍁Config_jo-29
+  - FR 🍁Config_jo-30
+  - FR 🍁Config_jo-31
+  - DE 🍁Config_jo-32
+  - N/A 🍁Config_jo-33
   - IR 🍁Config_jo-34
   - IR 🍁Config_jo-35
   - IR 🍁Config_jo-36
@@ -378,25 +343,26 @@ proxy-groups:
   - FR 🍁Config_jo-42
   - IR 🍁Config_jo-43
   - IR 🍁Config_jo-44
-  - CLOUDFLARE 🍁Config_jo-45
-  - GB 🍁Config_jo-46
+  - IR 🍁Config_jo-45
+  - IR 🍁Config_jo-46
   - CLOUDFLARE 🍁Config_jo-47
   - IR 🍁Config_jo-48
+  - IR 🍁Config_jo-49
+  - IR 🍁Config_jo-50
+  - IR 🍁Config_jo-51
 - name: 💥 Best Ping 🚀
   type: url-test
   proxies:
-  - CLOUDFLARE 🍁Config_jo-22
-  - FR 🍁Config_jo-23
-  - FR 🍁Config_jo-24
-  - FR 🍁Config_jo-25
-  - FR 🍁Config_jo-26
+  - IR 🍁Config_jo-15
+  - ZA 🍁Config_jo-17
+  - DE 🍁Config_jo-26
   - FR 🍁Config_jo-27
-  - N/A 🍁Config_jo-28
-  - IR 🍁Config_jo-29
-  - PL 🍁Config_jo-30
-  - IR 🍁Config_jo-31
-  - ES 🍁Config_jo-32
-  - CLOUDFLARE 🍁Config_jo-33
+  - DE 🍁Config_jo-28
+  - DE 🍁Config_jo-29
+  - FR 🍁Config_jo-30
+  - FR 🍁Config_jo-31
+  - DE 🍁Config_jo-32
+  - N/A 🍁Config_jo-33
   - IR 🍁Config_jo-34
   - IR 🍁Config_jo-35
   - IR 🍁Config_jo-36
@@ -408,10 +374,13 @@ proxy-groups:
   - FR 🍁Config_jo-42
   - IR 🍁Config_jo-43
   - IR 🍁Config_jo-44
-  - CLOUDFLARE 🍁Config_jo-45
-  - GB 🍁Config_jo-46
+  - IR 🍁Config_jo-45
+  - IR 🍁Config_jo-46
   - CLOUDFLARE 🍁Config_jo-47
   - IR 🍁Config_jo-48
+  - IR 🍁Config_jo-49
+  - IR 🍁Config_jo-50
+  - IR 🍁Config_jo-51
   url: https://www.gstatic.com/generate_204
   interval: 30
   tolerance: 50
