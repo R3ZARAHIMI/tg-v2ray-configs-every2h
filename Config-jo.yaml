@@ -55,13 +55,13 @@ sniffer:
       - 2087
       - 2096
 proxies:
-- name: IR 🍁Config_jo-35
-  type: ss
-  server: pahlavinet.vixonportab.site
-  port: 10500
-  cipher: 2022-blake3-aes-128-gcm
-  password: 3fAa79ohyjFJpvJ6gZT0vg==:mKc+o/DHrgybgRurrajtVA==
-  udp: true
+- name: IR 🍁Config_jo-01
+  type: hysteria2
+  server: 45.81.19.251
+  port: 443
+  password: DBUklcvOyH
+  sni: w
+  skip-cert-verify: true
 - name: IR 🍁Config_jo-36
   type: ss
   server: vip3.myspacex.shop
@@ -69,7 +69,14 @@ proxies:
   cipher: chacha20-ietf-poly1305
   password: lXMzTYrRl8Le52y6h6fqNijBMvHWATt5
   udp: true
-- name: IR 🍁Config_jo-52
+- name: IR 🍁Config_jo-47
+  type: ss
+  server: 45.94.213.213
+  port: 443
+  cipher: '{"add"'
+  password: '"185.236.38.44","aid":"0","alpn":"","fp":"","host":"","id":"c9e42537-8652-4a4c-85d3-0d36abf38f88","insecure":"0","net":"tcp","path":"","port":"19946","ps":"@V2_MOD_SHOP(تلگرام)","scy":"auto","sni":"","tls":"","type":"none","v":"2"}'
+  udp: true
+- name: IR 🍁Config_jo-55
   type: vless
   server: 185.143.233.43
   port: 8880
@@ -81,7 +88,19 @@ proxies:
     path: /
     headers:
       Host: motabarim3.service-panelbaz.ir
-- name: IR 🍁Config_jo-53
+- name: IR 🍁Config_jo-56
+  type: vless
+  server: snapp.ir
+  port: 80
+  uuid: 0311dcca-b4a4-42d8-a084-eda5629e3ecb
+  udp: true
+  tls: false
+  network: ws
+  ws-opts:
+    path: /
+    headers:
+      Host: pan42E.nexoratechcenter.ir
+- name: IR 🍁Config_jo-57
   type: vless
   server: ir10.cdnk1.cfd
   port: 443
@@ -89,33 +108,7 @@ proxies:
   udp: true
   tls: true
   network: tcp
-- name: IR 🍁Config_jo-54
-  type: vless
-  server: meli.masterdadeh.ir
-  port: 80
-  uuid: 1454a693-503b-3ec1-5347-120ed30012c9
-  udp: true
-  tls: false
-  network: ws
-  servername: 185.226.94.198
-  ws-opts:
-    path: /
-    headers:
-      Host: 185.226.94.198
-- name: IR 🍁Config_jo-55
-  type: vless
-  server: pro.reelixa.ir
-  port: 443
-  uuid: 1c7c7a34-b1a5-4530-bd1e-820b0ab2c113
-  udp: true
-  tls: true
-  client-fingerprint: chrome
-  network: ws
-  ws-opts:
-    path: /
-    headers:
-      Host: pro.reelixa.ir
-- name: IR 🍁Config_jo-56
+- name: IR 🍁Config_jo-58
   type: vless
   server: 185.143.233.235
   port: 80
@@ -127,30 +120,6 @@ proxies:
     path: /
     headers:
       Host: d.nsa03.com
-- name: IR 🍁Config_jo-57
-  type: vless
-  server: snapp.ir
-  port: 80
-  uuid: 206de0ba-cd5d-45ec-aa6d-560056d553bf
-  udp: true
-  tls: false
-  network: ws
-  ws-opts:
-    path: /
-    headers:
-      Host: iranfuture.musicritmic.ir
-- name: IR 🍁Config_jo-58
-  type: vless
-  server: sr.novatechsapr.ir
-  port: 80
-  uuid: 255b8da7-01c7-4cf9-a8e2-3313f73d0b8a
-  udp: true
-  tls: false
-  network: ws
-  ws-opts:
-    path: /
-    headers:
-      Host: sr.novatechsapr.ir
 - name: IR 🍁Config_jo-59
   type: vless
   server: sr.novatechsapr.ir
@@ -163,7 +132,19 @@ proxies:
     path: /
     headers:
       Host: sr.novatechsapr.ir
-- name: CLOUDFLARE 🍁Config_jo-60
+- name: IR 🍁Config_jo-60
+  type: vless
+  server: sr.novatechsapr.ir
+  port: 80
+  uuid: 255b8da7-01c7-4cf9-a8e2-3313f73d0b8a
+  udp: true
+  tls: false
+  network: ws
+  ws-opts:
+    path: /
+    headers:
+      Host: sr.novatechsapr.ir
+- name: CLOUDFLARE 🍁Config_jo-61
   type: vless
   server: 104.20.6.134
   port: 443
@@ -176,31 +157,7 @@ proxies:
     path: /danfeng
     headers:
       Host: snippet.danfeng.rr.kg
-- name: IR 🍁Config_jo-61
-  type: vless
-  server: snapp.ir
-  port: 80
-  uuid: 2985be49-76e4-4a93-b7d5-85c59609fdec
-  udp: true
-  tls: false
-  network: ws
-  ws-opts:
-    path: /
-    headers:
-      Host: simorgh.darerio.ir
 - name: IR 🍁Config_jo-62
-  type: vless
-  server: arvancloud.ir
-  port: 80
-  uuid: 2b907f5f-87ef-46bb-838c-9f18c1fd2c2f
-  udp: true
-  tls: false
-  network: ws
-  ws-opts:
-    path: /ed=44
-    headers:
-      Host: blog.s7r.ir
-- name: IR 🍁Config_jo-63
   type: vless
   server: arvancloud.ir
   port: 80
@@ -212,7 +169,7 @@ proxies:
     path: /
     headers:
       Host: gh5.ghostantaniehh.ir
-- name: IR 🍁Config_jo-64
+- name: IR 🍁Config_jo-63
   type: vless
   server: snapp.ir
   port: 2082
@@ -224,7 +181,23 @@ proxies:
     path: /
     headers:
       Host: h.hshonar.ir
-- name: CLOUDFLARE 🍁Config_jo-65
+- name: IR 🍁Config_jo-64
+  type: vless
+  server: 2.188.227.196
+  port: 24160
+  uuid: 36ac392a-a16a-47bb-bce0-e3e05e7c4794
+  udp: true
+  tls: false
+  network: tcp
+- name: IR 🍁Config_jo-65
+  type: vless
+  server: 2.188.227.196
+  port: 24160
+  uuid: 36ac392a-a16a-47bb-bce0-e3e05e7c4794
+  udp: true
+  tls: false
+  network: tcp
+- name: CLOUDFLARE 🍁Config_jo-66
   type: vless
   server: 8.6.112.0
   port: 80
@@ -236,7 +209,7 @@ proxies:
     path: / @ProxyVPN11
     headers:
       Host: vip.yaml7.ggff.net
-- name: CLOUDFLARE 🍁Config_jo-66
+- name: CLOUDFLARE 🍁Config_jo-67
   type: vless
   server: 104.20.6.134
   port: 443
@@ -250,7 +223,7 @@ proxies:
     path: /
     headers:
       Host: cfcf.metipoxbozorg.shop
-- name: IR 🍁Config_jo-67
+- name: IR 🍁Config_jo-68
   type: vless
   server: 5.159.54.140
   port: 443
@@ -263,7 +236,7 @@ proxies:
   reality-opts:
     public-key: A6_kAMUcoxeuilXwMvzPYFAP8ekULjxDu4KmQssG7Gc
     short-id: 510b7f2f
-- name: IR 🍁Config_jo-68
+- name: IR 🍁Config_jo-69
   type: vless
   server: 2.144.4.245
   port: 23176
@@ -271,7 +244,7 @@ proxies:
   udp: true
   tls: false
   network: tcp
-- name: IR 🍁Config_jo-69
+- name: IR 🍁Config_jo-70
   type: vless
   server: hostioko.online
   port: 443
@@ -285,14 +258,6 @@ proxies:
     path: /W8IFdbZXc92UUldb1MBYzCwQif0uaX9DL3o?ed=2560
     headers:
       Host: hostioko.online
-- name: IR 🍁Config_jo-70
-  type: vless
-  server: 85.208.253.234
-  port: 53096
-  uuid: 4bcbd16f-d3a8-444e-bb5c-181d513b953c
-  udp: true
-  tls: false
-  network: tcp
 - name: IR 🍁Config_jo-71
   type: vless
   server: 5.159.54.140
@@ -329,18 +294,16 @@ proxies:
   network: tcp
 - name: IR 🍁Config_jo-74
   type: vless
-  server: snapp.ir
-  port: 2083
-  uuid: 5b64b4cc-b4d9-4bb6-b36e-464f8876ce6c
+  server: meli.masterdadeh.ir
+  port: 80
+  uuid: 612f9448-ff7f-ef38-977e-28ad004c7597
   udp: true
-  tls: true
-  client-fingerprint: chrome
+  tls: false
   network: ws
-  servername: like.abkeyping.click
   ws-opts:
     path: /
     headers:
-      Host: like.abkeyping.click
+      Host: meli.masterdadeh.ir
 - name: CLOUDFLARE 🍁Config_jo-75
   type: vless
   server: 8.6.112.6
@@ -356,6 +319,18 @@ proxies:
       Host: sni.111000.dynv6.net
 - name: IR 🍁Config_jo-76
   type: vless
+  server: 185.143.233.200
+  port: 80
+  uuid: 64cac6af-49b2-442b-8b19-6c3812a55661
+  udp: true
+  tls: false
+  network: ws
+  ws-opts:
+    path: /
+    headers:
+      Host: nima.hayalco.ir
+- name: IR 🍁Config_jo-77
+  type: vless
   server: 185.143.235.130
   port: 80
   uuid: 65306131-6439-4261-b166-616266336533
@@ -366,7 +341,7 @@ proxies:
     path: /l/w/aXD2QyDdS6vRQpxs?ed=2047
     headers:
       Host: t.ufduiudud.site
-- name: IR 🍁Config_jo-77
+- name: IR 🍁Config_jo-78
   type: vless
   server: snapp.ir
   port: 2095
@@ -378,33 +353,31 @@ proxies:
     path: /
     headers:
       Host: fb.bazisazy.ir
-- name: IR 🍁Config_jo-78
-  type: vless
-  server: snapp.ir
-  port: 2053
-  uuid: 70cab70b-df27-4fdf-b7db-e21e53e8a54b
-  udp: true
-  tls: true
-  client-fingerprint: chrome
-  network: ws
-  servername: like.abkeyping.click
-  ws-opts:
-    path: /
-    headers:
-      Host: like.abkeyping.click
 - name: IR 🍁Config_jo-79
   type: vless
-  server: varzesh3.com
-  port: 8080
-  uuid: 71ca14b8-43bc-4599-8df0-2542bc97bab3
+  server: snapp.ir
+  port: 8880
+  uuid: 6da680e8-514a-4fd5-b3fb-4dd3e3b1673c
+  udp: true
+  tls: false
+  network: ws
+  ws-opts:
+    path: /ws?ed=2560
+    headers:
+      Host: New1.legendperm.ir
+- name: IR 🍁Config_jo-80
+  type: vless
+  server: zir.alihapps3.aghanami.ir
+  port: 80
+  uuid: 6f78685c-5d8f-49d3-b2fa-4bc9852a2872
   udp: true
   tls: false
   network: ws
   ws-opts:
     path: /
     headers:
-      Host: shop2.plusself.ir
-- name: IR 🍁Config_jo-80
+      Host: zir.alihapps3.aghanami.ir
+- name: IR 🍁Config_jo-81
   type: vless
   server: 185.143.233.5
   port: 443
@@ -418,7 +391,7 @@ proxies:
     path: /@alaedin?ed=128
     headers:
       Host: alaedin5.8lack.ir
-- name: IR 🍁Config_jo-81
+- name: IR 🍁Config_jo-82
   type: vless
   server: 185.143.234.235
   port: 80
@@ -430,7 +403,7 @@ proxies:
     path: /
     headers:
       Host: d.nsa03.com
-- name: IR 🍁Config_jo-82
+- name: IR 🍁Config_jo-83
   type: vless
   server: red.nahidapp.com
   port: 443
@@ -443,7 +416,20 @@ proxies:
     path: /red/
     headers:
       Host: red.nahidapp.com
-- name: IR 🍁Config_jo-83
+- name: IR 🍁Config_jo-84
+  type: vless
+  server: red.nahidapp.com
+  port: 443
+  uuid: 94dc5204-c5a9-4856-9fd6-67264ba499c1
+  udp: true
+  tls: true
+  network: ws
+  servername: red.nahidapp.com
+  ws-opts:
+    path: /red/
+    headers:
+      Host: red.nahidapp.com
+- name: IR 🍁Config_jo-85
   type: vless
   server: 45.90.75.168
   port: 2015
@@ -451,54 +437,30 @@ proxies:
   udp: true
   tls: false
   network: tcp
-- name: IR 🍁Config_jo-84
-  type: vless
-  server: zir.alihapps3.aghanami.ir
-  port: 80
-  uuid: 96e5b04f-4592-437e-9aba-0060e69a9c2c
-  udp: true
-  tls: false
-  network: ws
-  ws-opts:
-    path: /
-    headers:
-      Host: zir.alihapps3.aghanami.ir
-- name: IR 🍁Config_jo-85
-  type: vless
-  server: zir.alihapps3.aghanami.ir
-  port: 80
-  uuid: 96e5b04f-4592-437e-9aba-0060e69a9c2c
-  udp: true
-  tls: false
-  network: ws
-  ws-opts:
-    path: /
-    headers:
-      Host: zir.alihapps3.aghanami.ir
 - name: IR 🍁Config_jo-86
   type: vless
-  server: s3.vahshat.xyz
+  server: zir.alihapps3.aghanami.ir
   port: 80
-  uuid: 9b6038df-33fb-47df-8b78-9bb8fdec4ca0
+  uuid: 96e5b04f-4592-437e-9aba-0060e69a9c2c
   udp: true
   tls: false
   network: ws
   ws-opts:
-    path: /ws
+    path: /
     headers:
-      Host: v2.greentab.ir
+      Host: zir.alihapps3.aghanami.ir
 - name: IR 🍁Config_jo-87
   type: vless
-  server: tapsi.ir
-  port: 8080
-  uuid: 9f4c3a72-a88e-4ee3-bee8-40901085a352
+  server: zir.alihapps3.aghanami.ir
+  port: 80
+  uuid: 96e5b04f-4592-437e-9aba-0060e69a9c2c
   udp: true
   tls: false
   network: ws
   ws-opts:
-    path: /cdn
+    path: /
     headers:
-      Host: Zp.movizdl.ir
+      Host: zir.alihapps3.aghanami.ir
 - name: CLOUDFLARE 🍁Config_jo-88
   type: vless
   server: 104.20.6.134
@@ -514,21 +476,17 @@ proxies:
       Host: y6-3cj.PAgES.DEV
 - name: IR 🍁Config_jo-89
   type: vless
-  server: v3.amindark.sbs
-  port: 31304
-  uuid: ab39ea7b-16fb-45ae-aa37-6a173d751023
+  server: snapp.ir
+  port: 80
+  uuid: accc4cab-33f8-4f4b-a0fa-06fc26ad6e58
   udp: true
   tls: false
-  network: tcp
+  network: ws
+  ws-opts:
+    path: /
+    headers:
+      Host: sphrrzv.iranofilm.ir
 - name: IR 🍁Config_jo-90
-  type: vless
-  server: 185.243.49.205
-  port: 8444
-  uuid: ac083fa9-df9a-4722-b70d-24c17bef0516
-  udp: true
-  tls: false
-  network: tcp
-- name: IR 🍁Config_jo-91
   type: vless
   server: yas.masterdadeh.ir
   port: 80
@@ -541,31 +499,19 @@ proxies:
     path: /
     headers:
       Host: 185.226.94.203
-- name: IR 🍁Config_jo-92
+- name: IR 🍁Config_jo-91
   type: vless
   server: snapp.ir
-  port: 80
-  uuid: c11f0237-8eb4-48ee-923d-82d99cb8ddd9
+  port: 2086
+  uuid: c5cc9d0f-de5c-4f7f-9a9b-184d9a0e3568
   udp: true
   tls: false
   network: ws
   ws-opts:
     path: /
     headers:
-      Host: cdn2.softnetconnect.ir
-- name: IR 🍁Config_jo-93
-  type: vless
-  server: po.masterdadeh.ir
-  port: 80
-  uuid: d3371582-0363-4846-9f64-31015e133f28
-  udp: true
-  tls: false
-  network: ws
-  ws-opts:
-    path: /
-    headers:
-      Host: po.masterdadeh.ir
-- name: IR 🍁Config_jo-94
+      Host: ZomorodYekta.sinamabaz.ir
+- name: IR 🍁Config_jo-92
   type: vless
   server: javid.purples.ir
   port: 80
@@ -577,19 +523,7 @@ proxies:
     path: /
     headers:
       Host: javid-2.toraniq.ir
-- name: IR 🍁Config_jo-95
-  type: vless
-  server: camp.nahidapp.com
-  port: 443
-  uuid: e9a73957-b082-4075-9823-43b0fa6e61a0
-  udp: true
-  tls: true
-  network: ws
-  ws-opts:
-    path: /IF_VPN_Bot
-    headers:
-      Host: camp.nahidapp.com
-- name: IR 🍁Config_jo-96
+- name: IR 🍁Config_jo-93
   type: vless
   server: zir.alihapps3.aghanami.ir
   port: 80
@@ -601,21 +535,43 @@ proxies:
     path: /
     headers:
       Host: zir.alihapps3.aghanami.ir
-- name: IR 🍁Config_jo-97
+- name: IR 🍁Config_jo-94
   type: vless
-  server: i-love-iran.amlakayuni.ir
-  port: 2087
-  uuid: eef82e78-5a10-ac23-747b-43569143c696
+  server: c-2.jservices.ir
+  port: 80
+  uuid: eeb724ec-39d5-11f1-8d30-2ddfba49052f
   udp: true
-  tls: true
-  client-fingerprint: randomized
+  tls: false
   network: ws
-  servername: i-love-iran.amlakayuni.ir
   ws-opts:
-    path: /?ed=2087
+    path: /?ed=2560
     headers:
-      Host: i-love-iran.amlakayuni.ir
-- name: IR 🍁Config_jo-98
+      Host: c-2.jservices.ir
+- name: IR 🍁Config_jo-95
+  type: vless
+  server: snapp.ir
+  port: 80
+  uuid: f037d50c-2fa3-11f1-9fc2-960003f27045
+  udp: true
+  tls: false
+  network: ws
+  ws-opts:
+    path: /?ed=2080
+    headers:
+      Host: final.idbedam.ir
+- name: IR 🍁Config_jo-96
+  type: vless
+  server: dash.0-1.cam
+  port: 8080
+  uuid: f3f0f802-2a54-429e-8740-f74dbb50a05a
+  udp: true
+  tls: false
+  network: ws
+  ws-opts:
+    path: /
+    headers:
+      Host: dash.0-1.cam
+- name: IR 🍁Config_jo-97
   type: vless
   server: anten.ir
   port: 443
@@ -629,19 +585,39 @@ proxies:
     path: /
     headers:
       Host: sb1.pbvsrk.carnagesv.top
-- name: IR 🍁Config_jo-99
+- name: IR 🍁Config_jo-98
   type: vless
-  server: arvancloud.ir
-  port: 2095
-  uuid: fba3ac18-1708-4a8b-814a-f815fd09d8a9
+  server: 79.175.167.196
+  port: 4041
+  uuid: f8db6882-e6b2-4f57-bed8-515d094a39e3
   udp: true
   tls: false
-  network: ws
-  ws-opts:
-    path: /website
-    headers:
-      Host: panel.linuweb.ir
+  network: tcp
+- name: IR 🍁Config_jo-99
+  type: vmess
+  server: b51d64cb-c5d6-4791-8ecf-0a6d8d71c717.wtf
+  port: 21052
+  uuid: 9be25493-b1cc-4c79-ab5f-f647c6d790ae
+  alterId: 0
+  cipher: auto
+  tls: false
+  network: tcp
+  udp: true
 - name: IR 🍁Config_jo-100
+  type: vmess
+  server: cip.salimore.com
+  port: 443
+  uuid: 7ff57d9a-d879-487d-8e54-f12e394d0d56
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
+  ws-opts:
+    path: /ws/
+    headers:
+      Host: cip.salimore.com
+- name: IR 🍁Config_jo-101
   type: vmess
   server: 185.236.38.44
   port: 19946
@@ -661,30 +637,62 @@ proxies:
   tls: false
   network: tcp
   udp: true
+- name: IR 🍁Config_jo-103
+  type: vmess
+  server: 185.236.38.44
+  port: 19946
+  uuid: c9e42537-8652-4a4c-85d3-0d36abf38f88
+  alterId: 0
+  cipher: auto
+  tls: false
+  network: tcp
+  udp: true
+- name: IR 🍁Config_jo-104
+  type: vmess
+  server: 185.236.38.44
+  port: 19946
+  uuid: c9e42537-8652-4a4c-85d3-0d36abf38f88
+  alterId: 0
+  cipher: auto
+  tls: false
+  network: tcp
+  udp: true
+- name: IR 🍁Config_jo-105
+  type: vmess
+  server: cip.salimore.com
+  port: 443
+  uuid: 7ff57d9a-d879-487d-8e54-f12e394d0d56
+  alterId: 0
+  cipher: auto
+  tls: true
+  network: ws
+  udp: true
+  ws-opts:
+    path: /ws/
+    headers:
+      Host: cip.salimore.com
 proxy-groups:
 - name: ✅ Selector
   type: select
   proxies:
   - 💥 Best Ping 🚀
   - DIRECT
-  - IR 🍁Config_jo-35
+  - IR 🍁Config_jo-01
   - IR 🍁Config_jo-36
-  - IR 🍁Config_jo-52
-  - IR 🍁Config_jo-53
-  - IR 🍁Config_jo-54
+  - IR 🍁Config_jo-47
   - IR 🍁Config_jo-55
   - IR 🍁Config_jo-56
   - IR 🍁Config_jo-57
   - IR 🍁Config_jo-58
   - IR 🍁Config_jo-59
-  - CLOUDFLARE 🍁Config_jo-60
-  - IR 🍁Config_jo-61
+  - IR 🍁Config_jo-60
+  - CLOUDFLARE 🍁Config_jo-61
   - IR 🍁Config_jo-62
   - IR 🍁Config_jo-63
   - IR 🍁Config_jo-64
-  - CLOUDFLARE 🍁Config_jo-65
+  - IR 🍁Config_jo-65
   - CLOUDFLARE 🍁Config_jo-66
-  - IR 🍁Config_jo-67
+  - CLOUDFLARE 🍁Config_jo-67
   - IR 🍁Config_jo-68
   - IR 🍁Config_jo-69
   - IR 🍁Config_jo-70
@@ -718,28 +726,30 @@ proxy-groups:
   - IR 🍁Config_jo-98
   - IR 🍁Config_jo-99
   - IR 🍁Config_jo-100
+  - IR 🍁Config_jo-101
   - IR 🍁Config_jo-102
+  - IR 🍁Config_jo-103
+  - IR 🍁Config_jo-104
+  - IR 🍁Config_jo-105
 - name: 💥 Best Ping 🚀
   type: url-test
   proxies:
-  - IR 🍁Config_jo-35
+  - IR 🍁Config_jo-01
   - IR 🍁Config_jo-36
-  - IR 🍁Config_jo-52
-  - IR 🍁Config_jo-53
-  - IR 🍁Config_jo-54
+  - IR 🍁Config_jo-47
   - IR 🍁Config_jo-55
   - IR 🍁Config_jo-56
   - IR 🍁Config_jo-57
   - IR 🍁Config_jo-58
   - IR 🍁Config_jo-59
-  - CLOUDFLARE 🍁Config_jo-60
-  - IR 🍁Config_jo-61
+  - IR 🍁Config_jo-60
+  - CLOUDFLARE 🍁Config_jo-61
   - IR 🍁Config_jo-62
   - IR 🍁Config_jo-63
   - IR 🍁Config_jo-64
-  - CLOUDFLARE 🍁Config_jo-65
+  - IR 🍁Config_jo-65
   - CLOUDFLARE 🍁Config_jo-66
-  - IR 🍁Config_jo-67
+  - CLOUDFLARE 🍁Config_jo-67
   - IR 🍁Config_jo-68
   - IR 🍁Config_jo-69
   - IR 🍁Config_jo-70
@@ -773,7 +783,11 @@ proxy-groups:
   - IR 🍁Config_jo-98
   - IR 🍁Config_jo-99
   - IR 🍁Config_jo-100
+  - IR 🍁Config_jo-101
   - IR 🍁Config_jo-102
+  - IR 🍁Config_jo-103
+  - IR 🍁Config_jo-104
+  - IR 🍁Config_jo-105
   url: https://www.gstatic.com/generate_204
   interval: 30
   tolerance: 50
