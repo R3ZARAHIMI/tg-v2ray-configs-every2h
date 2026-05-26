@@ -106,29 +106,31 @@ https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-
 
 ### 🇺🇸 United States (US)
 ```text
-https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-US.txt
+https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/regions/conf-US.txt
 ```
 
 ### 🇩🇪 Germany (DE)
 ```text
-https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-DE.txt
+https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/regions/conf-DE.txt
 ```
 
 ### 🇳🇱 Netherlands (NL)
 ```text
-https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-NL.txt
+https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/regions/conf-NL.txt
 ```
 
 ### 🇬🇧 United Kingdom (UK)
 ```text
-https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-UK.txt
+https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/regions/conf-UK.txt
 ```
 
 ### 🇫🇷 France (FR)
 ```text
-https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/conf-FR.txt
+https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/regions/conf-FR.txt
 ```
-
+### 🇫🇷 Finland (FI)
+```text
+https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/regions/conf-FI.txt
 ---
 
 ## ⚠️ Disclaimer
