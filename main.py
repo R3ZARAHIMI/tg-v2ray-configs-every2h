@@ -229,6 +229,44 @@ class V2RayExtractor:
         with open(OUTPUT_NO_CF, 'w', encoding='utf-8') as f: f.write("\n".join(sorted(lns)))
         print(f"⏱️ 72h Retention: Total {len(lns)} configs.")
 
+    def handle_country_retention(self, country_dict: Dict[str, List[str]]):
+        os.makedirs('regions', exist_ok=True)
+        TARGET_COUNTRIES = ['US', 'UK', 'NL', 'FR', 'DE', 'FI', 'TR'] 
+        HISTORY_FILE_REGION = "regions/country_history.json"
+        now = datetime.datetime.now()
+        hist = {}
+        
+        if os.path.exists(HISTORY_FILE_REGION):
+            try:
+                with open(HISTORY_FILE_REGION, 'r') as f: hist = json.load(f)
+            except: pass
+            
+        new_hist = {}
+        for iso, configs in hist.items():
+            new_hist[iso] = {}
+            for base, data in configs.items():
+                if datetime.datetime.fromisoformat(data['date']) > (now - datetime.timedelta(days=7)):
+                    new_hist[iso][base] = data
+
+        for iso, links in country_dict.items():
+            if iso not in TARGET_COUNTRIES: continue
+            if iso not in new_hist: new_hist[iso] = {}
+            for link in links:
+                base = link.split('#')[0]
+                if base not in new_hist[iso]:
+                    new_hist[iso][base] = {"link": link, "date": now.isoformat()}
+                    
+        with open(HISTORY_FILE_REGION, 'w') as f:
+            json.dump(new_hist, f, indent=2)
+            
+        for iso, configs in new_hist.items():
+            final_links = [v['link'] for v in configs.values()]
+            if final_links:
+                with open(f"regions/conf-{iso}.txt", 'w', encoding='utf-8') as f:
+                    f.write("\n".join(sorted(final_links)))
+                    
+        print(f"🌍 Country Subs in 'regions/': Updated {list(new_hist.keys())}")
+
     def build_pro_config(self, proxies):
         clean_p, clean_n, seen = [], [], set()
         for p in proxies:
@@ -322,7 +360,10 @@ class V2RayExtractor:
                 if p.hostname in ['127.0.0.1', 'localhost', '0.0.0.0']: continue
                 valid_u.add(u)
             except: continue
+            
         p_list, ren_txt, clean_ip = [], [], []
+        country_links = {} 
+        
         for i, u in enumerate(sorted(list(valid_u)), 1):
             if not (proxy := self.parse_config_for_clash(u)): continue
             srv = proxy.get('server')
@@ -330,9 +371,11 @@ class V2RayExtractor:
             try:
                 if ipaddress.ip_address(srv).is_loopback: continue
             except: pass
+            
             iso = self.get_country_iso_code(srv); flag = COUNTRY_FLAGS.get(iso, '🏳️')
-            proxy['name'] = f"{iso} 🍁Config_jo-{i:02d}"
-            p_list.append(proxy); name_f = f"{flag} 🍁Config_jo-{i:02d}"
+            proxy['name'] = f"{iso} 💥Config_jo-{i:02d}"
+            p_list.append(proxy); name_f = f"{flag} 💥Config_jo-{i:02d}"
+            
             if proxy['type'] == 'ss':
                 cp = proxy.copy(); cp['name'] = name_f
                 final = self.generate_sip002_link(cp) or f"{u.split('#')[0]}#{name_f}"
@@ -340,11 +383,24 @@ class V2RayExtractor:
                 try:
                     p_u = list(urlparse(u)); p_u[5] = name_f; final = urlunparse(p_u)
                 except: final = f"{u.split('#')[0]}#{name_f}"
+                
             ren_txt.append(final)
-            if is_clean_ip(srv): clean_ip.append(final)
+            
+            if is_clean_ip(srv): 
+                clean_ip.append(final)
+                if iso and iso != "N/A":
+                    if iso == 'GB': iso = 'UK' 
+                    if iso not in country_links:
+                        country_links[iso] = []
+                    country_links[iso].append(final)
+
         with open(OUTPUT_ORIGINAL_CONFIGS, 'w', encoding='utf-8') as f: f.write("\n".join(sorted(list(self.raw_configs))))
         with open(OUTPUT_TXT, 'w', encoding='utf-8') as f: f.write("\n".join(sorted(ren_txt)))
-        self.handle_no_cf_retention(clean_ip); self.handle_weekly_file(ren_txt)
+        
+        self.handle_no_cf_retention(clean_ip)
+        self.handle_weekly_file(ren_txt)
+        self.handle_country_retention(country_links)
+        
         os.makedirs('ruleset', exist_ok=True)
         if p_list:
             c_cfg = self.build_pro_config(p_list)
