@@ -392,6 +392,9 @@ class V2RayExtractor:
         p_list, ren_txt, clean_ip, light_txt = [], [], [], []
         now_utc = datetime.datetime.now(datetime.timezone.utc)
         light_cutoff = now_utc - datetime.timedelta(hours=LIGHT_MAX_AGE_HOURS)
+
+        def naive_utc(dt: datetime.datetime) -> Optional[datetime.datetime]:
+            return dt.replace(tzinfo=None) if dt and dt.tzinfo is not None else dt
         country_links = {} 
         
         for i, u in enumerate(sorted(list(valid_u)), 1):
@@ -415,8 +418,8 @@ class V2RayExtractor:
                 except: final = f"{u.split('#')[0]}#{name_f}"
                 
             ren_txt.append(final)
-            msg_date = self.raw_config_times.get(u)
-            if msg_date and msg_date > light_cutoff:
+            msg_date = naive_utc(self.raw_config_times.get(u))
+            if msg_date and msg_date.replace(tzinfo=datetime.timezone.utc) > light_cutoff:
                 light_txt.append(final)
             
             if is_clean_ip(srv): 
