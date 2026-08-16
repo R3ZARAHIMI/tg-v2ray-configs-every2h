@@ -30,6 +30,9 @@ OUTPUT_TXT = "Config_jo.txt"
 OUTPUT_JSON_CONFIG_JO = "Config_jo.json"
 OUTPUT_ORIGINAL_CONFIGS = "Original-Configs.txt"
 OUTPUT_NO_CF = "Config_no_cf.txt"
+OUTPUT_LIGHT = "Config_jo_Light.txt"
+
+LIGHT_MAX_AGE_HOURS = 2
 
 WEEKLY_FILE = "conf-week.txt"
 HISTORY_FILE = "conf-week-history.json"
@@ -104,6 +107,7 @@ CHANNELS, GROUPS = process_lists()
 class V2RayExtractor:
     def __init__(self):
         self.raw_configs: Set[str] = set()
+        self.raw_config_times: Dict[str, datetime.datetime] = {}
         self.client = Client("my_account", api_id=API_ID, api_hash=API_HASH, session_string=SESSION_STRING)
         self._country_cache: Dict[str, str] = {}
 
@@ -188,6 +192,7 @@ class V2RayExtractor:
 
     async def find_raw_configs_from_chat(self, chat_id: int, limit: int):
         local_configs = set()
+        local_times: Dict[str, datetime.datetime] = {}
         try:
             active = False
             async for m in self.client.get_chat_history(chat_id, limit=1):
@@ -212,10 +217,15 @@ class V2RayExtractor:
                         u = u.strip()
                         if not u.startswith('vmess://') and '#' in u: u = u.split('#')[0]
                         local_configs.add(u)
+                        if msg.date and (u not in local_times or msg.date > local_times[u]):
+                            local_times[u] = msg.date
                         if len(local_configs) >= MAX_CONFIGS_PER_SOURCE: break
             res = list(local_configs)[:MAX_CONFIGS_PER_SOURCE]
             print(f"   ✅ Fetched {len(res)} configs from {chat_id}")
             self.raw_configs.update(res)
+            for u in res:
+                if u not in self.raw_config_times or local_times.get(u, datetime.datetime.min) > self.raw_config_times[u]:
+                    self.raw_config_times[u] = local_times[u]
         except FloodWait as e:
             await asyncio.sleep(e.value + 2); await self.find_raw_configs_from_chat(chat_id, limit)
 
@@ -263,7 +273,7 @@ class V2RayExtractor:
         for iso, configs in hist.items():
             new_hist[iso] = {}
             for base, data in configs.items():
-                if datetime.datetime.fromisoformat(data['date']) > (now - datetime.timedelta(days=7)):
+                if datetime.datetime.fromisoformat(data['date']) > (now - datetime.timedelta(days=2)):
                     new_hist[iso][base] = data
 
         for iso, links in country_dict.items():
@@ -379,7 +389,9 @@ class V2RayExtractor:
                 valid_u.add(u)
             except: continue
             
-        p_list, ren_txt, clean_ip = [], [], []
+        p_list, ren_txt, clean_ip, light_txt = [], [], [], []
+        now_utc = datetime.datetime.now(datetime.timezone.utc)
+        light_cutoff = now_utc - datetime.timedelta(hours=LIGHT_MAX_AGE_HOURS)
         country_links = {} 
         
         for i, u in enumerate(sorted(list(valid_u)), 1):
@@ -403,6 +415,9 @@ class V2RayExtractor:
                 except: final = f"{u.split('#')[0]}#{name_f}"
                 
             ren_txt.append(final)
+            msg_date = self.raw_config_times.get(u)
+            if msg_date and msg_date > light_cutoff:
+                light_txt.append(final)
             
             if is_clean_ip(srv): 
                 clean_ip.append(final)
@@ -414,6 +429,8 @@ class V2RayExtractor:
 
         with open(OUTPUT_ORIGINAL_CONFIGS, 'w', encoding='utf-8') as f: f.write("\n".join(sorted(list(self.raw_configs))))
         with open(OUTPUT_TXT, 'w', encoding='utf-8') as f: f.write("\n".join(sorted(ren_txt)))
+        with open(OUTPUT_LIGHT, 'w', encoding='utf-8') as f: f.write("\n".join(sorted(light_txt)))
+        print(f"⚡ Light ({LIGHT_MAX_AGE_HOURS}h): {len(light_txt)} configs.")
         
         self.handle_no_cf_retention(clean_ip)
         self.handle_weekly_file(ren_txt)
