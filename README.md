@@ -26,6 +26,11 @@
 https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/Config_jo.txt
 ```
 
+**⚡ سابسکرایب لایت (۲ ساعت اخیر):**
+```
+https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/Config_jo_Light.txt
+```
+
 **🚫 بدون آی‌پی کلودفلر:**
 ```
 https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/Config_no_cf.txt
@@ -97,6 +102,11 @@ https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/regio
 **⭐ Main (Recommended):**
 ```
 https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/Config_jo.txt
+```
+
+**⚡ Light Subscription (last 2 hours):**
+```
+https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/Config_jo_Light.txt
 ```
 
 **🚫 No Cloudflare IPs:**
