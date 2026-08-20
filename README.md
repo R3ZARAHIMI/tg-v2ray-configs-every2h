@@ -15,7 +15,7 @@
 
 ## <img src="https://user-images.githubusercontent.com/125398461/234186932-52f1fa82-52c6-417f-8b37-08fe9250a55f.png" width="28" alt="پرچم شیر و خورشید"> معرفی
 
-**کانفیگ جو** یک اسکریپت هوشمند پایتون است که به‌صورت خودکار — هر ** ساعت** یک‌بار — کانال‌ها و گروه‌های منتخب تلگرام را اسکن می‌کند و کانفیگ‌های فعال **V2Ray** را استخراج، پالایش و در فایل‌های مرتب و آماده سابسکرایب منتشر می‌کند.
+**کانفیگ جو** یک اسکریپت هوشمند پایتون است که به‌صورت خودکار — هر  ساعت  یک‌بار — کانال‌ها و گروه‌های منتخب تلگرام را اسکن می‌کند و کانفیگ‌های فعال **V2Ray** را استخراج، پالایش و در فایل‌های مرتب و آماده سابسکرایب منتشر می‌کند.
 
 <br>
 
@@ -93,7 +93,7 @@ https://raw.githubusercontent.com/r3zarahimi/tg-v2ray-configs-every2h/main/regio
 
 ## 🇬🇧 Overview
 
-**Config Jo** is a smart Python script that automatically — every **1 hours** — scans selected Telegram channels and groups, extracting active **V2Ray** configurations into clean, ready-to-use subscription files.
+**Config Jo** is a smart Python script that automatically — every hour — scans selected Telegram channels and groups, extracting active **V2Ray** configurations into clean, ready-to-use subscription files.
 
 <br>
 
