@@ -32,7 +32,7 @@ OUTPUT_ORIGINAL_CONFIGS = "Original-Configs.txt"
 OUTPUT_NO_CF = "Config_no_cf.txt"
 OUTPUT_LIGHT = "Config_jo_Light.txt"
 
-LIGHT_MAX_AGE_HOURS = 2
+LIGHT_MAX_AGE_HOURS = 1
 
 WEEKLY_FILE = "conf-week.txt"
 HISTORY_FILE = "conf-week-history.json"
