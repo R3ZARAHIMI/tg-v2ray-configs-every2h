@@ -55,98 +55,83 @@ sniffer:
       - 2087
       - 2096
 proxies:
-- name: RO 💥Config_jo-01
-  type: hysteria2
-  server: 162.249.125.133
-  port: 443
-  password: QCgqi_I4EkV8UR-OgQ_tG4EnVTEVvIyR2GgRBzrIn2s
-  sni: h
-  skip-cert-verify: false
-- name: DE 💥Config_jo-02
-  type: hysteria2
-  server: 168.222.43.35
-  port: 443
-  password: V2RayyNGvpn
-  sni: P
-  skip-cert-verify: false
-- name: US 💥Config_jo-03
+- name: US 💥Config_jo-01
   type: hysteria2
   server: 108.186.180.148
   port: 30865
   password: af24a0e4-f5a2-4b97-a678-992d45346147
   sni: w
   skip-cert-verify: true
-- name: DE 💥Config_jo-04
+- name: US 💥Config_jo-02
   type: hysteria2
-  server: 2.27.59.206
+  server: 144.31.49.138
   port: 443
   password: cd74c0a406664a5bc0bac098220a2468
-  sni: d
+  sni: r
   skip-cert-verify: false
-- name: IE 💥Config_jo-67
+- name: TW 💥Config_jo-88
+  type: ss
+  server: 36.224.141.124
+  port: 50099
+  cipher: chacha20-ietf-poly1305
+  password: 7e731ec3-f8e1-43f6-92cf-3978d14705c4
+  udp: true
+- name: IE 💥Config_jo-89
   type: ss
   server: 20.234.96.89
   port: 443
   cipher: chacha20-ietf-poly1305
   password: C8QhmBLJzhKo2JHR
   udp: true
-- name: SE 💥Config_jo-69
+- name: CA 💥Config_jo-91
+  type: ss
+  server: 15.235.75.71
+  port: 8388
+  cipher: chacha20-ietf-poly1305
+  password: FD3rCuOsxOay
+  udp: true
+- name: SE 💥Config_jo-92
   type: ss
   server: 45.138.103.4
   port: 1443
   cipher: chacha20-ietf-poly1305
   password: N2YzM
   udp: true
-- name: NL 💥Config_jo-70
-  type: ss
-  server: 193.29.139.212
-  port: 8080
-  cipher: chacha20-ietf-poly1305
-  password: QCXDxuDlTTMD7jtgHUjIoj
-  udp: true
-- name: ZA 💥Config_jo-71
-  type: ss
-  server: 20.164.220.82
-  port: 443
-  cipher: chacha20-ietf-poly1305
-  password: Qy7KyMo4epSCiluJ
-  udp: true
-- name: IE 💥Config_jo-73
-  type: ss
-  server: 20.234.96.89
-  port: 443
-  cipher: chacha20-ietf-poly1305
-  password: V3WiGKNQiqOCsT60
-  udp: true
-- name: NL 💥Config_jo-74
+- name: NL 💥Config_jo-94
   type: ss
   server: 193.29.139.225
   port: 8080
   cipher: chacha20-ietf-poly1305
   password: oZIoA69Q8yhcQV8ka3Pa3A
   udp: true
-- name: US 💥Config_jo-75
+- name: US 💥Config_jo-95
   type: ss
   server: 156.146.38.169
   port: 443
   cipher: aes-128-gcm
   password: shadowsocks
   udp: true
-- name: SE 💥Config_jo-76
-  type: ss
-  server: 172.238.244.13
-  port: 17000
-  cipher: aes-256-gcm
-  password: pX0uhU3ZjUcLWYs0Vez55BO3JoQrRlL
-  udp: true
-- name: DE 💥Config_jo-77
+- name: DE 💥Config_jo-96
   type: ss
   server: 206.189.52.4
   port: 17000
   cipher: aes-256-gcm
   password: pX0uhU3ZjUcLWYs0Vez55BO3JoQrRlL
   udp: true
-- name: CLOUDFLARE 💥Config_jo-130
+- name: CLOUDFLARE 💥Config_jo-148
+  type: trojan
+  server: 188.114.96.8
+  port: 443
+  password: '%54%65%6c%65%67%72%61%6d%5f%68%65%61%6c%65%72%5f%63%6f%6e%66%69%67'
+  udp: true
+  sni: y9p34jpjmqjazaypf.piiwddilxjcqehr17af22u7xk-yu.workers.dev
+  network: ws
+  ws-opts:
+    path: /tr/1nWXnOaq1ajP7PKxbRS7Sdck48oy?ed=2560
+    headers:
+      Host: y9p34jpjmqjazaypf.piiwddilxjcqehr17af22u7xk-yu.workers.dev
+  client-fingerprint: chrome
+- name: CLOUDFLARE 💥Config_jo-149
   type: trojan
   server: 104.18.32.87
   port: 443
@@ -159,7 +144,7 @@ proxies:
     headers:
       Host: id1.nathaya.web.id
   client-fingerprint: unsafe
-- name: CLOUDFLARE 💥Config_jo-131
+- name: CLOUDFLARE 💥Config_jo-150
   type: trojan
   server: 188.114.97.6
   port: 443
@@ -172,7 +157,16 @@ proxies:
     headers:
       Host: id1.nathaya.web.id
   client-fingerprint: unsafe
-- name: FASTLY 💥Config_jo-132
+- name: US 💥Config_jo-151
+  type: trojan
+  server: 100.42.228.109
+  port: 443
+  password: BxceQaOe
+  udp: true
+  sni: 100.42.228.109
+  network: tcp
+  servername: 100.42.228.109
+- name: FASTLY 💥Config_jo-152
   type: trojan
   server: 199.232.78.160
   port: 443
@@ -185,20 +179,7 @@ proxies:
     headers:
       Host: mitivpn---ss--s---mitivpn-55e.global.ssl.fastly.net
   client-fingerprint: chrome
-- name: FASTLY 💥Config_jo-133
-  type: trojan
-  server: 151.101.56.255
-  port: 443
-  password: MiTiVPN
-  udp: true
-  sni: ssl.fastly.com
-  network: ws
-  ws-opts:
-    path: /?Telegram---PLANB_NET---PLANB_NET---PLANB_NET---PLANB_NET
-    headers:
-      Host: mitivpn---nl--s---mitivpn-2.global.ssl.fastly.net
-  client-fingerprint: chrome
-- name: FASTLY 💥Config_jo-134
+- name: FASTLY 💥Config_jo-153
   type: trojan
   server: 151.101.56.255
   port: 443
@@ -211,7 +192,20 @@ proxies:
     headers:
       Host: mitivpn---nl--s---mitivpn-2.global.ssl.fastly.net
   client-fingerprint: chrome
-- name: FASTLY 💥Config_jo-135
+- name: FASTLY 💥Config_jo-154
+  type: trojan
+  server: 151.101.56.255
+  port: 443
+  password: MiTiVPN
+  udp: true
+  sni: ssl.fastly.com
+  network: ws
+  ws-opts:
+    path: /
+    headers:
+      Host: mitivpn---nl--s---mitivpn-2.global.ssl.fastly.net
+  client-fingerprint: chrome
+- name: FASTLY 💥Config_jo-155
   type: trojan
   server: 151.101.56.7
   port: 443
@@ -224,7 +218,7 @@ proxies:
     headers:
       Host: mitivpn---de--s---mitivpn-2.global.ssl.fastly.net
   client-fingerprint: chrome
-- name: FASTLY 💥Config_jo-136
+- name: FASTLY 💥Config_jo-156
   type: trojan
   server: 151.101.56.9
   port: 443
@@ -233,11 +227,11 @@ proxies:
   sni: ssl.fastly.com
   network: ws
   ws-opts:
-    path: /
+    path: /---@GHOFLSHCAN---@GHOFLSHCAN/---@GHOFLSHCAN---@GHOFLSHCAN/---@GHOFLSHCAN---@GHOFLSHCAN/NLSus---@GHOFLSHCAN---@GHOFLSHCAN/---@GHOFLSHCAN---@GHOFLSHCAN/---@GHOFLSHCAN---@GHOFLSHCAN
     headers:
       Host: mitivpn---gb--s---mitivpn-1.global.ssl.fastly.net
   client-fingerprint: chrome
-- name: FASTLY 💥Config_jo-137
+- name: FASTLY 💥Config_jo-157
   type: trojan
   server: 167.82.76.7
   port: 443
@@ -250,20 +244,7 @@ proxies:
     headers:
       Host: mitivpn---us--s---mitivpn-2.global.ssl.fastly.net
   client-fingerprint: chrome
-- name: FASTLY 💥Config_jo-138
-  type: trojan
-  server: 199.232.78.160
-  port: 443
-  password: MiTiVPN
-  udp: true
-  sni: ssl.fastly.com
-  network: ws
-  ws-opts:
-    path: /
-    headers:
-      Host: mitivpn---us--s---mitivpn-1.global.ssl.fastly.net
-  client-fingerprint: firefox
-- name: FASTLY 💥Config_jo-139
+- name: FASTLY 💥Config_jo-158
   type: trojan
   server: 199.232.78.188
   port: 443
@@ -276,33 +257,19 @@ proxies:
     headers:
       Host: mitivpn---gb--s---mitivpn-1.global.ssl.fastly.net
   client-fingerprint: chrome
-- name: FASTLY 💥Config_jo-140
+- name: CLOUDFLARE 💥Config_jo-159
   type: trojan
-  server: 199.232.78.188
+  server: 172.67.149.60
   port: 443
-  password: MiTiVPN
+  password: humanity
   udp: true
-  sni: ssl.fastly.com
+  sni: www.ignitelimit.com
   network: ws
   ws-opts:
-    path: /---@VPNine1---@VPNine1/---@VPNine1---@VPNine1/---@VPNine1---@VPNine1/NLSus---@VPNine1---@VPNine1/---@VPNine1---@VPNine1/---@VPNine1---@VPNine1
+    path: /assignment?ed#Telegram---PLANB_NET---PLANB_NET---PLANB_NET---PLANB_NET
     headers:
-      Host: mitivpn---gb--s---mitivpn-1.global.ssl.fastly.net
-  client-fingerprint: chrome
-- name: FASTLY 💥Config_jo-141
-  type: trojan
-  server: 199.232.78.188
-  port: 443
-  password: MiTiVPN
-  udp: true
-  sni: ssl.fastly.com
-  network: ws
-  ws-opts:
-    path: /
-    headers:
-      Host: mitivpn---gb--s---mitivpn-1.global.ssl.fastly.net
-  client-fingerprint: chrome
-- name: CLOUDFLARE 💥Config_jo-142
+      Host: www.ignitelimit.com
+- name: CLOUDFLARE 💥Config_jo-160
   type: trojan
   server: 172.67.149.60
   port: 443
@@ -314,7 +281,7 @@ proxies:
     path: /assignment
     headers:
       Host: www.ignitelimit.com
-- name: CLOUDFLARE 💥Config_jo-143
+- name: CLOUDFLARE 💥Config_jo-161
   type: trojan
   server: 172.67.149.60
   port: 443
@@ -326,7 +293,7 @@ proxies:
     path: /assignment
     headers:
       Host: www.ignitelimit.com
-- name: CLOUDFLARE 💥Config_jo-144
+- name: CLOUDFLARE 💥Config_jo-162
   type: trojan
   server: 188.114.97.6
   port: 443
@@ -338,32 +305,7 @@ proxies:
     path: //assignment
     headers:
       Host: www.ignitelimit.com
-- name: CLOUDFLARE 💥Config_jo-145
-  type: trojan
-  server: 188.114.97.6
-  port: 443
-  password: humanity
-  udp: true
-  sni: www.pleadcourt.org
-  network: ws
-  ws-opts:
-    path: /assignment
-    headers:
-      Host: www.pleadcourt.org
-  client-fingerprint: unsafe
-- name: CLOUDFLARE 💥Config_jo-146
-  type: trojan
-  server: 188.114.97.6
-  port: 443
-  password: humanity
-  udp: true
-  sni: www.pleadcourt.org
-  network: ws
-  ws-opts:
-    path: /assignment
-    headers:
-      Host: www.pleadcourt.org
-- name: CLOUDFLARE 💥Config_jo-147
+- name: CLOUDFLARE 💥Config_jo-163
   type: trojan
   server: 188.114.97.6
   port: 443
@@ -375,7 +317,7 @@ proxies:
     path: /assignment
     headers:
       Host: www.ignitelimit.com
-- name: CLOUDFLARE 💥Config_jo-148
+- name: CLOUDFLARE 💥Config_jo-164
   type: trojan
   server: 188.114.97.6
   port: 443
@@ -388,7 +330,56 @@ proxies:
     headers:
       Host: www.pleadcourt.org
   client-fingerprint: unsafe
-- name: CLOUDFLARE 💥Config_jo-149
+- name: CLOUDFLARE 💥Config_jo-165
+  type: trojan
+  server: 188.114.97.6
+  port: 443
+  password: humanity
+  udp: true
+  sni: www.pleadcourt.org
+  network: ws
+  ws-opts:
+    path: /assignment
+    headers:
+      Host: www.pleadcourt.org
+- name: CLOUDFLARE 💥Config_jo-166
+  type: trojan
+  server: 188.114.97.6
+  port: 443
+  password: humanity
+  udp: true
+  sni: www.ignitelimit.com
+  network: ws
+  ws-opts:
+    path: /assignment
+    headers:
+      Host: www.ignitelimit.com
+- name: CLOUDFLARE 💥Config_jo-167
+  type: trojan
+  server: 188.114.97.6
+  port: 443
+  password: humanity
+  udp: true
+  sni: www.pleadcourt.org
+  network: ws
+  ws-opts:
+    path: /assignment
+    headers:
+      Host: www.pleadcourt.org
+- name: CLOUDFLARE 💥Config_jo-168
+  type: trojan
+  server: 188.114.97.6
+  port: 443
+  password: humanity
+  udp: true
+  sni: www.pleadcourt.org
+  network: ws
+  ws-opts:
+    path: /assignment
+    headers:
+      Host: www.pleadcourt.org
+  client-fingerprint: unsafe
+- name: CLOUDFLARE 💥Config_jo-169
   type: trojan
   server: 188.114.97.7
   port: 443
@@ -400,7 +391,7 @@ proxies:
     path: /assignment#Telegram---bored_vpn
     headers:
       Host: www.ignitelimit.com
-- name: CLOUDFLARE 💥Config_jo-150
+- name: CLOUDFLARE 💥Config_jo-170
   type: trojan
   server: 188.114.97.7
   port: 443
@@ -412,7 +403,7 @@ proxies:
     path: /assignment#Telegram---mehrosaboran
     headers:
       Host: www.ignitelimit.com
-- name: CLOUDFLARE 💥Config_jo-151
+- name: CLOUDFLARE 💥Config_jo-171
   type: trojan
   server: 188.114.97.7
   port: 443
@@ -424,7 +415,7 @@ proxies:
     path: /assignment?ed#Telegram---PLANB_NET---PLANB_NET---PLANB_NET---PLANB_NET
     headers:
       Host: www.ignitelimit.com
-- name: CLOUDFLARE 💥Config_jo-152
+- name: CLOUDFLARE 💥Config_jo-172
   type: trojan
   server: 188.114.97.7
   port: 443
@@ -436,7 +427,7 @@ proxies:
     path: /assignment
     headers:
       Host: www.ignitelimit.com
-- name: CLOUDFLARE 💥Config_jo-153
+- name: CLOUDFLARE 💥Config_jo-173
   type: trojan
   server: 188.114.97.7
   port: 443
@@ -448,7 +439,7 @@ proxies:
     path: /assignment
     headers:
       Host: www.ignitelimit.com
-- name: CLOUDFLARE 💥Config_jo-154
+- name: CLOUDFLARE 💥Config_jo-174
   type: trojan
   server: 8.47.69.0
   port: 443
@@ -460,7 +451,42 @@ proxies:
     path: /assignment
     headers:
       Host: www.pleadcourt.org
-- name: CLOUDFLARE 💥Config_jo-155
+- name: CLOUDFLARE 💥Config_jo-175
+  type: trojan
+  server: 8.47.69.0
+  port: 443
+  password: humanity
+  udp: true
+  sni: www.pleadcourt.org
+  network: ws
+  ws-opts:
+    path: /assignment
+    headers:
+      Host: www.pleadcourt.org
+- name: US 💥Config_jo-176
+  type: trojan
+  server: render.com
+  port: 443
+  password: humanity
+  udp: true
+  network: ws
+  ws-opts:
+    path: /assignment
+    headers:
+      Host: www.ignitelimit.com
+- name: US 💥Config_jo-177
+  type: trojan
+  server: render.com
+  port: 443
+  password: humanity
+  udp: true
+  sni: www.ignitelimit.com
+  network: ws
+  ws-opts:
+    path: /assignment
+    headers:
+      Host: www.ignitelimit.com
+- name: CLOUDFLARE 💥Config_jo-178
   type: trojan
   server: www.speedtest.net
   port: 443
@@ -472,7 +498,7 @@ proxies:
     path: /assignment
     headers:
       Host: www.calmlunch.com
-- name: CLOUDFLARE 💥Config_jo-156
+- name: CLOUDFLARE 💥Config_jo-179
   type: trojan
   server: www.speedtest.net
   port: 443
@@ -484,7 +510,7 @@ proxies:
     path: /assignment
     headers:
       Host: www.ignitelimit.com
-- name: CLOUDFLARE 💥Config_jo-157
+- name: CLOUDFLARE 💥Config_jo-180
   type: trojan
   server: www.speedtest.net
   port: 443
@@ -496,7 +522,7 @@ proxies:
     path: /assignment
     headers:
       Host: www.ignitelimit.com
-- name: FASTLY 💥Config_jo-158
+- name: FASTLY 💥Config_jo-181
   type: vless
   server: 199.232.78.160
   port: 443
@@ -510,7 +536,7 @@ proxies:
     path: /
     headers:
       Host: Appxdn.global.ssl.fastly.net
-- name: FASTLY 💥Config_jo-159
+- name: FASTLY 💥Config_jo-182
   type: vless
   server: 199.232.78.160
   port: 443
@@ -524,7 +550,7 @@ proxies:
     path: /
     headers:
       Host: Appxdn.global.ssl.fastly.net
-- name: FASTLY 💥Config_jo-160
+- name: FASTLY 💥Config_jo-183
   type: vless
   server: 199.232.78.170
   port: 443
@@ -538,7 +564,7 @@ proxies:
     path: /
     headers:
       Host: Appxdn.global.ssl.fastly.net
-- name: FASTLY 💥Config_jo-161
+- name: FASTLY 💥Config_jo-184
   type: vless
   server: 199.232.78.170
   port: 443
@@ -552,7 +578,7 @@ proxies:
     path: /
     headers:
       Host: Appxdn.global.ssl.fastly.net
-- name: FASTLY 💥Config_jo-162
+- name: FASTLY 💥Config_jo-185
   type: vless
   server: 199.232.78.160
   port: 443
@@ -566,7 +592,7 @@ proxies:
     path: /
     headers:
       Host: Appxdn.global.ssl.fastly.net
-- name: FASTLY 💥Config_jo-163
+- name: FASTLY 💥Config_jo-186
   type: vless
   server: 199.232.78.170
   port: 443
@@ -580,7 +606,7 @@ proxies:
     path: /
     headers:
       Host: Appxdn.global.ssl.fastly.net
-- name: FASTLY 💥Config_jo-164
+- name: FASTLY 💥Config_jo-187
   type: vless
   server: 199.232.78.170
   port: 443
@@ -594,7 +620,7 @@ proxies:
     path: /
     headers:
       Host: Appxdn.global.ssl.fastly.net
-- name: FASTLY 💥Config_jo-165
+- name: FASTLY 💥Config_jo-188
   type: vless
   server: 199.232.78.160
   port: 443
@@ -608,21 +634,81 @@ proxies:
     path: /
     headers:
       Host: Appxdn.global.ssl.fastly.net
-- name: CY 💥Config_jo-166
+- name: DE 💥Config_jo-189
   type: vless
-  server: 2.56.123.131
+  server: 185.246.223.239
+  port: 8443
+  uuid: 12062839-c99a-4084-b4de-e98be8b86c2d
+  udp: true
+  tls: true
+  client-fingerprint: firefox
+  network: grpc
+  servername: www.cloudflare.com
+  reality-opts:
+    public-key: b_nCO2c_TY_BPP0aASYW9E7N85gYUCscv_PCaHSW82Y
+    short-id: c7ea63625cdbc1df
+- name: US 💥Config_jo-190
+  type: vless
+  server: 31.76.249.38
   port: 443
-  uuid: 0a975d79-6930-4861-a105-dc50793456de
+  uuid: 127f705c-f0bc-49e2-be27-d9fca7fd5a78
   udp: true
   tls: true
   flow: xtls-rprx-vision
-  client-fingerprint: safari
+  client-fingerprint: firefox
   network: tcp
-  servername: contact.yump.online
+  servername: akde2.serveroff.net
   reality-opts:
-    public-key: wDAQ_iQ_vv6lQiB9nCxIJviEhARWOQOPyhzos8EJW3o
-    short-id: 9da47879658f9f25
-- name: NL 💥Config_jo-167
+    public-key: Ean56I1ZAGD67m6VW-qXZ77bXsE5ClwvYLuQNyXRyH8
+    short-id: 832d9228ddd3
+- name: DE 💥Config_jo-191
+  type: vless
+  server: 5.175.249.149
+  port: 443
+  uuid: 14b48651-3738-4926-bc09-4c04e87ff80b
+  udp: true
+  tls: true
+  client-fingerprint: firefox
+  network: tcp
+  servername: static.lotussec.com
+- name: N/A 💥Config_jo-192
+  type: vless
+  server: static.lotussec.com
+  port: 443
+  uuid: 14b48651-3738-4926-bc09-4c04e87ff80b
+  udp: true
+  tls: true
+  client-fingerprint: chrome
+  network: tcp
+- name: N/A 💥Config_jo-193
+  type: vless
+  server: static.lotussec.com
+  port: 443
+  uuid: 14b48651-3738-4926-bc09-4c04e87ff80b
+  udp: true
+  tls: true
+  client-fingerprint: chrome
+  network: tcp
+  servername: static.lotussec.com
+- name: N/A 💥Config_jo-194
+  type: vless
+  server: static.lotussec.com
+  port: 443
+  uuid: 14b48651-3738-4926-bc09-4c04e87ff80b
+  udp: true
+  tls: true
+  client-fingerprint: firefox
+  network: tcp
+  servername: static.lotussec.com
+- name: DE 💥Config_jo-195
+  type: vless
+  server: xn--gabjkk-hta.bizimoglan.ir
+  port: 4060
+  uuid: 162ff214-21c8-4963-a80a-6200cbad787e
+  udp: true
+  tls: false
+  network: tcp
+- name: NL 💥Config_jo-196
   type: vless
   server: 23.137.249.110
   port: 20365
@@ -630,7 +716,15 @@ proxies:
   udp: true
   tls: false
   network: tcp
-- name: IR 💥Config_jo-168
+- name: DE 💥Config_jo-197
+  type: vless
+  server: 5.75.205.201
+  port: 2025
+  uuid: 1acdf638-ae23-4489-b18a-680467def162
+  udp: true
+  tls: false
+  network: tcp
+- name: IR 💥Config_jo-198
   type: vless
   server: pl-warsaw.masterpgd.com
   port: 6014
@@ -638,21 +732,35 @@ proxies:
   udp: true
   tls: false
   network: tcp
-- name: US 💥Config_jo-169
+- name: FASTLY 💥Config_jo-199
   type: vless
-  server: 47.90.153.88
+  server: a2.arshia-nova.ir
   port: 443
-  uuid: 1e255ca5-93b1-4952-a838-0783dfc034d8
+  uuid: 1fac5e18-2ca8-4626-c299-1f3f21c6b55e
+  udp: true
+  tls: true
+  client-fingerprint: firefox
+  network: ws
+  servername: ssl.fastly.com
+  ws-opts:
+    path: /
+    headers:
+      Host: c12.com
+- name: IL 💥Config_jo-200
+  type: vless
+  server: 185.95.231.233
+  port: 443
+  uuid: 1ffa8e68-3378-4cf4-b8f6-44bf3d46d106
   udp: true
   tls: true
   flow: xtls-rprx-vision
   client-fingerprint: chrome
   network: tcp
-  servername: www.apple.com
+  servername: store.steampowered.com
   reality-opts:
-    public-key: QtYyp41YbDij6nygTaPPpqXqEGzDD3wYFI3YlfTjfBo
-    short-id: 6b85179e
-- name: US 💥Config_jo-170
+    public-key: r4Dp3mztZaizbDk28rEOkLikk7erR9dzzc-Jrsgraho
+    short-id: a1b2c3d4
+- name: US 💥Config_jo-201
   type: vless
   server: 129.101.120.5
   port: 37951
@@ -666,20 +774,33 @@ proxies:
   reality-opts:
     public-key: O6ZOpoz4sxon8iHxCd5EEvx2K9NUThd4SvOCBEvADEI
     short-id: a9e21fd097d019c6
-- name: DE 💥Config_jo-171
+- name: DE 💥Config_jo-202
   type: vless
-  server: ger-asli.jorzel.ir
-  port: 9145
-  uuid: 280e6d2e-b93e-4f51-bc9e-bf2bb709c81c
+  server: 192.248.179.81
+  port: 80
+  uuid: 2787849c-1a49-4457-9db7-efcdb2578268
+  udp: true
+  tls: false
+  network: ws
+  ws-opts:
+    path: /
+    headers:
+      Host: 192.248.179.81
+- name: SG 💥Config_jo-203
+  type: vless
+  server: 5.223.74.174
+  port: 2053
+  uuid: 29b81e1a-1989-4778-b0cb-a7223730f59d
   udp: true
   tls: true
-  client-fingerprint: ios
+  flow: xtls-rprx-vision
+  client-fingerprint: chrome
   network: tcp
-  servername: android.clients.google.com
+  servername: 5.223.74.174
   reality-opts:
-    public-key: Fw1tpKBQ_bT_eSTbaCSYBthpXAQ76kujwfywvjgpUA0
-    short-id: 5e06032a9c448538
-- name: NL 💥Config_jo-172
+    public-key: pIkxGlcFFawk7e0T-2VcdFXOc9LsjoBhl47vl8EuRgg
+    short-id: 36151c48e28cfb65
+- name: NL 💥Config_jo-204
   type: vless
   server: 188.137.239.58
   port: 17497
@@ -692,151 +813,7 @@ proxies:
   reality-opts:
     public-key: EpEBUY3kuebxQusY7SAJT4K3Axcsm_daJbqYC8ifxiw
     short-id: e996
-- name: IR 💥Config_jo-173
-  type: vless
-  server: prime.vorchi.eu
-  port: 14987
-  uuid: 2dca2997-94f1-476c-bff8-f5a81f0ba2cf
-  udp: true
-  tls: true
-  client-fingerprint: chrome
-  network: grpc
-  servername: www.nvidia.com
-  reality-opts:
-    public-key: NOdtotQXwRzLJOBJzg19fJS4eHBlIlEab9wS8PmZaDE
-    short-id: 023db830cf2b
-- name: DE 💥Config_jo-174
-  type: vless
-  server: 128.140.119.77
-  port: 2434
-  uuid: 2e2d1f29-07b3-4a29-88e5-a936c3256756
-  udp: true
-  tls: true
-  client-fingerprint: chrome
-  network: tcp
-  servername: icloud.com
-  reality-opts:
-    public-key: yzCvRpbQ-cRePaJAuQkw42_xEf-R860gFsQwoPki2E0
-    short-id: 9de041877612a718
-- name: FASTLY 💥Config_jo-175
-  type: vless
-  server: 199.232.78.159
-  port: 443
-  uuid: 2e2d1f29-07b3-4a29-88e5-a936c3256756
-  udp: true
-  tls: true
-  client-fingerprint: chrome
-  network: ws
-  servername: ssl.fastly.com
-  ws-opts:
-    path: /
-    headers:
-      Host: 7wwwspeedtestnet.global.ssl.fastly.net
-- name: DE 💥Config_jo-176
-  type: vless
-  server: 49.12.212.19
-  port: 2434
-  uuid: 2e2d1f29-07b3-4a29-88e5-a936c3256756
-  udp: true
-  tls: true
-  client-fingerprint: chrome
-  network: tcp
-  servername: icloud.com
-  reality-opts:
-    public-key: yzCvRpbQ-cRePaJAuQkw42_xEf-R860gFsQwoPki2E0
-    short-id: 9de041877612a718
-- name: DE 💥Config_jo-177
-  type: vless
-  server: 49.12.247.134
-  port: 2434
-  uuid: 2e2d1f29-07b3-4a29-88e5-a936c3256756
-  udp: true
-  tls: true
-  client-fingerprint: chrome
-  network: tcp
-  servername: icloud.com
-  reality-opts:
-    public-key: yzCvRpbQ-cRePaJAuQkw42_xEf-R860gFsQwoPki2E0
-    short-id: 9de041877612a718
-- name: DE 💥Config_jo-178
-  type: vless
-  server: 91.99.223.99
-  port: 2434
-  uuid: 2e2d1f29-07b3-4a29-88e5-a936c3256756
-  udp: true
-  tls: true
-  client-fingerprint: chrome
-  network: tcp
-  servername: icloud.com
-  reality-opts:
-    public-key: yzCvRpbQ-cRePaJAuQkw42_xEf-R860gFsQwoPki2E0
-    short-id: 9de041877612a718
-- name: DE 💥Config_jo-179
-  type: vless
-  server: 91.99.223.99
-  port: 2434
-  uuid: 2e2d1f29-07b3-4a29-88e5-a936c3256756
-  udp: true
-  tls: true
-  client-fingerprint: chrome
-  network: tcp
-  servername: icloud.com
-  reality-opts:
-    public-key: yzCvRpbQ-cRePaJAuQkw42_xEf-R860gFsQwoPki2E0
-    short-id: 9de041877612a718
-- name: DE 💥Config_jo-180
-  type: vless
-  server: de1.bexait.ir
-  port: 2434
-  uuid: 2e2d1f29-07b3-4a29-88e5-a936c3256756
-  udp: true
-  tls: true
-  client-fingerprint: chrome
-  network: tcp
-  servername: icloud.com
-  reality-opts:
-    public-key: yzCvRpbQ-cRePaJAuQkw42_xEf-R860gFsQwoPki2E0
-    short-id: 9de041877612a718
-- name: DE 💥Config_jo-181
-  type: vless
-  server: de14.bexait.ir
-  port: 2434
-  uuid: 2e2d1f29-07b3-4a29-88e5-a936c3256756
-  udp: true
-  tls: true
-  client-fingerprint: chrome
-  network: tcp
-  servername: icloud.com
-  reality-opts:
-    public-key: yzCvRpbQ-cRePaJAuQkw42_xEf-R860gFsQwoPki2E0
-    short-id: 9de041877612a718
-- name: DE 💥Config_jo-182
-  type: vless
-  server: de7.bexait.ir
-  port: 2434
-  uuid: 2e2d1f29-07b3-4a29-88e5-a936c3256756
-  udp: true
-  tls: true
-  client-fingerprint: chrome
-  network: tcp
-  servername: icloud.com
-  reality-opts:
-    public-key: yzCvRpbQ-cRePaJAuQkw42_xEf-R860gFsQwoPki2E0
-    short-id: 9de041877612a718
-- name: DE 💥Config_jo-183
-  type: vless
-  server: fn6.bexait.ir
-  port: 2434
-  uuid: 2e2d1f29-07b3-4a29-88e5-a936c3256756
-  udp: true
-  tls: true
-  client-fingerprint: chrome
-  network: tcp
-  servername: icloud.com
-  reality-opts:
-    public-key: yzCvRpbQ-cRePaJAuQkw42_xEf-R860gFsQwoPki2E0
-    short-id: 9de041877612a718
-- name: NL 💥Config_jo-184
+- name: NL 💥Config_jo-205
   type: vless
   server: dey.lnmarketplace.net
   port: 443
@@ -845,7 +822,7 @@ proxies:
   tls: true
   network: tcp
   servername: dey.lnmarketplace.net
-- name: N/A 💥Config_jo-185
+- name: N/A 💥Config_jo-206
   type: vless
   server: 122.8.45.2
   port: 443
@@ -857,19 +834,19 @@ proxies:
   servername: download.nvidia.com
   reality-opts:
     public-key: D2SXHZRRYM0WcFChGWd57XB-U73aIsGfMpe2-Gq5XSs
-- name: N/A 💥Config_jo-186
+- name: N/A 💥Config_jo-207
   type: vless
   server: 122.8.45.2
-  port: 8443
+  port: 443
   uuid: 3ae00194-1bc0-0bf4-9564-3c55b1c6d485
   udp: true
   tls: true
   client-fingerprint: chrome
-  network: grpc
+  network: tcp
   servername: download.nvidia.com
   reality-opts:
     public-key: D2SXHZRRYM0WcFChGWd57XB-U73aIsGfMpe2-Gq5XSs
-- name: N/A 💥Config_jo-187
+- name: N/A 💥Config_jo-208
   type: vless
   server: 122.8.45.2
   port: 8443
@@ -881,7 +858,129 @@ proxies:
   servername: www.hp.com
   reality-opts:
     public-key: QzFNQqkvBnDKIyjXUHJQe9jruaw9G5AV44vDC-qvnlo
-- name: CLOUDFLARE 💥Config_jo-188
+- name: N/A 💥Config_jo-209
+  type: vless
+  server: 122.8.45.2
+  port: 8443
+  uuid: 3ae00194-1bc0-0bf4-9564-3c55b1c6d485
+  udp: true
+  tls: true
+  client-fingerprint: chrome
+  network: grpc
+  servername: download.nvidia.com
+  reality-opts:
+    public-key: D2SXHZRRYM0WcFChGWd57XB-U73aIsGfMpe2-Gq5XSs
+- name: N/A 💥Config_jo-210
+  type: vless
+  server: 122.8.45.2
+  port: 8443
+  uuid: 3ae00194-1bc0-0bf4-9564-3c55b1c6d485
+  udp: true
+  tls: true
+  client-fingerprint: chrome
+  network: grpc
+  servername: www.hp.com
+  reality-opts:
+    public-key: QzFNQqkvBnDKIyjXUHJQe9jruaw9G5AV44vDC-qvnlo
+- name: N/A 💥Config_jo-211
+  type: vless
+  server: 122.8.45.2
+  port: 8443
+  uuid: 3ae00194-1bc0-0bf4-9564-3c55b1c6d485
+  udp: true
+  tls: true
+  client-fingerprint: firefox
+  network: grpc
+  servername: download.nvidia.com
+  reality-opts:
+    public-key: D2SXHZRRYM0WcFChGWd57XB-U73aIsGfMpe2-Gq5XSs
+- name: N/A 💥Config_jo-212
+  type: vless
+  server: 122.8.45.3
+  port: 443
+  uuid: 3ae00194-1bc0-0bf4-9564-3c55b1c6d485
+  udp: true
+  tls: true
+  client-fingerprint: chrome
+  network: tcp
+  servername: download.nvidia.com
+  reality-opts:
+    public-key: D2SXHZRRYM0WcFChGWd57XB-U73aIsGfMpe2-Gq5XSs
+- name: N/A 💥Config_jo-213
+  type: vless
+  server: 122.8.45.3
+  port: 443
+  uuid: 3ae00194-1bc0-0bf4-9564-3c55b1c6d485
+  udp: true
+  tls: true
+  client-fingerprint: chrome
+  network: tcp
+  servername: www.hp.com
+  reality-opts:
+    public-key: QzFNQqkvBnDKIyjXUHJQe9jruaw9G5AV44vDC-qvnlo
+- name: N/A 💥Config_jo-214
+  type: vless
+  server: 122.8.45.3
+  port: 443
+  uuid: 3ae00194-1bc0-0bf4-9564-3c55b1c6d485
+  udp: true
+  tls: true
+  client-fingerprint: chrome
+  network: tcp
+  servername: cdn.steamstatic.com
+  reality-opts:
+    public-key: jYD82Xg6TRu2lR0XINMWxKb8dNycDwF-H28ZrtiafUo
+- name: N/A 💥Config_jo-215
+  type: vless
+  server: 122.8.45.3
+  port: 8443
+  uuid: 3ae00194-1bc0-0bf4-9564-3c55b1c6d485
+  udp: true
+  tls: true
+  client-fingerprint: chrome
+  network: grpc
+  servername: www.hp.com
+  reality-opts:
+    public-key: QzFNQqkvBnDKIyjXUHJQe9jruaw9G5AV44vDC-qvnlo
+- name: N/A 💥Config_jo-216
+  type: vless
+  server: 122.8.45.3
+  port: 8443
+  uuid: 3ae00194-1bc0-0bf4-9564-3c55b1c6d485
+  udp: true
+  tls: true
+  client-fingerprint: chrome
+  network: grpc
+  servername: cdn.steamstatic.com
+  reality-opts:
+    public-key: jYD82Xg6TRu2lR0XINMWxKb8dNycDwF-H28ZrtiafUo
+- name: NL 💥Config_jo-217
+  type: vless
+  server: 192.209.62.143
+  port: 34342
+  uuid: 3b0e57eb-b124-4f26-8737-6a0d21b350af
+  udp: true
+  tls: true
+  client-fingerprint: safari
+  network: tcp
+  servername: barnardos.org.uk
+  reality-opts:
+    public-key: lyzDzDe-gZf5XFFHoqb_C0UTed90cvor000xeOCI_Vs
+    short-id: 1b7470e8
+- name: NL 💥Config_jo-218
+  type: vless
+  server: 192.209.62.143
+  port: 34342
+  uuid: 3b4bce12-4f98-4e36-89a4-4528f081b053
+  udp: true
+  tls: true
+  client-fingerprint: safari
+  network: tcp
+  servername: ssl.sdcdn.com
+  reality-opts:
+    public-key: lyzDzDe-gZf5XFFHoqb_C0UTed90cvor000xeOCI_Vs
+    short-id: 1b7470e8
+- name: CLOUDFLARE 💥Config_jo-219
   type: vless
   server: 188.114.97.6
   port: 443
@@ -894,20 +993,7 @@ proxies:
     path: /imnotarealherox
     headers:
       Host: server9.9966338.xyz
-- name: IR 💥Config_jo-189
-  type: vless
-  server: freeman.curtvip.ir
-  port: 20410
-  uuid: 442581ff-646e-4e99-af3e-a9d9a636a44b
-  udp: true
-  tls: true
-  client-fingerprint: chrome
-  network: tcp
-  servername: secureconnect-pa.mtls.clients6.google.com
-  reality-opts:
-    public-key: BErODvy5h6Cjw5zWfX_CZ5ODH9p1XbZwU-ZEHyVXEGI
-    short-id: e2ce3e050232978c
-- name: CLOUDFLARE 💥Config_jo-190
+- name: CLOUDFLARE 💥Config_jo-220
   type: vless
   server: 104.21.70.228
   port: 443
@@ -915,21 +1001,20 @@ proxies:
   udp: true
   tls: true
   network: tcp
-- name: US 💥Config_jo-191
+- name: NL 💥Config_jo-221
   type: vless
-  server: 64.188.126.56
-  port: 43000
-  uuid: 47f79fc1-0646-40e8-8a58-73e85d183d5a
+  server: 192.209.62.143
+  port: 34342
+  uuid: 484990c6-8a29-4ac8-8c60-b8d911ff49ed
   udp: true
   tls: true
-  flow: xtls-rprx-vision
   client-fingerprint: safari
   network: tcp
-  servername: 64.188.126.56
+  servername: bigip-mydesktop.oracle.com
   reality-opts:
-    public-key: jjbMUO41S9JE7ou_zbbDStzSYLzJVN_0O-j0f6b380E
-    short-id: bf4e20af99d3042d
-- name: FR 💥Config_jo-192
+    public-key: lyzDzDe-gZf5XFFHoqb_C0UTed90cvor000xeOCI_Vs
+    short-id: 1b7470e8
+- name: FR 💥Config_jo-222
   type: vless
   server: 185.171.202.105
   port: 443
@@ -937,26 +1022,77 @@ proxies:
   udp: true
   tls: true
   flow: xtls-rprx-vision
+  network: tcp
+  servername: fra.loozerp.wiki
+  reality-opts:
+    public-key: bZpzmeWiEJyJQy0W2hHc34Nr6BuFXj1UDd80Cbwh1Fk
+    short-id: ff776ff77be48b88
+- name: SE 💥Config_jo-223
+  type: vless
+  server: 5.157.10.148
+  port: 443
+  uuid: 4bdeee92-97e8-414d-bef6-ec1d5e2ab73b
+  udp: true
+  tls: true
+  flow: xtls-rprx-vision
+  client-fingerprint: firefox
+  network: tcp
+  servername: surstreming.vvzzkontaktezzvv.garden
+  reality-opts:
+    public-key: x6p656szvu_3CKLsJ4NtkooRvdTVGx7IoPca_p58_jA
+    short-id: fb442438e2223836
+- name: SE 💥Config_jo-224
+  type: vless
+  server: surstreming.vvzzkontaktezzvv.garden
+  port: 443
+  uuid: 4bdeee92-97e8-414d-bef6-ec1d5e2ab73b
+  udp: true
+  tls: true
+  flow: xtls-rprx-vision
+  client-fingerprint: firefox
+  network: tcp
+  servername: surstreming.vvzzkontaktezzvv.garden
+  reality-opts:
+    public-key: x6p656szvu_3CKLsJ4NtkooRvdTVGx7IoPca_p58_jA
+    short-id: fb442438e2223836
+- name: FASTLY 💥Config_jo-225
+  type: vless
+  server: 151.101.240.148
+  port: 80
+  uuid: 4ca49915-aee9-41c4-bfa5-1555c7447faa
+  udp: true
+  tls: false
+  network: ws
+  ws-opts:
+    path: /
+    headers:
+      Host: jabaat.global.ssl.fastly.net
+- name: FASTLY 💥Config_jo-226
+  type: vless
+  server: 199.232.78.159
+  port: 443
+  uuid: 4ca49915-aee9-41c4-bfa5-1555c7447faa
+  udp: true
+  tls: true
+  network: ws
+  servername: ssl.fastly.com
+  ws-opts:
+    path: /
+    headers:
+      Host: pokerrr.global.ssl.fastly.net
+- name: FI 💥Config_jo-227
+  type: vless
+  server: meow-fin.nethcloud.top
+  port: 8443
+  uuid: 4cbefb4d-328c-411d-bf76-780df1082df8
+  udp: true
+  tls: true
   client-fingerprint: chrome
   network: tcp
-  servername: fra.loozerp.wiki
+  servername: wikihow.com
   reality-opts:
-    public-key: bZpzmeWiEJyJQy0W2hHc34Nr6BuFXj1UDd80Cbwh1Fk
-    short-id: ff776ff77be48b88
-- name: FR 💥Config_jo-193
-  type: vless
-  server: 185.171.202.105
-  port: 443
-  uuid: 4bdeee92-97e8-414d-bef6-ec1d5e2ab73b
-  udp: true
-  tls: true
-  flow: xtls-rprx-vision
-  network: tcp
-  servername: fra.loozerp.wiki
-  reality-opts:
-    public-key: bZpzmeWiEJyJQy0W2hHc34Nr6BuFXj1UDd80Cbwh1Fk
-    short-id: ff776ff77be48b88
-- name: TR 💥Config_jo-194
+    public-key: p9ISfhV0uZpKSgrK_8R6Mm4A01tWdzpKMlFR2TIj81s
+- name: TR 💥Config_jo-228
   type: vless
   server: a6.mobilleali.ir
   port: 443
@@ -969,47 +1105,41 @@ proxies:
   reality-opts:
     public-key: xowcUByfPBL8pmR1K5AG8rrXn0jXDlItm4crVsa2umA
     short-id: 769a48342f8404f9
-- name: TR 💥Config_jo-195
+- name: DE 💥Config_jo-229
   type: vless
-  server: 45.92.219.170
-  port: 8080
-  uuid: 560ecca1-7e20-4b41-b4d6-781fb3bc179d
+  server: 163.8.195.241
+  port: 2087
+  uuid: 56ba5d34-ef22-4ba6-8090-4188b807df54
   udp: true
   tls: false
   network: ws
   ws-opts:
-    path: /
+    path: /29c8fed7ca22
     headers:
-      Host: primevideo.com
-- name: CLOUDFLARE 💥Config_jo-196
+      Host: /?--v2rayNplus--v2rayNplus--v2rayNplus--
+- name: US 💥Config_jo-230
   type: vless
-  server: ccvtv.tgseenrobo.ir
-  port: 2053
-  uuid: 56ba454e-f6c3-4965-ab7c-a752b9d075fa
+  server: 72.56.41.33
+  port: 40443
+  uuid: 5be7fb02-b6a5-450f-b041-3243b98e8420
   udp: true
   tls: true
-  client-fingerprint: chrome
-  network: ws
-  servername: ccvtv.tgseenrobo.ir
-  ws-opts:
-    path: /
-    headers:
-      Host: ccvtv.tgseenrobo.ir
-- name: CLOUDFLARE 💥Config_jo-197
+  flow: xtls-rprx-vision
+  client-fingerprint: edge
+  network: tcp
+  servername: deepl.com
+  reality-opts:
+    public-key: Uvj5H9pDJP0HX2bN7NN7sCQwVCrC5N2NbKf-yuy1ikE
+    short-id: ee33
+- name: FI 💥Config_jo-231
   type: vless
-  server: netcraft.com
-  port: 2053
-  uuid: 56ba454e-f6c3-4965-ab7c-a752b9d075fa
+  server: 65.109.193.102
+  port: 9090
+  uuid: 5e03bdbb-cb39-4c6e-8ee5-eb549b5e7a70
   udp: true
-  tls: true
-  client-fingerprint: firefox
-  network: ws
-  servername: camera.tgseenrobo.ir
-  ws-opts:
-    path: /api/v1/payment/verify/9mQ2rL8sKp4xN7
-    headers:
-      Host: camera.tgseenrobo.ir
-- name: GB 💥Config_jo-198
+  tls: false
+  network: tcp
+- name: GB 💥Config_jo-232
   type: vless
   server: 82.24.203.20
   port: 2087
@@ -1021,21 +1151,7 @@ proxies:
     path: /fd5ba98a3970
     headers:
       Host: 82.24.203.20
-- name: FASTLY 💥Config_jo-199
-  type: vless
-  server: 151.101.56.6
-  port: 443
-  uuid: 64c2bc5c-7534-4359-9b1e-e1dce5a380cd
-  udp: true
-  tls: true
-  client-fingerprint: firefox
-  network: ws
-  servername: ssl.fastly.com
-  ws-opts:
-    path: /
-    headers:
-      Host: c12.com
-- name: FASTLY 💥Config_jo-200
+- name: FASTLY 💥Config_jo-233
   type: vless
   server: k2.cloud--vpn.site
   port: 443
@@ -1049,7 +1165,81 @@ proxies:
     path: /
     headers:
       Host: c12.com
-- name: CA 💥Config_jo-201
+- name: NL 💥Config_jo-234
+  type: vless
+  server: 192.209.62.143
+  port: 34342
+  uuid: 64c4214a-5b36-4c85-929f-3add2767ccfa
+  udp: true
+  tls: true
+  client-fingerprint: safari
+  network: tcp
+  servername: wildcard.thelevelup.com
+  reality-opts:
+    public-key: lyzDzDe-gZf5XFFHoqb_C0UTed90cvor000xeOCI_Vs
+    short-id: 1b7470e8
+- name: NL 💥Config_jo-235
+  type: vless
+  server: 192.209.62.143
+  port: 34342
+  uuid: 64c4214a-5b36-4c85-929f-3add2767ccfa
+  udp: true
+  tls: true
+  client-fingerprint: safari
+  network: tcp
+  servername: wildcard.thelevelup.com
+  reality-opts:
+    public-key: lyzDzDe-gZf5XFFHoqb_C0UTed90cvor000xeOCI_Vs
+    short-id: 1b7470e8
+- name: DE 💥Config_jo-236
+  type: vless
+  server: 159.69.192.253
+  port: 8080
+  uuid: 64d64c94-79bb-4404-8195-63e2bc4622fb
+  udp: true
+  tls: false
+  network: tcp
+- name: TR 💥Config_jo-237
+  type: vless
+  server: 198.105.123.153
+  port: 2044
+  uuid: 64d64c94-79bb-4404-8195-63e2bc4622fb
+  udp: true
+  tls: false
+  network: tcp
+- name: TR 💥Config_jo-238
+  type: vless
+  server: 198.105.123.88
+  port: 8080
+  uuid: 64d64c94-79bb-4404-8195-63e2bc4622fb
+  udp: true
+  tls: false
+  network: tcp
+- name: FI 💥Config_jo-239
+  type: vless
+  server: 65.109.218.12
+  port: 5050
+  uuid: 64d64c94-79bb-4404-8195-63e2bc4622fb
+  udp: true
+  tls: false
+  network: tcp
+- name: DE 💥Config_jo-240
+  type: vless
+  server: 91.107.155.110
+  port: 8080
+  uuid: 64d64c94-79bb-4404-8195-63e2bc4622fb
+  udp: true
+  tls: false
+  network: tcp
+- name: TR 💥Config_jo-241
+  type: vless
+  server: tru.speedng.ir
+  port: 8080
+  uuid: 64d64c94-79bb-4404-8195-63e2bc4622fb
+  udp: true
+  tls: false
+  network: tcp
+- name: CA 💥Config_jo-242
   type: vless
   server: 158.69.112.254
   port: 443
@@ -1063,73 +1253,147 @@ proxies:
   reality-opts:
     public-key: wo417FrFdjy7ZhccQ-VWGZEKcoCHSEfyWcJT1pIVc1Y
     short-id: 3d3c1e645f763ee3
-- name: CLOUDFLARE 💥Config_jo-202
+- name: FR 💥Config_jo-243
   type: vless
-  server: 104.18.4.130
-  port: 80
-  uuid: 66fb823b-3de8-45a3-9060-1dc992c38cc9
-  udp: true
-  tls: false
-  network: ws
-  ws-opts:
-    path: /CooonfigCooonfigCooonfigCooonfigCooonfig
-    headers:
-      Host: msjsi.azazilvpn.sbs.
-- name: US 💥Config_jo-203
-  type: vless
-  server: faultpass-panel-production.up.railway.app
+  server: 62.60.157.101
   port: 443
-  uuid: 6e6e3896-a9c4-5ed3-66f7-39f677ab55f7
+  uuid: 66ac188b-bd8d-4218-b9ba-0bad0e152cd0
   udp: true
   tls: true
-  client-fingerprint: chrome
-  network: ws
-  servername: faultpass-panel-production.up.railway.app
-  ws-opts:
-    path: /ws/6e6e3896-a9c4-5ed3-66f7-39f677ab55f7
-    headers:
-      Host: faultpass-panel-production.up.railway.app
-- name: NL 💥Config_jo-204
+  network: tcp
+  servername: fra-04.hello-there.ru
+- name: FASTLY 💥Config_jo-244
   type: vless
-  server: 212.46.33.5
+  server: 199.232.78.159
   port: 443
-  uuid: 71091100-c6ed-41fa-84ac-acf7ff9eeb7f
+  uuid: 6c0c6fc2-1092-4b66-982b-320f49f95bc3
+  udp: true
+  tls: true
+  network: ws
+  servername: ssl.fastly.com
+  ws-opts:
+    path: /
+    headers:
+      Host: pokerrr.global.ssl.fastly.net
+- name: FASTLY 💥Config_jo-245
+  type: vless
+  server: 199.232.78.159
+  port: 443
+  uuid: 6c0c6fc2-1092-4b66-982b-320f49f95bc3
+  udp: true
+  tls: true
+  network: ws
+  servername: ssl.fastly.com
+  ws-opts:
+    path: /
+    headers:
+      Host: looazjboijji.global.ssl.fastly.net.
+- name: FASTLY 💥Config_jo-246
+  type: vless
+  server: 199.232.78.159
+  port: 443
+  uuid: 6c0c6fc2-1092-4b66-982b-320f49f95bc3
+  udp: true
+  tls: true
+  network: ws
+  servername: ssl.fastly.com
+  ws-opts:
+    path: /
+    headers:
+      Host: pokerrr.global.ssl.fastly.net
+- name: FASTLY 💥Config_jo-247
+  type: vless
+  server: 199.232.78.159
+  port: 443
+  uuid: 6c0c6fc2-1092-4b66-982b-320f49f95bc3
+  udp: true
+  tls: true
+  network: ws
+  servername: ssl.fastly.com
+  ws-opts:
+    path: /
+    headers:
+      Host: ukvman.global.ssl.fastly.net
+- name: FASTLY 💥Config_jo-248
+  type: vless
+  server: 199.232.78.159
+  port: 443
+  uuid: 6c0c6fc2-1092-4b66-982b-320f49f95bc3
+  udp: true
+  tls: true
+  network: ws
+  servername: ssl.fastly.com
+  ws-opts:
+    path: /
+    headers:
+      Host: looazjboijji.global.ssl.fastly.net.
+- name: FASTLY 💥Config_jo-249
+  type: vless
+  server: 199.232.78.159
+  port: 443
+  uuid: 6c0c6fc2-1092-4b66-982b-320f49f95bc3
+  udp: true
+  tls: true
+  network: ws
+  servername: ssl.fastly.com
+  ws-opts:
+    path: /
+    headers:
+      Host: pokerrr.global.ssl.fastly.net
+- name: FASTLY 💥Config_jo-250
+  type: vless
+  server: 199.232.78.159
+  port: 443
+  uuid: 6c0c6fc2-1092-4b66-982b-320f49f95bc3
+  udp: true
+  tls: true
+  network: ws
+  servername: ssl.fastly.com
+  ws-opts:
+    path: /
+    headers:
+      Host: ukvman.global.ssl.fastly.net
+- name: US 💥Config_jo-251
+  type: vless
+  server: 23.191.200.207
+  port: 443
+  uuid: 715569e9-ee89-4b7d-b276-e73c8b4e964b
   udp: true
   tls: true
   flow: xtls-rprx-vision
+  client-fingerprint: chrome
   network: tcp
-  servername: slowkd.sadiepinki.com
+  servername: dl.google.com
   reality-opts:
-    public-key: z37XIezsPyfMgmdXyFd9qT4C4maDAs1OcRt-wfyrXVo
-    short-id: 9c2378562188c3cb
-- name: TR 💥Config_jo-205
+    public-key: 7j3hmlHrEDk3Kjx-dFG3E3jf0c6PZF45trIPFsuKWmI
+- name: NL 💥Config_jo-252
   type: vless
-  server: ciel.hlsd.ir
-  port: 8000
-  uuid: 768b300d-e07a-48d9-91c1-09bc58a02ce0
+  server: 192.209.62.143
+  port: 34342
+  uuid: 756793c9-8728-4d3d-8823-43a254846c50
   udp: true
   tls: true
-  client-fingerprint: chrome
-  network: grpc
-  servername: amp-api-edge.apps.apple.com
+  client-fingerprint: safari
+  network: tcp
+  servername: aktest-secure.westelm.com
   reality-opts:
-    public-key: m92Jrvm8L9_MIipNGvUfIdD6Vgl2QNvaelQ9zRXkT2E
-    short-id: 14ada98f
-- name: RU 💥Config_jo-206
+    public-key: lyzDzDe-gZf5XFFHoqb_C0UTed90cvor000xeOCI_Vs
+    short-id: 1b7470e8
+- name: RU 💥Config_jo-253
   type: vless
-  server: 188.225.42.6
+  server: 188.225.25.142
   port: 443
   uuid: 7cde4592-4758-415f-8b97-c188faa4d1c9
   udp: true
   tls: true
   flow: xtls-rprx-vision
-  client-fingerprint: chrome
+  client-fingerprint: firefox
   network: tcp
-  servername: app6.betust.net
+  servername: prime.betust.net
   reality-opts:
-    public-key: sS3x_ZygtA9uZ5WaYm7pHjy0_lPNUUK7kOSLz0BNhCs
-    short-id: 54ac91da
-- name: RU 💥Config_jo-207
+    public-key: SxbaWzlvE_HQqqsA4PNX2PFcSYXTVE2nZlgLc7cPOgk
+    short-id: 8681edc9
+- name: RU 💥Config_jo-254
   type: vless
   server: 188.225.77.241
   port: 443
@@ -1143,64 +1407,103 @@ proxies:
   reality-opts:
     public-key: YczbievYAOeZIypa58aRpil6XbfdyifK_0cFJWn8-yg
     short-id: d6c172d3
-- name: FI 💥Config_jo-208
+- name: DE 💥Config_jo-255
   type: vless
-  server: 65.109.178.91
-  port: 9443
-  uuid: 835604a6-06b7-4270-a670-cb211af5c65c
-  udp: true
-  tls: false
-  network: tcp
-- name: FI 💥Config_jo-209
-  type: vless
-  server: 65.109.178.91
-  port: 9443
-  uuid: 835604a6-06b7-4270-a670-cb211af5c65c
-  udp: true
-  tls: false
-  network: tcp
-- name: CLOUDFLARE 💥Config_jo-210
-  type: vless
-  server: 188.114.97.6
-  port: 443
-  uuid: 86c50e3a-5b87-49dd-bd20-03c7f2735e40
+  server: dl2.musicworldtg.com
+  port: 2018
+  uuid: 834e5553-d80e-4078-8d7e-482fafe9bbaf
   udp: true
   tls: true
-  client-fingerprint: unsafe
+  client-fingerprint: chrome
+  network: tcp
+  servername: gemini.com
+  reality-opts:
+    public-key: Sn8z3wbt2Zpoo3mO3HLW6TZTjN8231Ylka7apFNb2X0
+    short-id: cd5f260bcdd9c92d
+- name: CLOUDFLARE 💥Config_jo-256
+  type: vless
+  server: www.fbi.gov
+  port: 2095
+  uuid: 86c50e3a-5b87-49dd-bd20-03c7f2735e40
+  udp: true
+  tls: false
   network: ws
   servername: llm-api.sofurry.dpdns.org
   ws-opts:
     path: /
     headers:
       Host: llm-api.sofurry.dpdns.org
-- name: TR 💥Config_jo-211
+- name: CLOUDFLARE 💥Config_jo-257
   type: vless
-  server: x.t1.rzfp.ir
-  port: 8443
-  uuid: 96be3432-b9e8-4c93-b7a9-3acca5574dd3
+  server: www.npmjs.com
+  port: 2095
+  uuid: 86c50e3a-5b87-49dd-bd20-03c7f2735e40
   udp: true
-  tls: true
-  client-fingerprint: chrome
-  network: tcp
-  servername: www.goo.gl
-  reality-opts:
-    public-key: Od26H7_yIOnMYOyZ2vslmsd3IDoWKo3vV5kVom9OxU0
-    short-id: 377d
-- name: FASTLY 💥Config_jo-212
-  type: vless
-  server: 151.101.56.6
-  port: 443
-  uuid: 9ccf8612-5e16-4b16-834e-4df5fe3611cd
-  udp: true
-  tls: true
-  client-fingerprint: firefox
+  tls: false
   network: ws
-  servername: ssl.fastly.com
+  servername: llm-api.sofurry.dpdns.org
   ws-opts:
-    path: /?TELEGRAM--BYA--/@CoonfigCloud---@CoonfigCloud@CoonfigCloud---@CoonfigCloud@CoonfigCloud---@CoonfigCloud@CoonfigCloud---@CoonfigCloud@CoonfigCloud---@CoonfigCloud@CoonfigCloud---@CoonfigCloud@CoonfigCloud---@CoonfigCloud@CoonfigCloud---@CoonfigCloud
+    path: /
     headers:
-      Host: c12.com
-- name: FASTLY 💥Config_jo-213
+      Host: llm-api.sofurry.dpdns.org
+- name: CLOUDFLARE 💥Config_jo-258
+  type: vless
+  server: www.udemy.com
+  port: 2095
+  uuid: 86c50e3a-5b87-49dd-bd20-03c7f2735e40
+  udp: true
+  tls: false
+  network: ws
+  servername: llm-api.sofurry.dpdns.org
+  ws-opts:
+    path: /
+    headers:
+      Host: llm-api.sofurry.dpdns.org
+- name: RU 💥Config_jo-259
+  type: vless
+  server: 188.225.25.195
+  port: 443
+  uuid: 94877739-3af6-4fbb-85b6-ca6fe86c7696
+  udp: true
+  tls: true
+  flow: xtls-rprx-vision
+  client-fingerprint: random
+  network: tcp
+  servername: app25.betust.net
+  reality-opts:
+    public-key: Fe_144ALuRRedGs06ljDnE1f_G2B2wE4i9_diqw5LnY
+    short-id: a16bc894
+- name: RU 💥Config_jo-260
+  type: vless
+  server: 188.225.77.241
+  port: 443
+  uuid: 94877739-3af6-4fbb-85b6-ca6fe86c7696
+  udp: true
+  tls: true
+  flow: xtls-rprx-vision
+  client-fingerprint: random
+  network: tcp
+  servername: api.betust.net
+  reality-opts:
+    public-key: YczbievYAOeZIypa58aRpil6XbfdyifK_0cFJWn8-yg
+    short-id: d6c172d3
+- name: US 💥Config_jo-261
+  type: vless
+  server: 136.148.77.42
+  port: 8080
+  uuid: 96be5da6-5a25-4c96-b790-08fb39f69f07
+  udp: true
+  tls: false
+  network: tcp
+- name: FI 💥Config_jo-262
+  type: vless
+  server: 65.109.218.12
+  port: 5050
+  uuid: 96be5da6-5a25-4c96-b790-08fb39f69f07
+  udp: true
+  tls: false
+  network: tcp
+- name: FASTLY 💥Config_jo-263
   type: vless
   server: a2.arshia-nova.ir
   port: 443
@@ -1214,47 +1517,7 @@ proxies:
     path: /
     headers:
       Host: c12.com
-- name: FASTLY 💥Config_jo-214
-  type: vless
-  server: k2.cloud--vpn.site
-  port: 443
-  uuid: 9ccf8612-5e16-4b16-834e-4df5fe3611cd
-  udp: true
-  tls: true
-  client-fingerprint: firefox
-  network: ws
-  servername: ssl.fastly.com
-  ws-opts:
-    path: /
-    headers:
-      Host: c12.com
-- name: RU 💥Config_jo-215
-  type: vless
-  server: 62.152.58.182
-  port: 443
-  uuid: 9e4f675b-d6bf-42d1-be55-389f622783af
-  udp: true
-  tls: true
-  client-fingerprint: safari
-  network: grpc
-  servername: 360.yandex.ru
-  reality-opts:
-    public-key: JBKJlzuJH1YzDHAoz28wEKbzWTGpDpKjgtSq0oT0a0k
-    short-id: 27e53bbcab7593d7
-- name: RU 💥Config_jo-216
-  type: vless
-  server: 62.152.58.182
-  port: 443
-  uuid: 9e4f675b-d6bf-42d1-be55-389f622783af
-  udp: true
-  tls: true
-  client-fingerprint: safari
-  network: grpc
-  servername: 360.yandex.ru
-  reality-opts:
-    public-key: JBKJlzuJH1YzDHAoz28wEKbzWTGpDpKjgtSq0oT0a0k
-    short-id: 27e53bbcab7593d7
-- name: FASTLY 💥Config_jo-217
+- name: FASTLY 💥Config_jo-264
   type: vless
   server: 199.232.78.160
   port: 443
@@ -1268,7 +1531,7 @@ proxies:
     path: /
     headers:
       Host: Appxdn.global.ssl.fastly.net
-- name: FASTLY 💥Config_jo-218
+- name: FASTLY 💥Config_jo-265
   type: vless
   server: 199.232.78.160
   port: 443
@@ -1282,35 +1545,23 @@ proxies:
     path: /
     headers:
       Host: Appxdn.global.ssl.fastly.net
-- name: FASTLY 💥Config_jo-219
+- name: US 💥Config_jo-266
   type: vless
-  server: 199.232.78.170
-  port: 443
-  uuid: XpnTeam-37
+  server: 136.148.77.42
+  port: 8080
+  uuid: a0178cd2-6435-4beb-a5a6-8e50aa797068
   udp: true
-  tls: true
-  client-fingerprint: chrome
-  network: ws
-  servername: ssl.fastly.com
-  ws-opts:
-    path: /
-    headers:
-      Host: Appxdn.global.ssl.fastly.net
-- name: FASTLY 💥Config_jo-220
+  tls: false
+  network: tcp
+- name: DE 💥Config_jo-267
   type: vless
-  server: 199.232.78.160
-  port: 443
-  uuid: XpnTeam-38
+  server: 159.69.192.253
+  port: 8080
+  uuid: a0178cd2-6435-4beb-a5a6-8e50aa797068
   udp: true
-  tls: true
-  client-fingerprint: chrome
-  network: ws
-  servername: ssl.fastly.com
-  ws-opts:
-    path: /
-    headers:
-      Host: Appxdn.global.ssl.fastly.net
-- name: TR 💥Config_jo-221
+  tls: false
+  network: tcp
+- name: TR 💥Config_jo-268
   type: vless
   server: 93.190.9.58
   port: 3090
@@ -1318,21 +1569,32 @@ proxies:
   udp: true
   tls: false
   network: grpc
-- name: AE 💥Config_jo-222
+- name: NL 💥Config_jo-269
   type: vless
-  server: 94.183.154.216
-  port: 2003
-  uuid: a224d815-c1a6-4898-92e6-1602ce706ddd
+  server: legenda-bm-s1518.reverseenge.sbs
+  port: 443
+  uuid: a47843cc-7583-419e-8eab-6492fa55b5cd
   udp: true
   tls: true
   flow: xtls-rprx-vision
-  client-fingerprint: chrome
+  client-fingerprint: firefox
   network: tcp
-  servername: www.filimo.com
+  servername: legenda-bm-s1518.reverseenge.sbs
   reality-opts:
-    public-key: oxVeOPOnhOnMvPA-pZ2z_OAbXsf2oCp9YRt7TcmdjBo
-    short-id: 2c4a61e923dd21e2
-- name: DE 💥Config_jo-223
+    public-key: PnJR7EWijGlzVtRNpXu74L1wTQmNr369VZCc10K-rlE
+- name: DE 💥Config_jo-270
+  type: vless
+  server: api.noneok.com
+  port: 443
+  uuid: a8e3155b-ceb1-4fcb-bc0c-2e77ec005401
+  udp: true
+  tls: true
+  network: grpc
+  servername: api.noneok.com
+  reality-opts:
+    public-key: S8O8R938N960cpQfIIDXsJTxeGAkbVv6PlIqP0-d30w
+    short-id: 1ea59febb8d4fc8e
+- name: DE 💥Config_jo-271
   type: vless
   server: files.noneok.com
   port: 443
@@ -1345,7 +1607,7 @@ proxies:
   reality-opts:
     public-key: q3kOYHdjmqWLLYj8oikvna1bTjofk45ktegGaJE611g
     short-id: d3b394558cfe0266
-- name: FR 💥Config_jo-224
+- name: FR 💥Config_jo-272
   type: vless
   server: 137.74.16.237
   port: 443
@@ -1358,78 +1620,15 @@ proxies:
   reality-opts:
     public-key: 7LSzvilTVKGMtBDuKGeMrLtlhY7tQf5YcG566dEgO0I
     short-id: b390e0a721d242b0
-- name: N/A 💥Config_jo-225
+- name: IR 💥Config_jo-273
   type: vless
-  server: m.f2.rzfp.ir
-  port: 8080
-  uuid: abca71dd-c87f-43b3-ac42-7dcd00e31054
+  server: snapp.ir
+  port: 8880
+  uuid: b35944c5-165d-40dd-87aa-ed842d3cfd4b
   udp: true
   tls: false
   network: tcp
-- name: US 💥Config_jo-226
-  type: vless
-  server: m.n1.rzfp.ir
-  port: 8080
-  uuid: abca71dd-c87f-43b3-ac42-7dcd00e31054
-  udp: true
-  tls: false
-  network: tcp
-- name: US 💥Config_jo-227
-  type: vless
-  server: m.n1.rzfp.ir
-  port: 8443
-  uuid: abca71dd-c87f-43b3-ac42-7dcd00e31054
-  udp: true
-  tls: true
-  client-fingerprint: chrome
-  network: tcp
-  servername: www.goo.gl
-  reality-opts:
-    public-key: Od26H7_yIOnMYOyZ2vslmsd3IDoWKo3vV5kVom9OxU0
-    short-id: 377d
-- name: N/A 💥Config_jo-228
-  type: vless
-  server: m.n2.rzfp.ir
-  port: 8080
-  uuid: abca71dd-c87f-43b3-ac42-7dcd00e31054
-  udp: true
-  tls: false
-  network: tcp
-- name: TR 💥Config_jo-229
-  type: vless
-  server: x.t1.rzfp.ir
-  port: 8080
-  uuid: abca71dd-c87f-43b3-ac42-7dcd00e31054
-  udp: true
-  tls: false
-  network: tcp
-- name: TR 💥Config_jo-230
-  type: vless
-  server: x.t1.rzfp.ir
-  port: 8443
-  uuid: abca71dd-c87f-43b3-ac42-7dcd00e31054
-  udp: true
-  tls: true
-  client-fingerprint: chrome
-  network: tcp
-  servername: www.goo.gl
-  reality-opts:
-    public-key: Od26H7_yIOnMYOyZ2vslmsd3IDoWKo3vV5kVom9OxU0
-    short-id: 377d
-- name: DE 💥Config_jo-231
-  type: vless
-  server: sde.movieham.ir
-  port: 5494
-  uuid: ac76e123-d0e9-4448-8689-b6b984e73c40
-  udp: true
-  tls: true
-  client-fingerprint: chrome
-  network: tcp
-  servername: play.google.com
-  reality-opts:
-    public-key: SzDv43wbpLLk6ADfHa8P6lsHTEa1d3zf6BSzVtdsHSc
-    short-id: ee03b6b28718ef49
-- name: DE 💥Config_jo-232
+- name: DE 💥Config_jo-274
   type: vless
   server: 188.137.231.200
   port: 24562
@@ -1442,7 +1641,7 @@ proxies:
   reality-opts:
     public-key: 0Ke_kOZwpSESFBQCfYWn7pDY_tJyv8gsWX6fXbO7Zyo
     short-id: 6279cd
-- name: CLOUDFLARE 💥Config_jo-233
+- name: CLOUDFLARE 💥Config_jo-275
   type: vless
   server: 104.16.10.199
   port: 443
@@ -1456,33 +1655,30 @@ proxies:
     path: /
     headers:
       Host: u.srilankangrill.online
-- name: SG 💥Config_jo-234
+- name: NL 💥Config_jo-276
   type: vless
-  server: 163.128.99.14
-  port: 443
-  uuid: bda35755-c838-49c3-a19e-3712f2d54275
+  server: 192.209.62.143
+  port: 34342
+  uuid: bfdb379c-e2f1-4e22-b4fd-02261501ce3d
   udp: true
   tls: true
-  flow: xtls-rprx-vision
   client-fingerprint: safari
   network: tcp
-  servername: www.apple.com
+  servername: mydesktop-api.oracle.com
   reality-opts:
-    public-key: -LuhwN_cSgNr7nYIfCcu_XAjviKVSGwVGHxmB-s1AD0
-    short-id: e3a4bdfe3d6fd8ec
-- name: N/A 💥Config_jo-235
-  type: vless
-  server: ll.vpxpp.ir
-  port: 2050
-  uuid: c28d0968-ba07-4861-ab71-8b7f990471c0
-  udp: true
-  tls: true
-  client-fingerprint: chrome
-  network: tcp
-  servername: tls.zerossrz.ir
-- name: CLOUDFLARE 💥Config_jo-236
+    public-key: lyzDzDe-gZf5XFFHoqb_C0UTed90cvor000xeOCI_Vs
+    short-id: 1b7470e8
+- name: CLOUDFLARE 💥Config_jo-277
   type: vless
   server: 104.16.10.2
+  port: 443
+  uuid: c4edb87e-8544-4fa4-bd1c-b0cda9a34b46
+  udp: true
+  tls: true
+  network: tcp
+- name: CLOUDFLARE 💥Config_jo-278
+  type: vless
+  server: 188.114.97.6
   port: 443
   uuid: c4edb87e-8544-4fa4-bd1c-b0cda9a34b46
   udp: true
@@ -1490,10 +1686,10 @@ proxies:
   network: ws
   servername: a.cwvps.eu.org
   ws-opts:
-    path: /ws#TELEGRAM--MARAMBASHI--MARAMBASHI?ed=512
+    path: /ws
     headers:
       Host: a.cwvps.eu.org
-- name: GB 💥Config_jo-237
+- name: GB 💥Config_jo-279
   type: vless
   server: 31.76.39.141
   port: 443
@@ -1507,7 +1703,7 @@ proxies:
   reality-opts:
     public-key: G2U8_BvRAgcOw0sX8u_0yYdVAlD8CWLSi-uYjvH07hw
     short-id: 4fa44664f6a566d3
-- name: SC 💥Config_jo-238
+- name: SC 💥Config_jo-280
   type: vless
   server: 45.95.96.236
   port: 443
@@ -1520,7 +1716,46 @@ proxies:
   reality-opts:
     public-key: rCkSHJ7goy7ZvSlau4LfXF-QLloOJMNeMxpeeQtwtVs
     short-id: 4fa44664f6a566d3
-- name: PL 💥Config_jo-239
+- name: SC 💥Config_jo-281
+  type: vless
+  server: gesmankos.sadiepinki.com
+  port: 443
+  uuid: c5694dc5-39fd-4a92-8430-3837baa522a3
+  udp: true
+  tls: true
+  flow: xtls-rprx-vision
+  client-fingerprint: firefox
+  network: tcp
+  reality-opts:
+    public-key: rCkSHJ7goy7ZvSlau4LfXF-QLloOJMNeMxpeeQtwtVs
+    short-id: 4fa44664f6a566d3
+- name: NL 💥Config_jo-282
+  type: vless
+  server: 192.209.62.143
+  port: 34342
+  uuid: c6737945-1866-4133-9aa0-23f92e889ff8
+  udp: true
+  tls: true
+  client-fingerprint: safari
+  network: tcp
+  servername: dtlpi-static.uat1.dealertrack.com
+  reality-opts:
+    public-key: lyzDzDe-gZf5XFFHoqb_C0UTed90cvor000xeOCI_Vs
+    short-id: 1b7470e8
+- name: FI 💥Config_jo-283
+  type: vless
+  server: 150.241.71.245
+  port: 443
+  uuid: c795bdd5-0460-42bd-927b-fbff154d2ab5
+  udp: true
+  tls: true
+  flow: xtls-rprx-vision
+  client-fingerprint: safari
+  network: tcp
+  servername: gag.fl.iki-servers.com
+  reality-opts:
+    public-key: ssz8kvl1tH0TUaFREVSV_X-ED0AR-eeaWpKg2jQM8D8
+- name: PL 💥Config_jo-284
   type: vless
   server: pl6.moritech.net
   port: 443
@@ -1531,65 +1766,73 @@ proxies:
   client-fingerprint: chrome
   network: tcp
   servername: pl6.moritech.net
-- name: DE 💥Config_jo-240
+- name: IR 💥Config_jo-285
   type: vless
-  server: rubifen.adaspoloandco.com
-  port: 443
-  uuid: cf39fab0-bb85-42cb-9945-2ad69d78e575
-  udp: true
-  tls: true
-  client-fingerprint: chrome
-  network: ws
-  servername: rubifen.adaspoloandco.com
-  ws-opts:
-    path: /GOrbEh
-    headers:
-      Host: rubifen.adaspoloandco.com
-- name: DE 💥Config_jo-241
-  type: vless
-  server: rubifen.adaspoloandco.com
-  port: 443
-  uuid: cf39fab0-bb85-42cb-9945-2ad69d78e575
-  udp: true
-  tls: true
-  network: ws
-  servername: rubifen.adaspoloandco.com
-  ws-opts:
-    path: /GOrbEh
-    headers:
-      Host: rubifen.adaspoloandco.com
-- name: US 💥Config_jo-242
-  type: vless
-  server: 13.143.141.78
-  port: 443
-  uuid: cfed68c4-fc10-4638-b3ca-140e1e873797
+  server: 62.60.152.1
+  port: 56328
+  uuid: ce230b9c-0531-40da-bc3f-f27a8e059db1
   udp: true
   tls: true
   flow: xtls-rprx-vision
   network: tcp
-  servername: cloudflare.com
+  servername: table.vkroom-it-service.xyz
   reality-opts:
-    public-key: uC78OW2K0vnJ5dJUh9YucAp2YbzBS2PrIZlbwgmdrGQ
-    short-id: a9883bcbf4ccc58f
-- name: CLOUDFLARE 💥Config_jo-243
+    public-key: iI1pc8k9-mIPHL2Dga-4n4h3KoBT68lN434nglpgm2M
+    short-id: f3a9c21e8b6d4571
+- name: DE 💥Config_jo-286
   type: vless
-  server: b2n.ir
+  server: rubifen.adaspoloandco.com
   port: 443
-  uuid: d5af4dfe-eaf1-460c-87aa-fefe930db0ba
+  uuid: cf39fab0-bb85-42cb-9945-2ad69d78e575
   udp: true
   tls: true
-  network: tcp
-  servername: chopin.paxr.ir
-- name: CLOUDFLARE 💥Config_jo-244
+  network: ws
+  servername: rubifen.adaspoloandco.com
+  ws-opts:
+    path: /GOrbEh
+    headers:
+      Host: rubifen.adaspoloandco.com
+- name: US 💥Config_jo-287
   type: vless
-  server: darsadgir.ir
+  server: 179.254.109.54
   port: 443
-  uuid: d5af4dfe-eaf1-460c-87aa-fefe930db0ba
+  uuid: d0f0a880-0df1-0005-bdf1-5669fb9483ce
   udp: true
   tls: true
+  flow: xtls-rprx-vision
+  client-fingerprint: firefox
   network: tcp
-  servername: chopin.paxr.ir
-- name: DE 💥Config_jo-245
+  servername: cosw.ggisopi.su
+  reality-opts:
+    public-key: SB1uC0OEveYjSiS_Nuw9Ld-uVVXWqi794OGnldthY3I
+- name: US 💥Config_jo-288
+  type: vless
+  server: conge.ggisopi.su
+  port: 443
+  uuid: d0f0a880-0df1-48c9-bdf1-5669fb9483ce
+  udp: true
+  tls: true
+  flow: xtls-rprx-vision
+  client-fingerprint: chrome
+  network: tcp
+  servername: conge.ggisopi.su
+  reality-opts:
+    public-key: SB1uC0OEveYjSiS_Nuw9Ld-uVVXWqi794OGnldthY3I
+- name: FI 💥Config_jo-289
+  type: vless
+  server: 31.76.80.230
+  port: 8443
+  uuid: d544c858-b1ba-45b2-8868-8197daf2a6ee
+  udp: true
+  tls: true
+  client-fingerprint: safari
+  network: ws
+  servername: fin.luxes.network
+  ws-opts:
+    path: /assets
+    headers:
+      Host: fin.luxes.network
+- name: DE 💥Config_jo-290
   type: vless
   server: 169.40.42.184
   port: 443
@@ -1603,35 +1846,7 @@ proxies:
   reality-opts:
     public-key: e2RLf57Li_-MDZGE9ss1BWPgP54mqRb5PfXhW2jcVVg
     short-id: c39cc7310a
-- name: DE 💥Config_jo-246
-  type: vless
-  server: 169.40.42.75
-  port: 443
-  uuid: d65cc14c-f53f-4fe2-b262-97856601319c
-  udp: true
-  tls: true
-  flow: xtls-rprx-vision
-  client-fingerprint: chrome
-  network: tcp
-  servername: yahoo.com
-  reality-opts:
-    public-key: e2RLf57Li_-MDZGE9ss1BWPgP54mqRb5PfXhW2jcVVg
-    short-id: c39cc7310a
-- name: US 💥Config_jo-247
-  type: vless
-  server: w-production-87a7.up.railway.app
-  port: 443
-  uuid: d6e661a5-1f74-61df-0a2d-51f1537070f9
-  udp: true
-  tls: true
-  client-fingerprint: chrome
-  network: ws
-  servername: w-production-87a7.up.railway.app
-  ws-opts:
-    path: /ws/d6e661a5-1f74-61df-0a2d-51f1537070f9
-    headers:
-      Host: w-production-87a7.up.railway.app
-- name: PL 💥Config_jo-248
+- name: PL 💥Config_jo-291
   type: vless
   server: 179.198.49.43
   port: 443
@@ -1645,7 +1860,21 @@ proxies:
   reality-opts:
     public-key: SibLV5WBGdljTiUCmKx77KhHQfErCwjDMD_ZLoha3js
     short-id: a1b2c3d4e5f67890
-- name: NL 💥Config_jo-249
+- name: NL 💥Config_jo-292
+  type: vless
+  server: 212.46.33.90
+  port: 443
+  uuid: dac0bd30-008f-42c9-b377-bfc0dcfa6f0b
+  udp: true
+  tls: true
+  flow: xtls-rprx-vision
+  client-fingerprint: chrome
+  network: tcp
+  servername: slowkd.sadiepinki.com
+  reality-opts:
+    public-key: z37XIezsPyfMgmdXyFd9qT4C4maDAs1OcRt-wfyrXVo
+    short-id: 9c2378562188c3cb
+- name: NL 💥Config_jo-293
   type: vless
   server: 212.46.33.90
   port: 443
@@ -1659,20 +1888,7 @@ proxies:
   reality-opts:
     public-key: z37XIezsPyfMgmdXyFd9qT4C4maDAs1OcRt-wfyrXVo
     short-id: 9c2378562188c3cb
-- name: NL 💥Config_jo-250
-  type: vless
-  server: slowkd.sadiepinki.com
-  port: 443
-  uuid: dac0bd30-008f-42c9-b377-bfc0dcfa6f0b
-  udp: true
-  tls: true
-  flow: xtls-rprx-vision
-  network: tcp
-  servername: slowkd.sadiepinki.com
-  reality-opts:
-    public-key: z37XIezsPyfMgmdXyFd9qT4C4maDAs1OcRt-wfyrXVo
-    short-id: 9c2378562188c3cb
-- name: CLOUDFLARE 💥Config_jo-251
+- name: CLOUDFLARE 💥Config_jo-294
   type: vless
   server: chatgpt.com
   port: 80
@@ -1684,61 +1900,58 @@ proxies:
     path: /CooonfigCooonfigCooonfigCooonfigCooonfig
     headers:
       Host: msjsi.azazilvpn.sbs.
-- name: N/A 💥Config_jo-252
+- name: NL 💥Config_jo-295
   type: vless
-  server: uusd66.th3store.ir
-  port: 8443
-  uuid: df2086c8-c706-4fe2-af07-cc5eff272a8d
+  server: 109.176.91.28
+  port: 443
+  uuid: e42ba0b1-39a0-48fd-a80f-f3fca3bb4c6d
   udp: true
   tls: true
-  client-fingerprint: chrome
-  network: ws
-  servername: jjsajajsjjajsjjasjajsjajsjsaj.com
-  ws-opts:
-    path: /hjhjsahsa6sa6sa
-    headers:
-      Host: uusd66.th3store.ir
-- name: FR 💥Config_jo-253
+  client-fingerprint: safari
+  network: grpc
+  servername: cloudcdn-m9-15.cdn.yandex.net
+  reality-opts:
+    public-key: zvDl-tnM_FtSLG45j7FXchPAl1dFJaE_T0Lgy26xuXU
+    short-id: b9e7a1c4d8329f10
+- name: GB 💥Config_jo-296
   type: vless
-  server: 13.37.167.120
+  server: 18.133.172.254
   port: 22222
   uuid: e4514801-0d5a-42ba-869f-39bd605aef9e
   udp: true
   tls: false
   network: tcp
-- name: FR 💥Config_jo-254
+- name: GB 💥Config_jo-297
   type: vless
-  server: 13.37.167.120
+  server: 18.133.172.254
   port: 22223
   uuid: e4514801-0d5a-42ba-869f-39bd605aef9e
   udp: true
   tls: false
   network: tcp
-- name: FR 💥Config_jo-255
+- name: GB 💥Config_jo-298
   type: vless
-  server: 35.180.175.72
+  server: 18.171.3.214
   port: 22223
   uuid: e4514801-0d5a-42ba-869f-39bd605aef9e
   udp: true
   tls: false
   network: tcp
-- name: FR 💥Config_jo-256
+- name: RU 💥Config_jo-299
   type: vless
-  server: 35.180.175.72
-  port: 22223
-  uuid: e4514801-0d5a-42ba-869f-39bd605aef9e
+  server: 159.194.217.26
+  port: 443
+  uuid: e48e4377-1f29-485b-80d4-85fd4fa27bfa
   udp: true
-  tls: false
+  tls: true
+  flow: xtls-rprx-vision
+  client-fingerprint: safari
   network: tcp
-- name: GB 💥Config_jo-257
-  type: vless
-  server: 52.56.145.227
-  port: 22223
-  uuid: e4514801-0d5a-42ba-869f-39bd605aef9e
-  udp: true
-  tls: false
-  network: tcp
-- name: LV 💥Config_jo-258
+  servername: www.siemens.com
+  reality-opts:
+    public-key: APL7UqMEGSeIQNe4evUy3gdFRnTD_l3UMtgTcIfh2XY
+    short-id: babcbe551bde8268
+- name: LV 💥Config_jo-300
   type: vless
   server: 46.8.228.52
   port: 28329
@@ -1751,7 +1964,7 @@ proxies:
   reality-opts:
     public-key: EmrdveO2Gy-rvuyzUEDtbRO7Kp0Zc5tIwoCHsMIr5Xs
     short-id: f79b
-- name: RU 💥Config_jo-259
+- name: RU 💥Config_jo-301
   type: vless
   server: 195.133.73.65
   port: 443
@@ -1765,7 +1978,7 @@ proxies:
   reality-opts:
     public-key: mza5Hn1aolSz65qu-UwvBP3oesxMe25r11o4nxvikF0
     short-id: 64c1fe36c7846400
-- name: RU 💥Config_jo-260
+- name: RU 💥Config_jo-302
   type: vless
   server: 195.133.73.65
   port: 443
@@ -1779,7 +1992,7 @@ proxies:
   reality-opts:
     public-key: mza5Hn1aolSz65qu-UwvBP3oesxMe25r11o4nxvikF0
     short-id: 64c1fe36c7846400
-- name: RU 💥Config_jo-261
+- name: RU 💥Config_jo-303
   type: vless
   server: tgfree.rush-server.com
   port: 443
@@ -1793,19 +2006,7 @@ proxies:
   reality-opts:
     public-key: mza5Hn1aolSz65qu-UwvBP3oesxMe25r11o4nxvikF0
     short-id: 64c1fe36c7846400
-- name: FASTLY 💥Config_jo-262
-  type: vless
-  server: 199.232.78.159
-  port: 80
-  uuid: ebeabf86-9b3d-4fdd-8fee-bfd65ca1ae36
-  udp: true
-  tls: false
-  network: ws
-  ws-opts:
-    path: /
-    headers:
-      Host: yaSharClass.global.ssl.fastly.net
-- name: IR 💥Config_jo-263
+- name: IR 💥Config_jo-304
   type: vless
   server: psde.ramcalshoping.ir
   port: 11706
@@ -1818,32 +2019,20 @@ proxies:
   reality-opts:
     public-key: gW8kYcclDhARUyny0Blxk2DB9Ygi3iNcKQtxkxjrcmU
     short-id: '78'
-- name: FR 💥Config_jo-264
+- name: NL 💥Config_jo-305
   type: vless
-  server: bazaar.ir.aparat.ir.alibaba.ir.fr.shagreatgain.roomode.ir
-  port: 2023
-  uuid: f30a84d0-a938-4a52-ad5b-05b955fe5cfb
+  server: 192.209.62.143
+  port: 34342
+  uuid: f245f3fc-8fc8-4e50-986f-be6ec660352c
   udp: true
   tls: true
-  client-fingerprint: chrome
+  client-fingerprint: safari
   network: tcp
-  servername: yahoo.com
+  servername: mydesktop.oracle.com
   reality-opts:
-    public-key: lw0JrDLsQtANuYqDnmvWWjbG4IjRsThDKzxrkvw8LRU
-    short-id: 21ddd0109c0be7b6
-- name: IR 💥Config_jo-265
-  type: vless
-  server: 194.146.68.109
-  port: 49115
-  uuid: f393d9f5-9d92-4b07-8728-d2edf2a5dbf5
-  udp: true
-  tls: false
-  network: ws
-  ws-opts:
-    path: /
-    headers:
-      Host: 194.146.68.109
-- name: CLOUDFLARE 💥Config_jo-266
+    public-key: lyzDzDe-gZf5XFFHoqb_C0UTed90cvor000xeOCI_Vs
+    short-id: 1b7470e8
+- name: CLOUDFLARE 💥Config_jo-306
   type: vless
   server: dl-cf.f8r.ir
   port: 80
@@ -1852,7 +2041,21 @@ proxies:
   tls: false
   flow: xtls-rprx-vision
   network: tcp
-- name: FR 💥Config_jo-267
+- name: BG 💥Config_jo-307
+  type: vless
+  server: 131.123.42.16
+  port: 443
+  uuid: f495298f-2bdb-4fd8-9ac9-5dd33d1b482a
+  udp: true
+  tls: true
+  flow: xtls-rprx-vision
+  client-fingerprint: chrome
+  network: tcp
+  servername: bolgarka.drop0chka.work
+  reality-opts:
+    public-key: W-zf_ncm9sYALF5EqvUsxqTkYGdAw-tQczT2SqwVMGE
+    short-id: ff776ff77be48b88
+- name: FR 💥Config_jo-308
   type: vless
   server: 185.171.202.106
   port: 443
@@ -1865,41 +2068,63 @@ proxies:
   reality-opts:
     public-key: W-zf_ncm9sYALF5EqvUsxqTkYGdAw-tQczT2SqwVMGE
     short-id: ff776ff77be48b88
-- name: IQ 💥Config_jo-268
+- name: CLOUDFLARE 💥Config_jo-309
   type: vless
-  server: 193.56.135.137
-  port: 9543
-  uuid: ff6d2dda-7b90-404e-9951-34b3124bfdfa
+  server: 104.21.61.141
+  port: 443
+  uuid: f85183cf-af02-4656-b1e9-3a61dced201f
+  udp: true
+  tls: true
+  client-fingerprint: chrome
+  network: ws
+  servername: fReeWORLd.aliAicODe47649.woRKers.Dev
+  ws-opts:
+    path: /vl/a6yBMrki2p7ptrchleFfb?ed#Telegram---PLANB_NET---PLANB_NET---PLANB_NET---PLANB_NET
+    headers:
+      Host: freeworld.aliaicode47649.workers.dev
+- name: CLOUDFLARE 💥Config_jo-310
+  type: vless
+  server: www.canva.com
+  port: 443
+  uuid: f91aac7d-a679-4a64-b479-e493bec76db0
+  udp: true
+  tls: true
+  client-fingerprint: chrome
+  network: ws
+  servername: shop.lilium-rozh.ir
+  ws-opts:
+    path: /sdvhjldsob
+    headers:
+      Host: shop.lilium-rozh.ir
+- name: GB 💥Config_jo-311
+  type: vless
+  server: 107.181.151.39
+  port: 443
+  uuid: fad0b9a6-187d-4fcc-96fc-498bc5b3135a
+  udp: true
+  tls: true
+  flow: xtls-rprx-vision
+  client-fingerprint: firefox
+  network: tcp
+  servername: www.foxsports.com
+  reality-opts:
+    public-key: J-dv-HrWfQ_IOoyutv0Kg-rO8QwoRwc02dS1dS_tblk
+    short-id: 8325360e8bd2
+- name: GB 💥Config_jo-312
+  type: vless
+  server: 107.181.151.39
+  port: 443
+  uuid: ff40696b-06d6-443b-9481-8d01eddd13e1
   udp: true
   tls: true
   flow: xtls-rprx-vision
   client-fingerprint: chrome
   network: tcp
-  servername: storage.yandexcloud.net
+  servername: www.foxsports.com
   reality-opts:
-    public-key: M6Ck7wUfOLhQl4582CBnaXwscPEP6SCpdEkUDzoj4Fc
-    short-id: 123abcde
-- name: IR 💥Config_jo-269
-  type: vmess
-  server: dl1.armd.fun
-  port: 443
-  uuid: f6f54cb7-6a60-49cd-a871-f7b26064dce9
-  alterId: 0
-  cipher: auto
-  tls: false
-  network: tcp
-  udp: true
-- name: FR 💥Config_jo-270
-  type: vmess
-  server: 45.80.215.8
-  port: 22324
-  uuid: 04621bae-ab36-11ec-b909-0242ac120002
-  alterId: 0
-  cipher: auto
-  tls: false
-  network: tcp
-  udp: true
-- name: ES 💥Config_jo-272
+    public-key: J-dv-HrWfQ_IOoyutv0Kg-rO8QwoRwc02dS1dS_tblk
+    short-id: d659da01fb94
+- name: ES 💥Config_jo-314
   type: vmess
   server: 66.163.118.73
   port: 22324
@@ -1909,7 +2134,17 @@ proxies:
   tls: false
   network: tcp
   udp: true
-- name: US 💥Config_jo-273
+- name: ES 💥Config_jo-315
+  type: vmess
+  server: 66.163.118.73
+  port: 22324
+  uuid: 04621bae-ab36-11ec-b909-0242ac120002
+  alterId: 0
+  cipher: auto
+  tls: false
+  network: tcp
+  udp: true
+- name: US 💥Config_jo-316
   type: vmess
   server: 67.220.95.3
   port: 18000
@@ -1919,7 +2154,7 @@ proxies:
   tls: false
   network: tcp
   udp: true
-- name: US 💥Config_jo-274
+- name: US 💥Config_jo-317
   type: vmess
   server: 67.220.95.3
   port: 18000
@@ -1929,7 +2164,17 @@ proxies:
   tls: false
   network: tcp
   udp: true
-- name: IT 💥Config_jo-275
+- name: DE 💥Config_jo-318
+  type: vmess
+  server: 77.90.11.178
+  port: 17662
+  uuid: eafa523f-3472-4efc-f1c5-6ce25b3910a9
+  alterId: 0
+  cipher: auto
+  tls: false
+  network: tcp
+  udp: true
+- name: IT 💥Config_jo-320
   type: vmess
   server: 89.41.172.85
   port: 22324
@@ -1939,7 +2184,7 @@ proxies:
   tls: false
   network: tcp
   udp: true
-- name: US 💥Config_jo-276
+- name: US 💥Config_jo-321
   type: vmess
   server: 167.88.63.59
   port: 22324
@@ -1949,7 +2194,7 @@ proxies:
   tls: false
   network: tcp
   udp: true
-- name: US 💥Config_jo-277
+- name: US 💥Config_jo-322
   type: vmess
   server: 172.111.38.100
   port: 22324
@@ -1965,329 +2210,373 @@ proxy-groups:
   proxies:
   - 💥 Best Ping 🚀
   - DIRECT
-  - RO 💥Config_jo-01
-  - DE 💥Config_jo-02
-  - US 💥Config_jo-03
-  - DE 💥Config_jo-04
-  - IE 💥Config_jo-67
-  - SE 💥Config_jo-69
-  - NL 💥Config_jo-70
-  - ZA 💥Config_jo-71
-  - IE 💥Config_jo-73
-  - NL 💥Config_jo-74
-  - US 💥Config_jo-75
-  - SE 💥Config_jo-76
-  - DE 💥Config_jo-77
-  - CLOUDFLARE 💥Config_jo-130
-  - CLOUDFLARE 💥Config_jo-131
-  - FASTLY 💥Config_jo-132
-  - FASTLY 💥Config_jo-133
-  - FASTLY 💥Config_jo-134
-  - FASTLY 💥Config_jo-135
-  - FASTLY 💥Config_jo-136
-  - FASTLY 💥Config_jo-137
-  - FASTLY 💥Config_jo-138
-  - FASTLY 💥Config_jo-139
-  - FASTLY 💥Config_jo-140
-  - FASTLY 💥Config_jo-141
-  - CLOUDFLARE 💥Config_jo-142
-  - CLOUDFLARE 💥Config_jo-143
-  - CLOUDFLARE 💥Config_jo-144
-  - CLOUDFLARE 💥Config_jo-145
-  - CLOUDFLARE 💥Config_jo-146
-  - CLOUDFLARE 💥Config_jo-147
+  - US 💥Config_jo-01
+  - US 💥Config_jo-02
+  - TW 💥Config_jo-88
+  - IE 💥Config_jo-89
+  - CA 💥Config_jo-91
+  - SE 💥Config_jo-92
+  - NL 💥Config_jo-94
+  - US 💥Config_jo-95
+  - DE 💥Config_jo-96
   - CLOUDFLARE 💥Config_jo-148
   - CLOUDFLARE 💥Config_jo-149
   - CLOUDFLARE 💥Config_jo-150
-  - CLOUDFLARE 💥Config_jo-151
-  - CLOUDFLARE 💥Config_jo-152
-  - CLOUDFLARE 💥Config_jo-153
-  - CLOUDFLARE 💥Config_jo-154
-  - CLOUDFLARE 💥Config_jo-155
-  - CLOUDFLARE 💥Config_jo-156
-  - CLOUDFLARE 💥Config_jo-157
+  - US 💥Config_jo-151
+  - FASTLY 💥Config_jo-152
+  - FASTLY 💥Config_jo-153
+  - FASTLY 💥Config_jo-154
+  - FASTLY 💥Config_jo-155
+  - FASTLY 💥Config_jo-156
+  - FASTLY 💥Config_jo-157
   - FASTLY 💥Config_jo-158
-  - FASTLY 💥Config_jo-159
-  - FASTLY 💥Config_jo-160
-  - FASTLY 💥Config_jo-161
-  - FASTLY 💥Config_jo-162
-  - FASTLY 💥Config_jo-163
-  - FASTLY 💥Config_jo-164
-  - FASTLY 💥Config_jo-165
-  - CY 💥Config_jo-166
-  - NL 💥Config_jo-167
-  - IR 💥Config_jo-168
-  - US 💥Config_jo-169
-  - US 💥Config_jo-170
-  - DE 💥Config_jo-171
-  - NL 💥Config_jo-172
-  - IR 💥Config_jo-173
-  - DE 💥Config_jo-174
-  - FASTLY 💥Config_jo-175
-  - DE 💥Config_jo-176
-  - DE 💥Config_jo-177
-  - DE 💥Config_jo-178
-  - DE 💥Config_jo-179
-  - DE 💥Config_jo-180
-  - DE 💥Config_jo-181
-  - DE 💥Config_jo-182
-  - DE 💥Config_jo-183
-  - NL 💥Config_jo-184
-  - N/A 💥Config_jo-185
-  - N/A 💥Config_jo-186
-  - N/A 💥Config_jo-187
-  - CLOUDFLARE 💥Config_jo-188
-  - IR 💥Config_jo-189
-  - CLOUDFLARE 💥Config_jo-190
-  - US 💥Config_jo-191
-  - FR 💥Config_jo-192
-  - FR 💥Config_jo-193
-  - TR 💥Config_jo-194
-  - TR 💥Config_jo-195
-  - CLOUDFLARE 💥Config_jo-196
-  - CLOUDFLARE 💥Config_jo-197
-  - GB 💥Config_jo-198
+  - CLOUDFLARE 💥Config_jo-159
+  - CLOUDFLARE 💥Config_jo-160
+  - CLOUDFLARE 💥Config_jo-161
+  - CLOUDFLARE 💥Config_jo-162
+  - CLOUDFLARE 💥Config_jo-163
+  - CLOUDFLARE 💥Config_jo-164
+  - CLOUDFLARE 💥Config_jo-165
+  - CLOUDFLARE 💥Config_jo-166
+  - CLOUDFLARE 💥Config_jo-167
+  - CLOUDFLARE 💥Config_jo-168
+  - CLOUDFLARE 💥Config_jo-169
+  - CLOUDFLARE 💥Config_jo-170
+  - CLOUDFLARE 💥Config_jo-171
+  - CLOUDFLARE 💥Config_jo-172
+  - CLOUDFLARE 💥Config_jo-173
+  - CLOUDFLARE 💥Config_jo-174
+  - CLOUDFLARE 💥Config_jo-175
+  - US 💥Config_jo-176
+  - US 💥Config_jo-177
+  - CLOUDFLARE 💥Config_jo-178
+  - CLOUDFLARE 💥Config_jo-179
+  - CLOUDFLARE 💥Config_jo-180
+  - FASTLY 💥Config_jo-181
+  - FASTLY 💥Config_jo-182
+  - FASTLY 💥Config_jo-183
+  - FASTLY 💥Config_jo-184
+  - FASTLY 💥Config_jo-185
+  - FASTLY 💥Config_jo-186
+  - FASTLY 💥Config_jo-187
+  - FASTLY 💥Config_jo-188
+  - DE 💥Config_jo-189
+  - US 💥Config_jo-190
+  - DE 💥Config_jo-191
+  - N/A 💥Config_jo-192
+  - N/A 💥Config_jo-193
+  - N/A 💥Config_jo-194
+  - DE 💥Config_jo-195
+  - NL 💥Config_jo-196
+  - DE 💥Config_jo-197
+  - IR 💥Config_jo-198
   - FASTLY 💥Config_jo-199
-  - FASTLY 💥Config_jo-200
-  - CA 💥Config_jo-201
-  - CLOUDFLARE 💥Config_jo-202
-  - US 💥Config_jo-203
+  - IL 💥Config_jo-200
+  - US 💥Config_jo-201
+  - DE 💥Config_jo-202
+  - SG 💥Config_jo-203
   - NL 💥Config_jo-204
-  - TR 💥Config_jo-205
-  - RU 💥Config_jo-206
-  - RU 💥Config_jo-207
-  - FI 💥Config_jo-208
-  - FI 💥Config_jo-209
-  - CLOUDFLARE 💥Config_jo-210
-  - TR 💥Config_jo-211
-  - FASTLY 💥Config_jo-212
-  - FASTLY 💥Config_jo-213
-  - FASTLY 💥Config_jo-214
-  - RU 💥Config_jo-215
-  - RU 💥Config_jo-216
-  - FASTLY 💥Config_jo-217
-  - FASTLY 💥Config_jo-218
-  - FASTLY 💥Config_jo-219
-  - FASTLY 💥Config_jo-220
-  - TR 💥Config_jo-221
-  - AE 💥Config_jo-222
-  - DE 💥Config_jo-223
-  - FR 💥Config_jo-224
-  - N/A 💥Config_jo-225
-  - US 💥Config_jo-226
-  - US 💥Config_jo-227
-  - N/A 💥Config_jo-228
-  - TR 💥Config_jo-229
-  - TR 💥Config_jo-230
-  - DE 💥Config_jo-231
-  - DE 💥Config_jo-232
-  - CLOUDFLARE 💥Config_jo-233
-  - SG 💥Config_jo-234
-  - N/A 💥Config_jo-235
-  - CLOUDFLARE 💥Config_jo-236
-  - GB 💥Config_jo-237
-  - SC 💥Config_jo-238
-  - PL 💥Config_jo-239
+  - NL 💥Config_jo-205
+  - N/A 💥Config_jo-206
+  - N/A 💥Config_jo-207
+  - N/A 💥Config_jo-208
+  - N/A 💥Config_jo-209
+  - N/A 💥Config_jo-210
+  - N/A 💥Config_jo-211
+  - N/A 💥Config_jo-212
+  - N/A 💥Config_jo-213
+  - N/A 💥Config_jo-214
+  - N/A 💥Config_jo-215
+  - N/A 💥Config_jo-216
+  - NL 💥Config_jo-217
+  - NL 💥Config_jo-218
+  - CLOUDFLARE 💥Config_jo-219
+  - CLOUDFLARE 💥Config_jo-220
+  - NL 💥Config_jo-221
+  - FR 💥Config_jo-222
+  - SE 💥Config_jo-223
+  - SE 💥Config_jo-224
+  - FASTLY 💥Config_jo-225
+  - FASTLY 💥Config_jo-226
+  - FI 💥Config_jo-227
+  - TR 💥Config_jo-228
+  - DE 💥Config_jo-229
+  - US 💥Config_jo-230
+  - FI 💥Config_jo-231
+  - GB 💥Config_jo-232
+  - FASTLY 💥Config_jo-233
+  - NL 💥Config_jo-234
+  - NL 💥Config_jo-235
+  - DE 💥Config_jo-236
+  - TR 💥Config_jo-237
+  - TR 💥Config_jo-238
+  - FI 💥Config_jo-239
   - DE 💥Config_jo-240
-  - DE 💥Config_jo-241
-  - US 💥Config_jo-242
-  - CLOUDFLARE 💥Config_jo-243
-  - CLOUDFLARE 💥Config_jo-244
-  - DE 💥Config_jo-245
-  - DE 💥Config_jo-246
-  - US 💥Config_jo-247
-  - PL 💥Config_jo-248
-  - NL 💥Config_jo-249
-  - NL 💥Config_jo-250
-  - CLOUDFLARE 💥Config_jo-251
-  - N/A 💥Config_jo-252
-  - FR 💥Config_jo-253
-  - FR 💥Config_jo-254
-  - FR 💥Config_jo-255
-  - FR 💥Config_jo-256
-  - GB 💥Config_jo-257
-  - LV 💥Config_jo-258
+  - TR 💥Config_jo-241
+  - CA 💥Config_jo-242
+  - FR 💥Config_jo-243
+  - FASTLY 💥Config_jo-244
+  - FASTLY 💥Config_jo-245
+  - FASTLY 💥Config_jo-246
+  - FASTLY 💥Config_jo-247
+  - FASTLY 💥Config_jo-248
+  - FASTLY 💥Config_jo-249
+  - FASTLY 💥Config_jo-250
+  - US 💥Config_jo-251
+  - NL 💥Config_jo-252
+  - RU 💥Config_jo-253
+  - RU 💥Config_jo-254
+  - DE 💥Config_jo-255
+  - CLOUDFLARE 💥Config_jo-256
+  - CLOUDFLARE 💥Config_jo-257
+  - CLOUDFLARE 💥Config_jo-258
   - RU 💥Config_jo-259
   - RU 💥Config_jo-260
-  - RU 💥Config_jo-261
-  - FASTLY 💥Config_jo-262
-  - IR 💥Config_jo-263
-  - FR 💥Config_jo-264
-  - IR 💥Config_jo-265
-  - CLOUDFLARE 💥Config_jo-266
-  - FR 💥Config_jo-267
-  - IQ 💥Config_jo-268
-  - IR 💥Config_jo-269
-  - FR 💥Config_jo-270
-  - ES 💥Config_jo-272
-  - US 💥Config_jo-273
-  - US 💥Config_jo-274
-  - IT 💥Config_jo-275
-  - US 💥Config_jo-276
-  - US 💥Config_jo-277
+  - US 💥Config_jo-261
+  - FI 💥Config_jo-262
+  - FASTLY 💥Config_jo-263
+  - FASTLY 💥Config_jo-264
+  - FASTLY 💥Config_jo-265
+  - US 💥Config_jo-266
+  - DE 💥Config_jo-267
+  - TR 💥Config_jo-268
+  - NL 💥Config_jo-269
+  - DE 💥Config_jo-270
+  - DE 💥Config_jo-271
+  - FR 💥Config_jo-272
+  - IR 💥Config_jo-273
+  - DE 💥Config_jo-274
+  - CLOUDFLARE 💥Config_jo-275
+  - NL 💥Config_jo-276
+  - CLOUDFLARE 💥Config_jo-277
+  - CLOUDFLARE 💥Config_jo-278
+  - GB 💥Config_jo-279
+  - SC 💥Config_jo-280
+  - SC 💥Config_jo-281
+  - NL 💥Config_jo-282
+  - FI 💥Config_jo-283
+  - PL 💥Config_jo-284
+  - IR 💥Config_jo-285
+  - DE 💥Config_jo-286
+  - US 💥Config_jo-287
+  - US 💥Config_jo-288
+  - FI 💥Config_jo-289
+  - DE 💥Config_jo-290
+  - PL 💥Config_jo-291
+  - NL 💥Config_jo-292
+  - NL 💥Config_jo-293
+  - CLOUDFLARE 💥Config_jo-294
+  - NL 💥Config_jo-295
+  - GB 💥Config_jo-296
+  - GB 💥Config_jo-297
+  - GB 💥Config_jo-298
+  - RU 💥Config_jo-299
+  - LV 💥Config_jo-300
+  - RU 💥Config_jo-301
+  - RU 💥Config_jo-302
+  - RU 💥Config_jo-303
+  - IR 💥Config_jo-304
+  - NL 💥Config_jo-305
+  - CLOUDFLARE 💥Config_jo-306
+  - BG 💥Config_jo-307
+  - FR 💥Config_jo-308
+  - CLOUDFLARE 💥Config_jo-309
+  - CLOUDFLARE 💥Config_jo-310
+  - GB 💥Config_jo-311
+  - GB 💥Config_jo-312
+  - ES 💥Config_jo-314
+  - ES 💥Config_jo-315
+  - US 💥Config_jo-316
+  - US 💥Config_jo-317
+  - DE 💥Config_jo-318
+  - IT 💥Config_jo-320
+  - US 💥Config_jo-321
+  - US 💥Config_jo-322
 - name: 💥 Best Ping 🚀
   type: url-test
   proxies:
-  - RO 💥Config_jo-01
-  - DE 💥Config_jo-02
-  - US 💥Config_jo-03
-  - DE 💥Config_jo-04
-  - IE 💥Config_jo-67
-  - SE 💥Config_jo-69
-  - NL 💥Config_jo-70
-  - ZA 💥Config_jo-71
-  - IE 💥Config_jo-73
-  - NL 💥Config_jo-74
-  - US 💥Config_jo-75
-  - SE 💥Config_jo-76
-  - DE 💥Config_jo-77
-  - CLOUDFLARE 💥Config_jo-130
-  - CLOUDFLARE 💥Config_jo-131
-  - FASTLY 💥Config_jo-132
-  - FASTLY 💥Config_jo-133
-  - FASTLY 💥Config_jo-134
-  - FASTLY 💥Config_jo-135
-  - FASTLY 💥Config_jo-136
-  - FASTLY 💥Config_jo-137
-  - FASTLY 💥Config_jo-138
-  - FASTLY 💥Config_jo-139
-  - FASTLY 💥Config_jo-140
-  - FASTLY 💥Config_jo-141
-  - CLOUDFLARE 💥Config_jo-142
-  - CLOUDFLARE 💥Config_jo-143
-  - CLOUDFLARE 💥Config_jo-144
-  - CLOUDFLARE 💥Config_jo-145
-  - CLOUDFLARE 💥Config_jo-146
-  - CLOUDFLARE 💥Config_jo-147
+  - US 💥Config_jo-01
+  - US 💥Config_jo-02
+  - TW 💥Config_jo-88
+  - IE 💥Config_jo-89
+  - CA 💥Config_jo-91
+  - SE 💥Config_jo-92
+  - NL 💥Config_jo-94
+  - US 💥Config_jo-95
+  - DE 💥Config_jo-96
   - CLOUDFLARE 💥Config_jo-148
   - CLOUDFLARE 💥Config_jo-149
   - CLOUDFLARE 💥Config_jo-150
-  - CLOUDFLARE 💥Config_jo-151
-  - CLOUDFLARE 💥Config_jo-152
-  - CLOUDFLARE 💥Config_jo-153
-  - CLOUDFLARE 💥Config_jo-154
-  - CLOUDFLARE 💥Config_jo-155
-  - CLOUDFLARE 💥Config_jo-156
-  - CLOUDFLARE 💥Config_jo-157
+  - US 💥Config_jo-151
+  - FASTLY 💥Config_jo-152
+  - FASTLY 💥Config_jo-153
+  - FASTLY 💥Config_jo-154
+  - FASTLY 💥Config_jo-155
+  - FASTLY 💥Config_jo-156
+  - FASTLY 💥Config_jo-157
   - FASTLY 💥Config_jo-158
-  - FASTLY 💥Config_jo-159
-  - FASTLY 💥Config_jo-160
-  - FASTLY 💥Config_jo-161
-  - FASTLY 💥Config_jo-162
-  - FASTLY 💥Config_jo-163
-  - FASTLY 💥Config_jo-164
-  - FASTLY 💥Config_jo-165
-  - CY 💥Config_jo-166
-  - NL 💥Config_jo-167
-  - IR 💥Config_jo-168
-  - US 💥Config_jo-169
-  - US 💥Config_jo-170
-  - DE 💥Config_jo-171
-  - NL 💥Config_jo-172
-  - IR 💥Config_jo-173
-  - DE 💥Config_jo-174
-  - FASTLY 💥Config_jo-175
-  - DE 💥Config_jo-176
-  - DE 💥Config_jo-177
-  - DE 💥Config_jo-178
-  - DE 💥Config_jo-179
-  - DE 💥Config_jo-180
-  - DE 💥Config_jo-181
-  - DE 💥Config_jo-182
-  - DE 💥Config_jo-183
-  - NL 💥Config_jo-184
-  - N/A 💥Config_jo-185
-  - N/A 💥Config_jo-186
-  - N/A 💥Config_jo-187
-  - CLOUDFLARE 💥Config_jo-188
-  - IR 💥Config_jo-189
-  - CLOUDFLARE 💥Config_jo-190
-  - US 💥Config_jo-191
-  - FR 💥Config_jo-192
-  - FR 💥Config_jo-193
-  - TR 💥Config_jo-194
-  - TR 💥Config_jo-195
-  - CLOUDFLARE 💥Config_jo-196
-  - CLOUDFLARE 💥Config_jo-197
-  - GB 💥Config_jo-198
+  - CLOUDFLARE 💥Config_jo-159
+  - CLOUDFLARE 💥Config_jo-160
+  - CLOUDFLARE 💥Config_jo-161
+  - CLOUDFLARE 💥Config_jo-162
+  - CLOUDFLARE 💥Config_jo-163
+  - CLOUDFLARE 💥Config_jo-164
+  - CLOUDFLARE 💥Config_jo-165
+  - CLOUDFLARE 💥Config_jo-166
+  - CLOUDFLARE 💥Config_jo-167
+  - CLOUDFLARE 💥Config_jo-168
+  - CLOUDFLARE 💥Config_jo-169
+  - CLOUDFLARE 💥Config_jo-170
+  - CLOUDFLARE 💥Config_jo-171
+  - CLOUDFLARE 💥Config_jo-172
+  - CLOUDFLARE 💥Config_jo-173
+  - CLOUDFLARE 💥Config_jo-174
+  - CLOUDFLARE 💥Config_jo-175
+  - US 💥Config_jo-176
+  - US 💥Config_jo-177
+  - CLOUDFLARE 💥Config_jo-178
+  - CLOUDFLARE 💥Config_jo-179
+  - CLOUDFLARE 💥Config_jo-180
+  - FASTLY 💥Config_jo-181
+  - FASTLY 💥Config_jo-182
+  - FASTLY 💥Config_jo-183
+  - FASTLY 💥Config_jo-184
+  - FASTLY 💥Config_jo-185
+  - FASTLY 💥Config_jo-186
+  - FASTLY 💥Config_jo-187
+  - FASTLY 💥Config_jo-188
+  - DE 💥Config_jo-189
+  - US 💥Config_jo-190
+  - DE 💥Config_jo-191
+  - N/A 💥Config_jo-192
+  - N/A 💥Config_jo-193
+  - N/A 💥Config_jo-194
+  - DE 💥Config_jo-195
+  - NL 💥Config_jo-196
+  - DE 💥Config_jo-197
+  - IR 💥Config_jo-198
   - FASTLY 💥Config_jo-199
-  - FASTLY 💥Config_jo-200
-  - CA 💥Config_jo-201
-  - CLOUDFLARE 💥Config_jo-202
-  - US 💥Config_jo-203
+  - IL 💥Config_jo-200
+  - US 💥Config_jo-201
+  - DE 💥Config_jo-202
+  - SG 💥Config_jo-203
   - NL 💥Config_jo-204
-  - TR 💥Config_jo-205
-  - RU 💥Config_jo-206
-  - RU 💥Config_jo-207
-  - FI 💥Config_jo-208
-  - FI 💥Config_jo-209
-  - CLOUDFLARE 💥Config_jo-210
-  - TR 💥Config_jo-211
-  - FASTLY 💥Config_jo-212
-  - FASTLY 💥Config_jo-213
-  - FASTLY 💥Config_jo-214
-  - RU 💥Config_jo-215
-  - RU 💥Config_jo-216
-  - FASTLY 💥Config_jo-217
-  - FASTLY 💥Config_jo-218
-  - FASTLY 💥Config_jo-219
-  - FASTLY 💥Config_jo-220
-  - TR 💥Config_jo-221
-  - AE 💥Config_jo-222
-  - DE 💥Config_jo-223
-  - FR 💥Config_jo-224
-  - N/A 💥Config_jo-225
-  - US 💥Config_jo-226
-  - US 💥Config_jo-227
-  - N/A 💥Config_jo-228
-  - TR 💥Config_jo-229
-  - TR 💥Config_jo-230
-  - DE 💥Config_jo-231
-  - DE 💥Config_jo-232
-  - CLOUDFLARE 💥Config_jo-233
-  - SG 💥Config_jo-234
-  - N/A 💥Config_jo-235
-  - CLOUDFLARE 💥Config_jo-236
-  - GB 💥Config_jo-237
-  - SC 💥Config_jo-238
-  - PL 💥Config_jo-239
+  - NL 💥Config_jo-205
+  - N/A 💥Config_jo-206
+  - N/A 💥Config_jo-207
+  - N/A 💥Config_jo-208
+  - N/A 💥Config_jo-209
+  - N/A 💥Config_jo-210
+  - N/A 💥Config_jo-211
+  - N/A 💥Config_jo-212
+  - N/A 💥Config_jo-213
+  - N/A 💥Config_jo-214
+  - N/A 💥Config_jo-215
+  - N/A 💥Config_jo-216
+  - NL 💥Config_jo-217
+  - NL 💥Config_jo-218
+  - CLOUDFLARE 💥Config_jo-219
+  - CLOUDFLARE 💥Config_jo-220
+  - NL 💥Config_jo-221
+  - FR 💥Config_jo-222
+  - SE 💥Config_jo-223
+  - SE 💥Config_jo-224
+  - FASTLY 💥Config_jo-225
+  - FASTLY 💥Config_jo-226
+  - FI 💥Config_jo-227
+  - TR 💥Config_jo-228
+  - DE 💥Config_jo-229
+  - US 💥Config_jo-230
+  - FI 💥Config_jo-231
+  - GB 💥Config_jo-232
+  - FASTLY 💥Config_jo-233
+  - NL 💥Config_jo-234
+  - NL 💥Config_jo-235
+  - DE 💥Config_jo-236
+  - TR 💥Config_jo-237
+  - TR 💥Config_jo-238
+  - FI 💥Config_jo-239
   - DE 💥Config_jo-240
-  - DE 💥Config_jo-241
-  - US 💥Config_jo-242
-  - CLOUDFLARE 💥Config_jo-243
-  - CLOUDFLARE 💥Config_jo-244
-  - DE 💥Config_jo-245
-  - DE 💥Config_jo-246
-  - US 💥Config_jo-247
-  - PL 💥Config_jo-248
-  - NL 💥Config_jo-249
-  - NL 💥Config_jo-250
-  - CLOUDFLARE 💥Config_jo-251
-  - N/A 💥Config_jo-252
-  - FR 💥Config_jo-253
-  - FR 💥Config_jo-254
-  - FR 💥Config_jo-255
-  - FR 💥Config_jo-256
-  - GB 💥Config_jo-257
-  - LV 💥Config_jo-258
+  - TR 💥Config_jo-241
+  - CA 💥Config_jo-242
+  - FR 💥Config_jo-243
+  - FASTLY 💥Config_jo-244
+  - FASTLY 💥Config_jo-245
+  - FASTLY 💥Config_jo-246
+  - FASTLY 💥Config_jo-247
+  - FASTLY 💥Config_jo-248
+  - FASTLY 💥Config_jo-249
+  - FASTLY 💥Config_jo-250
+  - US 💥Config_jo-251
+  - NL 💥Config_jo-252
+  - RU 💥Config_jo-253
+  - RU 💥Config_jo-254
+  - DE 💥Config_jo-255
+  - CLOUDFLARE 💥Config_jo-256
+  - CLOUDFLARE 💥Config_jo-257
+  - CLOUDFLARE 💥Config_jo-258
   - RU 💥Config_jo-259
   - RU 💥Config_jo-260
-  - RU 💥Config_jo-261
-  - FASTLY 💥Config_jo-262
-  - IR 💥Config_jo-263
-  - FR 💥Config_jo-264
-  - IR 💥Config_jo-265
-  - CLOUDFLARE 💥Config_jo-266
-  - FR 💥Config_jo-267
-  - IQ 💥Config_jo-268
-  - IR 💥Config_jo-269
-  - FR 💥Config_jo-270
-  - ES 💥Config_jo-272
-  - US 💥Config_jo-273
-  - US 💥Config_jo-274
-  - IT 💥Config_jo-275
-  - US 💥Config_jo-276
-  - US 💥Config_jo-277
+  - US 💥Config_jo-261
+  - FI 💥Config_jo-262
+  - FASTLY 💥Config_jo-263
+  - FASTLY 💥Config_jo-264
+  - FASTLY 💥Config_jo-265
+  - US 💥Config_jo-266
+  - DE 💥Config_jo-267
+  - TR 💥Config_jo-268
+  - NL 💥Config_jo-269
+  - DE 💥Config_jo-270
+  - DE 💥Config_jo-271
+  - FR 💥Config_jo-272
+  - IR 💥Config_jo-273
+  - DE 💥Config_jo-274
+  - CLOUDFLARE 💥Config_jo-275
+  - NL 💥Config_jo-276
+  - CLOUDFLARE 💥Config_jo-277
+  - CLOUDFLARE 💥Config_jo-278
+  - GB 💥Config_jo-279
+  - SC 💥Config_jo-280
+  - SC 💥Config_jo-281
+  - NL 💥Config_jo-282
+  - FI 💥Config_jo-283
+  - PL 💥Config_jo-284
+  - IR 💥Config_jo-285
+  - DE 💥Config_jo-286
+  - US 💥Config_jo-287
+  - US 💥Config_jo-288
+  - FI 💥Config_jo-289
+  - DE 💥Config_jo-290
+  - PL 💥Config_jo-291
+  - NL 💥Config_jo-292
+  - NL 💥Config_jo-293
+  - CLOUDFLARE 💥Config_jo-294
+  - NL 💥Config_jo-295
+  - GB 💥Config_jo-296
+  - GB 💥Config_jo-297
+  - GB 💥Config_jo-298
+  - RU 💥Config_jo-299
+  - LV 💥Config_jo-300
+  - RU 💥Config_jo-301
+  - RU 💥Config_jo-302
+  - RU 💥Config_jo-303
+  - IR 💥Config_jo-304
+  - NL 💥Config_jo-305
+  - CLOUDFLARE 💥Config_jo-306
+  - BG 💥Config_jo-307
+  - FR 💥Config_jo-308
+  - CLOUDFLARE 💥Config_jo-309
+  - CLOUDFLARE 💥Config_jo-310
+  - GB 💥Config_jo-311
+  - GB 💥Config_jo-312
+  - ES 💥Config_jo-314
+  - ES 💥Config_jo-315
+  - US 💥Config_jo-316
+  - US 💥Config_jo-317
+  - DE 💥Config_jo-318
+  - IT 💥Config_jo-320
+  - US 💥Config_jo-321
+  - US 💥Config_jo-322
   url: https://www.gstatic.com/generate_204
   interval: 30
   tolerance: 50
